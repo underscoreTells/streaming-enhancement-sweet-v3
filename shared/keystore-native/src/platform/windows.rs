@@ -21,6 +21,8 @@ impl KeystoreOperations for WindowsKeystore {
         
         let mut cred_blob = entry.value.as_bytes().to_vec();
         
+        let account_hstring = HSTRING::from(entry.account.as_str());
+        
         let credential = CREDENTIALW {
             Flags: CRED_FLAGS(0),
             Type: CRED_TYPE_GENERIC,
@@ -30,7 +32,7 @@ impl KeystoreOperations for WindowsKeystore {
             CredentialBlobSize: cred_blob.len() as u32,
             CredentialBlob: cred_blob.as_mut_ptr() as *mut u8,
             Persist: CRED_PERSIST::ENTERPRISE,
-            UserName: PCWSTR(HSTRING::from(entry.account.as_str()).as_ptr()),
+            UserName: PCWSTR(account_hstring.as_ptr()),
             Attributes: std::ptr::null_mut(),
             TargetAlias: PCWSTR::null(),
             ..Default::default()
