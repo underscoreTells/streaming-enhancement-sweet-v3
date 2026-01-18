@@ -2,9 +2,9 @@
 
 Native key storage for streaming-enhancement project using platform keystores:
 
-- **Windows**: Credential Manager
-- **macOS**: Keychain Services
-- **Linux**: Secret Service (via libsecret)
+- **Windows**: Credential Manager (via `windows-rs` v0.58)
+- **macOS**: Keychain Services (via `security-framework` v2.11)
+- **Linux**: Secret Service (via `keyring` v3.5)
 
 ## Installation
 
@@ -87,9 +87,24 @@ keystore.setPassword('service', 'account', 'value');
 
 ## Building
 
+This package requires the Rust toolchain to build.
+
+### Prerequisites
+- Rust 1.70 or later
+- Node.js 18 or later
+- C compiler (GCC/Clang for Linux, MSVC for Windows, Xcode for macOS)
+
+### Building for development
 ```bash
-npm install
-npm run build
+cargo build
+```
+
+### Building for release
+```bash
+cargo build --release
+cp target/release/libkeystore_native.so linux-x64/keystore_native.node  # Linux
+cp target/release/libkeystore_native.dylib darwin-x64/keystore_native.node  # macOS
+cp target/release/keystore_native.dll win32-x64/keystore_native.node  # Windows
 ```
 
 ## Testing
