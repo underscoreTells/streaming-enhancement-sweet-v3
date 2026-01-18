@@ -4,6 +4,7 @@
 Read these files for complete context:
 - @docs/WORKFLOW.md - AI-assisted development methodology and file structure
 - @docs/PLAN.md - Current feature being implemented
+- @docs/module-plans/module-server-daemon.md - Server daemon module details
 
 ## Tech Stack
 
