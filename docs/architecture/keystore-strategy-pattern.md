@@ -132,9 +132,9 @@ Each strategy delegates to the Rust native binding for secure operations.
 
 #### Rust Native Binding (@streaming-enhancement/keystore-native)
 Provides low-level access to OS keystores:
-- Windows: `windows-rs` crate → Credential Manager
-- macOS: `security-framework` crate → Keychain
-- Linux: `libsecret-sys` crate → Secret Service
+- Windows: `windows-rs` crate (v0.58) → Credential Manager
+- macOS: `security-framework` crate (v2.11) → Keychain
+- Linux: `keyring` crate (v3.5) → Secret Service (better API compatibility than libsecret-sys)
 
 ## Security Considerations
 
@@ -156,10 +156,11 @@ Provides low-level access to OS keystores:
 - **Threat model**: Protected against local and remote attackers (unless login password compromised)
 
 #### Linux Secret Service
-- Uses Gnome Keyring or KDE Wallet
+- Uses Gnome Keyring or KDE Wallet via `keyring` crate
 - Encrypted with master password
 - Session-locked by default
 - Integrates with system keyring manager
+- Pattern matching on `keyring::Error::NoEntry` for reliable error detection
 - **Threat model**: Protected against local attackers when keyring locked
 
 ### Encrypted File Fallback (Limited Security)
