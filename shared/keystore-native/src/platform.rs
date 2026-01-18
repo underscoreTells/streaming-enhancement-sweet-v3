@@ -18,12 +18,6 @@ mod fallback;
 #[cfg(all(test, any(windows, target_os = "macos", target_os = "linux")))]
 mod fallback;
 
-#[napi(object)]
-pub struct NapiKeystoreError {
-    pub code: String,
-    pub message: String,
-}
-
 impl From<KeystoreError> for Error {
     fn from(err: KeystoreError) -> Self {
         let code = match err {
@@ -36,24 +30,6 @@ impl From<KeystoreError> for Error {
         };
         
         Error::new(napi::Status::GenericFailure, format!("{}: {}", code, err))
-    }
-}
-
-impl From<KeystoreError> for NapiKeystoreError {
-    fn from(err: KeystoreError) -> Self {
-        let code = match err {
-            KeystoreError::PlatformNotSupported => "ERR_PLATFORM_NOT_SUPPORTED",
-            KeystoreError::KeyNotFound(_) => "ERR_KEY_NOT_FOUND",
-            KeystoreError::AccessDenied(_) => "ERR_ACCESS_DENIED",
-            KeystoreError::Io(_) => "ERR_IO",
-            KeystoreError::Serialization(_) => "ERR_SERIALIZATION",
-            KeystoreError::Platform(_) => "ERR_PLATFORM",
-        };
-        
-        NapiKeystoreError {
-            code: code.to_string(),
-            message: err.to_string(),
-        }
     }
 }
 

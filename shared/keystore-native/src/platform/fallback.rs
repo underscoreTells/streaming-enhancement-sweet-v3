@@ -135,7 +135,8 @@ impl FallbackKeystore {
             let cipher = Aes256Gcm::new(&self.key);
             if let Ok(decrypted) = cipher.decrypt(Nonce::from_slice(&entry.nonce), entry.ciphertext.as_ref()) {
                 if let Ok(plaintext) = String::from_utf8(decrypted) {
-                    if plaintext.starts_with(&format!("{}:{}", service, account)) {
+                    let parts: Vec<&str> = plaintext.splitn(3, ':').collect();
+                    if parts.len() == 3 && parts[0] == service && parts[1] == account {
                         return Some(i);
                     }
                 }

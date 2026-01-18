@@ -38,7 +38,10 @@
   ],
   "files": [
     "index.d.ts",
-    "index.js"
+    "index.js",
+    "linux-*/",
+    "darwin-*/",
+    "win32-*/"
   ],
   "engines": {
     "node": ">=18"

@@ -65,7 +65,15 @@ impl KeystoreOperations for LinuxKeystore {
     }
     
     fn is_available(&self) -> bool {
-        true
+        match keyring::Entry::new("keystore-availability-test", "test-availability") {
+            Ok(entry) => {
+                match entry.get_password() {
+                    Ok(_) | Err(keyring::Error::NoEntry) => true,
+                    Err(_) => false,
+                }
+            },
+            Err(_) => false,
+        }
     }
 }
 

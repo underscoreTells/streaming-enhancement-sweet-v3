@@ -96,11 +96,12 @@ packages/
   - AES-256-GCM encryption
   - Platform-specific key storage paths
   - Key generation and management
-- [x] Write unit tests for each platform (22 tests total)
-  - Windows: 9 tests
-  - macOS: 9 tests
-  - Linux: 9 tests (with conditional skip when Secret Service unavailable)
-  - Fallback: 13 tests (including encryption verification and persistence)
+- [x] Write unit tests for each platform (22 tests run per platform; 40 total across all modules)
+  - Windows: 9 platform-specific tests
+  - macOS: 9 platform-specific tests
+  - Linux: 9 platform-specific tests (with conditional skip when Secret Service unavailable)
+  - Fallback: 13 tests (encryption verification, persistence, prefix collision handling; runs on all platforms)
+  - Per-platform run: 9 platform-specific + 13 fallback = 22 tests
 - [x] Configure `build.rs` for conditional compilation
 - [ ] Package and publish to npm (or build into monorepo)
   - Requires npm for TypeScript generation
@@ -443,8 +444,8 @@ packages/
 ## Dependencies
 
 ### Rust (packages/keystore-native/)
-- `napi` v3.8.2 - Node.js bindings framework
-- `napi-derive` v3.5.1 - Macro for deriving bindings
+- `napi` v3.0.0-alpha.0 - Node.js bindings framework
+- `napi-derive` v3.0.0-alpha.0 - Macro for deriving bindings
 - `serde` v1.0 - Serialization
 - `serde_json` v1.0 - JSON handling
 - `thiserror` v1.0 - Error handling

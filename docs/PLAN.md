@@ -38,7 +38,7 @@ All tasks complete:
 - [ ] Implement `KeystoreManager` with platform detection
 
 ### Dependencies
-- Rust: `napi`, `napi-derive`, `serde`, `windows-rs` (Windows), `security-framework` (macOS), `libsecret-sys` (Linux)
+- Rust: `napi`, `napi-derive`, `serde`, `windows-rs` (Windows), `security-framework` (macOS), `keyring` (Linux)
 
 ### Notes
 - This feature is a prerequisite for Twitch, Kick, and YouTube platform strategies

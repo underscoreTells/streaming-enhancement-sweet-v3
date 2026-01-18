@@ -74,10 +74,12 @@ impl KeystoreOperations for WindowsKeystore {
             let blob_ptr = credential.CredentialBlob;
             
             let blob_slice = std::slice::from_raw_parts(blob_ptr, blob_len);
-            let password = String::from_utf8(blob_slice.to_vec())
-                .map_err(|e| KeystoreError::Serialization(e.to_string()))?;
+            let blob_vec = blob_slice.to_vec();
             
             CredFree(credential_ptr as *const _);
+            
+            let password = String::from_utf8(blob_vec)
+                .map_err(|e| KeystoreError::Serialization(e.to_string()))?;
             
             Ok(password)
         }

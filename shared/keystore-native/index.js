@@ -22,7 +22,7 @@ try {
   const nativePath = path.join(__dirname, platformDir, 'keystore_native.node');
   nativeModule = require(nativePath);
 } catch (err) {
-  throw new Error(`Failed to load native keystore module: ${err.message}\nMake sure to run the install script: npm run install`);
+  throw new Error(`Failed to load native keystore module: ${err.message}\nRun \`npm install\` for prebuilt binaries or \`npm run build\` to compile from source`);
 }
 
 module.exports = nativeModule;

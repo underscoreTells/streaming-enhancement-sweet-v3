@@ -86,6 +86,19 @@ project-root/
 - SvelteKit conventions for routing
 - ESLint + Prettier
 
+### Logging (All Components)
+- **Never use emojis** in log messages, console.log, console.error, or any logging output
+- Use plain text only for logs
+- Log messages should be clear, concise, and machine-readable
+- Use standard log levels (error, warn, info, debug)
+- For warnings: use "WARNING:" prefix instead of emoji
+- For errors: use standard error codes/messages instead of emoji indicators
+- Examples:
+  - Bad: `console.log('✅ Task complete')`
+  - Good: `console.log('Task complete')`
+  - Bad: `console.warn('⚠️  Warning: file not found')`
+  - Good: `console.warn('WARNING: file not found')`
+
 ## Module Communication
 
 ### Interfaces
