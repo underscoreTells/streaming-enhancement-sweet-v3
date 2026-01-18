@@ -13,37 +13,35 @@ impl LinuxKeystore {
 impl KeystoreOperations for LinuxKeystore {
     fn set_password(&self, entry: &KeystoreEntry) -> Result<(), KeystoreError> {
         keyring::Entry::new(&entry.service, &entry.account)
-            .map_err(|e| KeystoreError::Platform(format!("Failed to create entry: {}", e)))?
+            .map_err(|e| {
+                match e {
+                    keyring::Error::NoEntry => KeystoreError::KeyNotFound(format!("{}:{}", entry.service, entry.account)),
+                    _ => KeystoreError::Platform(format!("Failed to create entry: {}", e)),
+                }
+            })?
             .set_password(&entry.value)
-            .map_err(|e| KeystoreError::Platform(format!("Failed to set password: {}", e)))
+            .map_err(|e| {
+                match e {
+                    keyring::Error::NoEntry => KeystoreError::KeyNotFound(format!("{}:{}", entry.service, entry.account)),
+                    _ => KeystoreError::Platform(format!("Failed to set password: {}", e)),
+                }
+            })
     }
     
     fn get_password(&self, service: &str, account: &str) -> Result<String, KeystoreError> {
         let entry = keyring::Entry::new(service, account)
             .map_err(|e| {
-                let err_str = format!("{:?}", e);
-                let err_msg = format!("{}", e);
-                if err_str.contains("No password found") 
-                    || err_str.contains("Entry not found")
-                    || err_msg.contains("No matching entry found")
-                    || err_msg.contains("Entry not found") {
-                    KeystoreError::KeyNotFound(format!("{}:{}", service, account))
-                } else {
-                    KeystoreError::Platform(format!("Failed to create entry: {}", e))
+                match e {
+                    keyring::Error::NoEntry => KeystoreError::KeyNotFound(format!("{}:{}", service, account)),
+                    _ => KeystoreError::Platform(format!("Failed to create entry: {}", e)),
                 }
             })?;
         
         entry.get_password()
             .map_err(|e| {
-                let err_str = format!("{:?}", e);
-                let err_msg = format!("{}", e);
-                if err_str.contains("No password found") 
-                    || err_str.contains("Entry not found")
-                    || err_msg.contains("No matching entry found")
-                    || err_msg.contains("Entry not found") {
-                    KeystoreError::KeyNotFound(format!("{}:{}", service, account))
-                } else {
-                    KeystoreError::Platform(format!("Failed to get password: {}", e))
+                match e {
+                    keyring::Error::NoEntry => KeystoreError::KeyNotFound(format!("{}:{}", service, account)),
+                    _ => KeystoreError::Platform(format!("Failed to get password: {}", e)),
                 }
             })
     }
@@ -51,29 +49,17 @@ impl KeystoreOperations for LinuxKeystore {
     fn delete_password(&self, service: &str, account: &str) -> Result<(), KeystoreError> {
         let entry = keyring::Entry::new(service, account)
             .map_err(|e| {
-                let err_str = format!("{:?}", e);
-                let err_msg = format!("{}", e);
-                if err_str.contains("No password found") 
-                    || err_str.contains("Entry not found")
-                    || err_msg.contains("No matching entry found")
-                    || err_msg.contains("Entry not found") {
-                    KeystoreError::KeyNotFound(format!("{}:{}", service, account))
-                } else {
-                    KeystoreError::Platform(format!("Failed to create entry: {}", e))
+                match e {
+                    keyring::Error::NoEntry => KeystoreError::KeyNotFound(format!("{}:{}", service, account)),
+                    _ => KeystoreError::Platform(format!("Failed to create entry: {}", e)),
                 }
             })?;
         
         entry.delete_credential()
             .map_err(|e| {
-                let err_str = format!("{:?}", e);
-                let err_msg = format!("{}", e);
-                if err_str.contains("No password found") 
-                    || err_str.contains("Entry not found")
-                    || err_msg.contains("No matching entry found")
-                    || err_msg.contains("Entry not found") {
-                    KeystoreError::KeyNotFound(format!("{}:{}", service, account))
-                } else {
-                    KeystoreError::Platform(format!("Failed to delete password: {}", e))
+                match e {
+                    keyring::Error::NoEntry => KeystoreError::KeyNotFound(format!("{}:{}", service, account)),
+                    _ => KeystoreError::Platform(format!("Failed to delete password: {}", e)),
                 }
             })
     }
