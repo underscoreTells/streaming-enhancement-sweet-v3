@@ -1,6 +1,6 @@
+# Rust build artifacts
 target/
-*.node
-index.js
-index.d.ts
+
+# Logs
 *.log
 .DS_Store
