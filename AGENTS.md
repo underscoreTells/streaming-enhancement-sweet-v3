@@ -5,14 +5,30 @@ Read these files for complete context:
 - @docs/WORKFLOW.md - AI-assisted development methodology and file structure
 - @docs/PLAN.md - Current feature being implemented
 - @docs/module-plans/module-server-daemon.md - Server daemon module details
+- @docs/feature-plans/oauth-flow-keystore.md - OAuth flow & keystore implementation plan
+
+### Documentation Structure
+```
+docs/
+├── module-plans/          # Module overviews & feature tracking
+├── feature-plans/         # Detailed feature implementation plans
+├── architecture/          # Technical deep-dives & design decisions
+├── tests/                 # Test plans
+├── api/                   # API documentation
+├── archive/               # Completed modules & features
+├── PLAN.md                # Current feature (focus tracking)
+└── WORKFLOW.md            # Development methodology
+```
 
 ## Tech Stack
 
 ### Server Daemon
 - Language: TypeScript (Node.js)
 - Framework: Express + WebSocket
-- Architecture: Event-driven
-- Purpose: Core server providing streaming data, API for CLI/Web clients
+- Architecture: Event-driven, Strategy Pattern for platforms
+- Database: SQLite (better-sqlite3)
+- Scripting: JS/TS sandboxing (Node.js-based)
+- Purpose: Core daemon managing streaming platforms, integrations, analytics storage
 
 ### CLI
 - Language: Go
@@ -22,12 +38,22 @@ Read these files for complete context:
 
 ### Web UI
 - Language/Framework: Svelte (latest)
-- Purpose: Web interface for managing server-daemon and viewing streams
+- Purpose: Web interface for managing server-daemon, viewing analytics, managing integrations
+
+### Integration Layer
+- OBS WebSocket: OBS Studio integration via obs-websocket-js
+- TTS: Local text-to-speech service
 
 ## Project Structure
 ```
 project-root/
-├── server-daemon/      # TypeScript server (Express + WS)
+├── server-daemon/      # TypeScript daemon (Express + WS + SQLite)
+│   ├── controllers/    # HTTP/WebSocket handlers
+│   ├── services/       # Business logic (Obs, Tts, StreamEvent, etc.)
+│   ├── platforms/      # Unified strategy facades (Twitch, Kick, YouTube)
+│   └── infrastructure/ # Server setup, database, config, logging
+├── shared/             # Shared code across components
+│   └── models/         # Unified data types (Stream, User, Chat, Event)
 ├── cli/                # Go CLI (Cobra)
 ├── web-ui/             # Svelte web interface
 ├── docs/               # Documentation
@@ -43,7 +69,9 @@ project-root/
 - ESLint + Prettier for code formatting
 - Async/await for asynchronous operations
 - Type annotation for all functions
-- Controllers/Services/Repositories/Infrastructure separation
+- Controllers/Services/Platforms/Infrastructure separation
+- Strategy Pattern for platform implementations (each in `platforms/`)
+- Unified data models in `shared/models/`
 
 ### Go (CLI)
 - Standard Go formatting (`go fmt`)
@@ -63,29 +91,45 @@ project-root/
 ### Interfaces
 - **CLI ↔ Server**: HTTP/WebSocket API (port TBD)
 - **Web UI ↔ Server**: HTTP/WebSocket API (port TBD)
-- **Server → Twitch/Kick**: OAuth + REST API
+- **Server → Twitch/Kick/YouTube**: OAuth + REST API + Websockets
+- **Server ↔ OBS**: WebSocket (obs-websocket-js)
 
 ### Data Flow
 1. CLI/Web client sends requests to server-daemon
-2. Server-daemon communicates with Twitch/Kick APIs via OAuth
-3. Server-daemon broadcasts stream data to connected clients via WebSocket
-4. CLI displays stream information, Web UI shows dashboard
+2. Server-daemon communicates with Twitch/Kick/YouTube APIs via OAuth (using platform strategies)
+3. Server-daemon stores polling data in SQLite for analytics
+4. Server-daemon broadcasts stream data to connected clients via WebSocket
+5. CLI displays stream information, Web UI computes and shows analytics
+6. Integations (OBS, TTS) run as daemon services
 
 ## OAuth Integration
 - Twitch API: OAuth 2.0 with access tokens
 - Kick API: OAuth 2.0 with access tokens
+- YouTube API: OAuth 2.0 with access tokens
 - Users register apps in their dev consoles
-- Tokens stored securely in local configuration
+- **Tokens stored** in native OS keystores (Windows Credential Manager, macOS Keychain, Linux Secret Service)
+- **Keystore fallback**: Encrypted file (AES-256-GCM) when native unavailable
+- **See**: @docs/architecture/keystore-strategy-pattern.md for architecture
+
+## Platform-Specific Requirements
+
+### File Paths & Directories
+When documenting file/directory locations, specify paths for all supported platforms:
+- Windows: Using environment variables (%APPDATA%, %LOCALAPPDATA%)
+- macOS: Using ~/Library/ paths
+- Linux: Using XDG Base Directory spec paths (~/.config, ~/.local/share)
 
 ## Development Guidelines
 
-### Server Daemon (Option C Structure)
+### Server Daemon Structure
 ```
 server-daemon/
 ├── controllers/       # HTTP/WebSocket request handlers
-├── services/          # Business logic, stream processing, event management
-├── repositories/      # External API interactions (Twitch, Kick)
-└── infrastructure/    # Server setup, OAuth, configuration, logging
+├── services/          # Business logic (StreamEventService, ObsService, TtsService)
+├── platforms/         # Unified strategy facades (TwitchStrategy, KickStrategy, YouTubeStrategy)
+└── infrastructure/    # Server setup, database (SQLite), OAuth, config, logging
+
+shared/models/         # Unified data types for cross-platform consistency
 ```
 
 ### CLI Structure

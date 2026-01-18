@@ -1,13 +1,18 @@
 # Module: server-daemon
 
 ## Overview
-Node.js + TypeScript server providing streaming data, OAuth handling, and API for CLI/Web clients. Event-driven architecture.
+Node.js + TypeScript server providing streaming data, analytics persistence, OAuth handling, and API for CLI/Web clients. Event-driven architecture with strategy pattern for multi-platform support.
 
-## Structure (Option C - By Layer)
-- **controllers/**: HTTP/WebSocket request handlers
-- **services/**: Business logic, stream processing, event management
-- **repositories/**: External API interactions (Twitch, Kick)
-- **infrastructure/**: Server setup, OAuth, configuration, logging
+## Structure
+```
+server-daemon/
+├── controllers/       # HTTP/WebSocket request handlers
+├── services/          # Business logic (StreamEvent, Obs, Tts, CommandExecution)
+├── platforms/         # Unified strategy facades (Twitch, Kick, YouTube)
+└── infrastructure/    # Server setup, database (SQLite), config, logging
+
+shared/models/         # Unified data types (Stream, User, Chat, Event)
+```
 
 ## Interfaces & Classes
 
@@ -17,34 +22,80 @@ Node.js + TypeScript server providing streaming data, OAuth handling, and API fo
 - `ConfigController`: CLI/Web client config management
 
 ### Services
-- `StreamService`: Core stream data processing
-- `OAuthService`: OAuth flow management
-- `EventEmitterService`: Pub/sub for clients
+- `StreamEventService`: Core stream event processing and aggregation
+- `ObsService`: OBS WebSocket integration (scene switching, source control)
+- `TtsService`: Local text-to-speech service
+- `CommandExecutionService`: Sandboxed JS/TS !command execution (future)
 
-### Repositories
-- `TwitchRepository`: Twitch API wrapper
-- `KickRepository`: Kick API wrapper
+### Platforms (Strategy Pattern)
+Each platform provides a unified facade that handles API calls, OAuth, WebSocket connections, and data translation internally:
+
+- `TwitchStrategy`: Complete Twitch integration (REST API + WebSocket + data normalization)
+- `KickStrategy`: Complete Kick integration (REST API + WebSocket + data normalization)
+- `YouTubeStrategy`: Complete YouTube integration (REST API + WebSocket + data normalization)
 
 ### Infrastructure
 - `Server`: HTTP/WebSocket server setup
-- `ConfigManager`: Configuration handling
+- `Database`: SQLite connection and operations (better-sqlite3)
+- `ConfigManager`: Configuration handling (OAuth tokens, settings)
 - `Logger`: Structured logging
+- `OAuthServer`: Temporary HTTP server for local OAuth callback handling (serves simple "Ok" page)
 
 ## Features List
-- [ ] Feature: OAuth flow setup (Twitch + Kick)
-- [ ] Feature: Twitch API integration
-- [ ] Feature: Kick API integration
-- [ ] Feature: Stream data aggregation
-- [ ] Feature: WebSocket event broadcasting
-- [ ] Feature: CLI client API
-- [ ] Feature: Web UI API
 
-## Dependencies
-- Depends on: [external libs/APIs]
-- Needed by: CLI module, Web UI module
+### Core Platform Support
+- [ ] Feature: Twitch platform strategy (OAuth + API + data translation)
+- [ ] Feature: Kick platform strategy (OAuth + API + data translation)
+- [ ] Feature: YouTube platform strategy (OAuth + API + data translation)
+
+### Infrastructure
+- [ ] Feature: OAuth flow and secure keystore abstraction
+  - **Implementation**: @docs/feature-plans/oauth-flow-keystore.md
+  - **Tests**: @tests/keystore-tests.md
+  - **API**: @api/oauth-endpoints.md
+- [ ] Feature: SQLite persistence layer (schema, migrations, operations)
+- [ ] Feature: Shared data models (normalized Stream, User, Chat, Event types)
+- [ ] Feature: Basic HTTP endpoints (health, config, stream queries)
+
+### Real-time Communication
+- [ ] Feature: WebSocket event broadcasting (client registrations and subscriptions)
+- [ ] Feature: Stream event aggregation and forwarding
+- [ ] Feature: Platform WebSocket connections (Twitch, Kick, YouTube for real-time data)
+
+### Integrations (Services)
+- [ ] Feature: OBS WebSocket integration (ObsService)
+- [ ] Feature: Local TTS integration (TtsService)
+- [ ] Feature: Sandboxed !command execution (CommandExecutionService)
+
+### Analytics Data Collection
+- [ ] Feature: API polling system (Twitch + Kick + YouTube)
+- [ ] Feature: Data storage in SQLite (raw data points)
+- [ ] Feature: Client API for analytics queries
 
 ## Design Decisions
-- [Decisions made during development]
+
+- **Platform Architecture**: Strategy pattern - each platform has one unified facade (`TwitchStrategy`, `KickStrategy`, `YouTubeStrategy`) that internally handles API calls, OAuth, WebSocket connections, and data translation. External services only interact with the unified interface.
+
+- **Data Models**: Shared normalized types in `shared/models/` (Stream, User, Chat, Event, etc.) for cross-platform consistency. Each platform strategy translates platform-specific responses to these unified types.
+
+- **Database**: SQLite (better-sqlite3) for local analytics data persistence. Suitable for single-user local application, no external DB dependencies.
+
+- **Analytics Approach**: Poll APIs periodically → Store raw data points in SQLite → UI layer computes analytics (most engaged chatters, viewer retention, user LTV, etc.) on demand.
+
+- **Sandboxed Execution**: JS/TS sandboxing via Node.js for !commands. No custom script interpreters - use existing Node.js runtime with sandboxing.
+
+- **Integrations**: OBS, TTS, and other integrations run as services in the daemon process. Decoupled from main streaming logic but same process for simplicity.
+
+- **Multi-Strategy Support**: Daemon can instantiate multiple platform strategies simultaneously (e.g., `new TwitchStrategy()`, `new KickStrategy()`) for cross-platform monitoring.
+
+- **OAuth Flow**: OAuth is handled locally. Each platform strategy starts a short-lived HTTP server to handle OAuth callbacks. The server serves a basic HTML page at the redirect URL with an "Ok" button that the user can click to confirm the callback was received. Access tokens are stored securely in native OS keystores (Windows Credential Manager, macOS Keychain, Linux Secret Service) with encrypted file fallback. See @docs/feature-plans/oauth-flow-keystore.md for implementation details.
+
+- **Client Event Registration**: Clients (CLI, Web UI) register with the daemon via WebSocket to receive real-time stream events, chat messages, and platform-specific updates. The daemon maintains a registry of connected clients and broadcasts events to relevant subscribers.
+
+## Dependencies
+- **External Libraries**: Express, ws (WebSocket), better-sqlite3, obs-websocket-js
+- **External APIs**: Twitch API, Kick API, YouTube API
+- **Needed by**: CLI module, Web UI module
 
 ## Completion Date
 [Date when fully implemented]
