@@ -15,6 +15,9 @@ mod linux;
 #[cfg(not(any(windows, target_os = "macos", target_os = "linux")))]
 mod fallback;
 
+#[cfg(all(test, any(windows, target_os = "macos", target_os = "linux")))]
+mod fallback;
+
 #[napi(object)]
 pub struct NapiKeystoreError {
     pub code: String,
@@ -78,31 +81,115 @@ pub struct NapiKeystore {
     inner: Box<dyn KeystoreOperations + Send + Sync>,
 }
 
+#[cfg(windows)]
 #[napi]
 impl NapiKeystore {
     #[napi(constructor)]
-    #[cfg(windows)]
     pub fn new() -> Result<Self, Error> {
         let inner = Box::new(windows::WindowsKeystore::new()?) as Box<dyn KeystoreOperations + Send + Sync>;
         Ok(Self { inner })
     }
     
+    #[napi]
+    pub fn set_password(&self, service: String, account: String, value: String) -> Result<(), Error> {
+        let entry = KeystoreEntry {
+            service: service.clone(),
+            account: account.clone(),
+            value,
+        };
+        Ok(self.inner.set_password(&entry)?)
+    }
+    
+    #[napi]
+    pub fn get_password(&self, service: String, account: String) -> Result<String, Error> {
+        Ok(self.inner.get_password(&service, &account)?)
+    }
+    
+    #[napi]
+    pub fn delete_password(&self, service: String, account: String) -> Result<(), Error> {
+        Ok(self.inner.delete_password(&service, &account)?)
+    }
+    
+    #[napi]
+    pub fn is_available(&self) -> bool {
+        self.inner.is_available()
+    }
+}
+
+#[cfg(target_os = "macos")]
+#[napi]
+impl NapiKeystore {
     #[napi(constructor)]
-    #[cfg(target_os = "macos")]
     pub fn new() -> Result<Self, Error> {
         let inner = Box::new(macos::MacOsKeystore::new()?) as Box<dyn KeystoreOperations + Send + Sync>;
         Ok(Self { inner })
     }
     
+    #[napi]
+    pub fn set_password(&self, service: String, account: String, value: String) -> Result<(), Error> {
+        let entry = KeystoreEntry {
+            service: service.clone(),
+            account: account.clone(),
+            value,
+        };
+        Ok(self.inner.set_password(&entry)?)
+    }
+    
+    #[napi]
+    pub fn get_password(&self, service: String, account: String) -> Result<String, Error> {
+        Ok(self.inner.get_password(&service, &account)?)
+    }
+    
+    #[napi]
+    pub fn delete_password(&self, service: String, account: String) -> Result<(), Error> {
+        Ok(self.inner.delete_password(&service, &account)?)
+    }
+    
+    #[napi]
+    pub fn is_available(&self) -> bool {
+        self.inner.is_available()
+    }
+}
+
+#[cfg(target_os = "linux")]
+#[napi]
+impl NapiKeystore {
     #[napi(constructor)]
-    #[cfg(target_os = "linux")]
     pub fn new() -> Result<Self, Error> {
         let inner = Box::new(linux::LinuxKeystore::new()?) as Box<dyn KeystoreOperations + Send + Sync>;
         Ok(Self { inner })
     }
     
+    #[napi]
+    pub fn set_password(&self, service: String, account: String, value: String) -> Result<(), Error> {
+        let entry = KeystoreEntry {
+            service: service.clone(),
+            account: account.clone(),
+            value,
+        };
+        Ok(self.inner.set_password(&entry)?)
+    }
+    
+    #[napi]
+    pub fn get_password(&self, service: String, account: String) -> Result<String, Error> {
+        Ok(self.inner.get_password(&service, &account)?)
+    }
+    
+    #[napi]
+    pub fn delete_password(&self, service: String, account: String) -> Result<(), Error> {
+        Ok(self.inner.delete_password(&service, &account)?)
+    }
+    
+    #[napi]
+    pub fn is_available(&self) -> bool {
+        self.inner.is_available()
+    }
+}
+
+#[cfg(not(any(windows, target_os = "macos", target_os = "linux")))]
+#[napi]
+impl NapiKeystore {
     #[napi(constructor)]
-    #[cfg(not(any(windows, target_os = "macos", target_os = "linux")))]
     pub fn new() -> Result<Self, Error> {
         let inner = Box::new(fallback::FallbackKeystore::new()?) as Box<dyn KeystoreOperations + Send + Sync>;
         Ok(Self { inner })

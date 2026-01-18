@@ -1,15 +1,14 @@
-use super::error::KeystoreError;
-use super::KeystoreEntry;
+use crate::error::KeystoreError;
+use crate::KeystoreEntry;
 use super::KeystoreOperations;
 
 use std::fs;
 use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 use aes_gcm::{
-    aead::{Aead, KeyInit, OsRng},
+    aead::{Aead, KeyInit, OsRng, AeadCore},
     Aes256Gcm, Key, Nonce,
 };
-use sha2::{Sha256, Digest};
 
 const KEY_SIZE: usize = 32;
 const NONCE_SIZE: usize = 12;
@@ -40,7 +39,7 @@ impl FallbackKeystore {
     }
     
     fn get_file_path() -> PathBuf {
-        let mut path = if cfg!(target_os = "windows") {
+        let path = if cfg!(target_os = "windows") {
             let appdata = std::env::var("LOCALAPPDATA").unwrap_or_else(|_| ".".to_string());
             PathBuf::from(appdata).join("streaming-enhancement")
         } else if cfg!(target_os = "macos") {
@@ -82,21 +81,16 @@ impl FallbackKeystore {
         let key = Aes256Gcm::generate_key(&mut OsRng);
         
         let parent_dir = key_file.parent().unwrap();
-        fs::create_dir_all(parent_dir)
-            .map_err(|e| KeystoreError::Io(e))?;
+        fs::create_dir_all(parent_dir)?;
         
-        fs::write(&key_file, key.as_slice())
-            .map_err(|e| KeystoreError::Io(e))?;
+        fs::write(&key_file, key.as_slice())?;
         
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
-            let mut perms = fs::metadata(&key_file)
-                .map_err(|e| KeystoreError::Io(e))?
-                .permissions();
+            let mut perms = fs::metadata(&key_file)?.permissions();
             perms.set_mode(0o600);
-            fs::set_permissions(&key_file, perms)
-                .map_err(|e| KeystoreError::Io(e))?;
+            fs::set_permissions(&key_file, perms)?;
         }
         
         Ok(key)
@@ -119,21 +113,16 @@ impl FallbackKeystore {
             .map_err(|e| KeystoreError::Serialization(e.to_string()))?;
         
         let parent_dir = self.file_path.parent().unwrap();
-        fs::create_dir_all(parent_dir)
-            .map_err(|e| KeystoreError::Io(e))?;
+        fs::create_dir_all(parent_dir)?;
         
-        fs::write(&self.file_path, json)
-            .map_err(|e| KeystoreError::Io)?;
+        fs::write(&self.file_path, json)?;
         
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
-            let mut perms = fs::metadata(&self.file_path)
-                .map_err(|e| KeystoreError::Io(e))?
-                .permissions();
+            let mut perms = fs::metadata(&self.file_path)?.permissions();
             perms.set_mode(0o600);
-            fs::set_permissions(&self.file_path, perms)
-                .map_err(|e| KeystoreError::Io(e))?;
+            fs::set_permissions(&self.file_path, perms)?;
         }
         
         Ok(())
@@ -170,7 +159,7 @@ impl KeystoreOperations for FallbackKeystore {
             .map_err(|e| KeystoreError::Platform(format!("Encryption failed: {}", e)))?;
         
         let encrypted_entry = EncryptedEntry {
-            nonce: nonce.to_vec().try_into().unwrap(),
+            nonce: <[u8; 12]>::try_from(nonce.as_slice()).unwrap(),
             ciphertext,
         };
         
@@ -215,5 +204,226 @@ impl KeystoreOperations for FallbackKeystore {
     
     fn is_available(&self) -> bool {
         true
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use tempfile::TempDir;
+
+    fn create_test_fallback(temp_dir: &TempDir) -> FallbackKeystore {
+        let file_path = temp_dir.path().join("keystore-test.fallback");
+        let key = Aes256Gcm::generate_key(&mut OsRng);
+        FallbackKeystore { file_path, key }
+    }
+
+    fn create_test_entry(service: &str, account: &str, value: &str) -> KeystoreEntry {
+        KeystoreEntry {
+            service: service.to_string(),
+            account: account.to_string(),
+            value: value.to_string(),
+        }
+    }
+
+    #[test]
+    fn test_set_and_get_password() {
+        let temp_dir = TempDir::new().unwrap();
+        let keystore = create_test_fallback(&temp_dir);
+        
+        let entry = create_test_entry("test-service", "test-account", "my-secret-password");
+        
+        keystore.set_password(&entry).unwrap();
+        
+        let result = keystore.get_password("test-service", "test-account").unwrap();
+        assert_eq!(result, "my-secret-password");
+    }
+
+    #[test]
+    fn test_get_nonexistent_password() {
+        let temp_dir = TempDir::new().unwrap();
+        let keystore = create_test_fallback(&temp_dir);
+        
+        let result = keystore.get_password("nonexistent-service", "nonexistent-account");
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            KeystoreError::KeyNotFound(_) => (),
+            _ => panic!("Expected KeyNotFound error"),
+        }
+    }
+
+    #[test]
+    fn test_delete_nonexistent_password() {
+        let temp_dir = TempDir::new().unwrap();
+        let keystore = create_test_fallback(&temp_dir);
+        
+        let result = keystore.delete_password("nonexistent-service", "nonexistent-account");
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            KeystoreError::KeyNotFound(_) => (),
+            _ => panic!("Expected KeyNotFound error"),
+        }
+    }
+
+    #[test]
+    fn test_update_existing_password() {
+        let temp_dir = TempDir::new().unwrap();
+        let keystore = create_test_fallback(&temp_dir);
+        
+        let entry1 = create_test_entry("update-service", "update-account", "old-password");
+        let entry2 = create_test_entry("update-service", "update-account", "new-password");
+        
+        keystore.set_password(&entry1).unwrap();
+        keystore.set_password(&entry2).unwrap();
+        
+        let result = keystore.get_password("update-service", "update-account").unwrap();
+        assert_eq!(result, "new-password");
+        
+        assert!(keystore.get_password("update-service", "update-account").unwrap() == "new-password");
+    }
+
+    #[test]
+    fn test_empty_value() {
+        let temp_dir = TempDir::new().unwrap();
+        let keystore = create_test_fallback(&temp_dir);
+        
+        let entry = create_test_entry("empty-service", "empty-account", "");
+        
+        keystore.set_password(&entry).unwrap();
+        
+        let result = keystore.get_password("empty-service", "empty-account").unwrap();
+        assert_eq!(result, "");
+    }
+
+    #[test]
+    fn test_special_characters() {
+        let temp_dir = TempDir::new().unwrap();
+        let keystore = create_test_fallback(&temp_dir);
+        
+        let special_value = "!@#$%^&*()_+-=[]{}|;':\",./<>?`~\n\t\r";
+        let entry = create_test_entry("special-service", "special-account", special_value);
+        
+        keystore.set_password(&entry).unwrap();
+        
+        let result = keystore.get_password("special-service", "special-account").unwrap();
+        assert_eq!(result, special_value);
+    }
+
+    #[test]
+    fn test_long_value() {
+        let temp_dir = TempDir::new().unwrap();
+        let keystore = create_test_fallback(&temp_dir);
+        
+        let long_value = "a".repeat(1000);
+        let entry = create_test_entry("long-service", "long-account", &long_value);
+        
+        keystore.set_password(&entry).unwrap();
+        
+        let result = keystore.get_password("long-service", "long-account").unwrap();
+        assert_eq!(result, long_value);
+    }
+
+    #[test]
+    fn test_multiple_services() {
+        let temp_dir = TempDir::new().unwrap();
+        let keystore = create_test_fallback(&temp_dir);
+        
+        let entries = vec![
+            create_test_entry("service1", "account1", "password1"),
+            create_test_entry("service1", "account2", "password2"),
+            create_test_entry("service2", "account1", "password3"),
+        ];
+        
+        for entry in &entries {
+            keystore.set_password(entry).unwrap();
+        }
+        
+        assert_eq!(keystore.get_password("service1", "account1").unwrap(), "password1");
+        assert_eq!(keystore.get_password("service1", "account2").unwrap(), "password2");
+        assert_eq!(keystore.get_password("service2", "account1").unwrap(), "password3");
+    }
+
+    #[test]
+    fn test_utf8_values() {
+        let temp_dir = TempDir::new().unwrap();
+        let keystore = create_test_fallback(&temp_dir);
+        
+        let utf8_value = "Hello 世界 🌍 Привет";
+        let entry = create_test_entry("utf8-service", "utf8-account", utf8_value);
+        
+        keystore.set_password(&entry).unwrap();
+        
+        let result = keystore.get_password("utf8-service", "utf8-account").unwrap();
+        assert_eq!(result, utf8_value);
+    }
+
+    #[test]
+    fn test_delete_password() {
+        let temp_dir = TempDir::new().unwrap();
+        let keystore = create_test_fallback(&temp_dir);
+        
+        let entry = create_test_entry("delete-service", "delete-account", "to-delete");
+        
+        keystore.set_password(&entry).unwrap();
+        assert!(keystore.get_password("delete-service", "delete-account").is_ok());
+        
+        keystore.delete_password("delete-service", "delete-account").unwrap();
+        
+        let result = keystore.get_password("delete-service", "delete-account");
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            KeystoreError::KeyNotFound(_) => (),
+            _ => panic!("Expected KeyNotFound error after delete"),
+        }
+    }
+
+    #[test]
+    fn test_persistence() {
+        let temp_dir = TempDir::new().unwrap();
+        let file_path = temp_dir.path().join("keystore-persist-test.fallback");
+        let key = Aes256Gcm::generate_key(&mut OsRng);
+        
+        let entry = create_test_entry("persist-service", "persist-account", "persist-value");
+        
+        {
+            let keystore1 = FallbackKeystore { file_path: file_path.clone(), key: key.clone() };
+            keystore1.set_password(&entry).unwrap();
+        }
+        
+        {
+            let keystore2 = FallbackKeystore { file_path: file_path.clone(), key };
+            let result = keystore2.get_password("persist-service", "persist-account").unwrap();
+            assert_eq!(result, "persist-value");
+        }
+    }
+
+    #[test]
+    fn test_colon_in_value() {
+        let temp_dir = TempDir::new().unwrap();
+        let keystore = create_test_fallback(&temp_dir);
+        
+        let value_with_colons = "value:with:multiple:colons::";
+        let entry = create_test_entry("colon-service", "colon-account", value_with_colons);
+        
+        keystore.set_password(&entry).unwrap();
+        
+        let result = keystore.get_password("colon-service", "colon-account").unwrap();
+        assert_eq!(result, value_with_colons);
+    }
+
+    #[test]
+    fn test_encryption_output_is_not_plaintext() {
+        let temp_dir = TempDir::new().unwrap();
+        let keystore = create_test_fallback(&temp_dir);
+        
+        let entry = create_test_entry("encrypt-service", "encrypt-account", "plaintext-password");
+        keystore.set_password(&entry).unwrap();
+        
+        let file_content = fs::read_to_string(&keystore.file_path).unwrap();
+        
+        assert!(!file_content.contains("plaintext-password"));
+        assert!(!file_content.contains("encrypt-service"));
+        assert!(!file_content.contains("encrypt-account"));
     }
 }

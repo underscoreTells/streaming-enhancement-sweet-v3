@@ -104,3 +104,152 @@ impl KeystoreOperations for WindowsKeystore {
         true
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn create_test_entry(service: &str, account: &str, value: &str) -> KeystoreEntry {
+        KeystoreEntry {
+            service: service.to_string(),
+            account: account.to_string(),
+            value: value.to_string(),
+        }
+    }
+
+    #[test]
+    fn test_set_and_get_password() {
+        let keystore = WindowsKeystore::new().unwrap();
+        
+        let entry = create_test_entry("test-service", "test-account", "my-secret-password");
+        
+        keystore.set_password(&entry).unwrap();
+        
+        let result = keystore.get_password("test-service", "test-account").unwrap();
+        assert_eq!(result, "my-secret-password");
+        
+        keystore.delete_password("test-service", "test-account").unwrap();
+    }
+
+    #[test]
+    fn test_get_nonexistent_password() {
+        let keystore = WindowsKeystore::new().unwrap();
+        
+        let result = keystore.get_password("nonexistent-service", "nonexistent-account");
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            KeystoreError::KeyNotFound(_) => (),
+            _ => panic!("Expected KeyNotFound error"),
+        }
+    }
+
+    #[test]
+    fn test_delete_nonexistent_password() {
+        let keystore = WindowsKeystore::new().unwrap();
+        
+        let result = keystore.delete_password("nonexistent-service", "nonexistent-account");
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            KeystoreError::KeyNotFound(_) => (),
+            _ => panic!("Expected KeyNotFound error"),
+        }
+    }
+
+    #[test]
+    fn test_update_existing_password() {
+        let keystore = WindowsKeystore::new().unwrap();
+        
+        let entry1 = create_test_entry("update-service", "update-account", "old-password");
+        let entry2 = create_test_entry("update-service", "update-account", "new-password");
+        
+        keystore.set_password(&entry1).unwrap();
+        keystore.set_password(&entry2).unwrap();
+        
+        let result = keystore.get_password("update-service", "update-account").unwrap();
+        assert_eq!(result, "new-password");
+        
+        keystore.delete_password("update-service", "update-account").unwrap();
+    }
+
+    #[test]
+    fn test_empty_value() {
+        let keystore = WindowsKeystore::new().unwrap();
+        
+        let entry = create_test_entry("empty-service", "empty-account", "");
+        
+        keystore.set_password(&entry).unwrap();
+        
+        let result = keystore.get_password("empty-service", "empty-account").unwrap();
+        assert_eq!(result, "");
+        
+        keystore.delete_password("empty-service", "empty-account").unwrap();
+    }
+
+    #[test]
+    fn test_special_characters() {
+        let keystore = WindowsKeystore::new().unwrap();
+        
+        let special_value = "!@#$%^&*()_+-=[]{}|;':\",./<>?`~\n\t\r";
+        let entry = create_test_entry("special-service", "special-account", special_value);
+        
+        keystore.set_password(&entry).unwrap();
+        
+        let result = keystore.get_password("special-service", "special-account").unwrap();
+        assert_eq!(result, special_value);
+        
+        keystore.delete_password("special-service", "special-account").unwrap();
+    }
+
+    #[test]
+    fn test_long_value() {
+        let keystore = WindowsKeystore::new().unwrap();
+        
+        let long_value = "a".repeat(1000);
+        let entry = create_test_entry("long-service", "long-account", &long_value);
+        
+        keystore.set_password(&entry).unwrap();
+        
+        let result = keystore.get_password("long-service", "long-account").unwrap();
+        assert_eq!(result, long_value);
+        
+        keystore.delete_password("long-service", "long-account").unwrap();
+    }
+
+    #[test]
+    fn test_multiple_services() {
+        let keystore = WindowsKeystore::new().unwrap();
+        
+        let entries = vec![
+            create_test_entry("service1", "account1", "password1"),
+            create_test_entry("service1", "account2", "password2"),
+            create_test_entry("service2", "account1", "password3"),
+        ];
+        
+        for entry in &entries {
+            keystore.set_password(entry).unwrap();
+        }
+        
+        assert_eq!(keystore.get_password("service1", "account1").unwrap(), "password1");
+        assert_eq!(keystore.get_password("service1", "account2").unwrap(), "password2");
+        assert_eq!(keystore.get_password("service2", "account1").unwrap(), "password3");
+        
+        keystore.delete_password("service1", "account1").unwrap();
+        keystore.delete_password("service1", "account2").unwrap();
+        keystore.delete_password("service2", "account1").unwrap();
+    }
+
+    #[test]
+    fn test_utf8_values() {
+        let keystore = WindowsKeystore::new().unwrap();
+        
+        let utf8_value = "Hello 世界 🌍 Привет";
+        let entry = create_test_entry("utf8-service", "utf8-account", utf8_value);
+        
+        keystore.set_password(&entry).unwrap();
+        
+        let result = keystore.get_password("utf8-service", "utf8-account").unwrap();
+        assert_eq!(result, utf8_value);
+        
+        keystore.delete_password("utf8-service", "utf8-account").unwrap();
+    }
+}
