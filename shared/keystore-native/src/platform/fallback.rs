@@ -206,20 +206,7 @@ impl FallbackKeystore {
 
             temp_file.write_all(json.as_bytes())?;
             temp_file.flush()?;
-
-            #[cfg(windows)]
-            {
-                use std::os::windows::fs::MetadataExt;
-                let mut perms = temp_file.metadata()?.permissions();
-                perms.set_readonly(false);
-            }
-        }
-
-        #[cfg(windows)]
-        {
-            if self.file_path.exists() {
-                fs::remove_file(&self.file_path)?;
-            }
+            temp_file.sync_all()?;
         }
 
         fs::rename(&temp_path, &self.file_path)?;
