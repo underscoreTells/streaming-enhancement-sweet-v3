@@ -1,7 +1,7 @@
 use super::error::KeystoreError;
 use super::KeystoreEntry;
-use napi_derive::napi;
 use napi::Error;
+use napi_derive::napi;
 
 #[cfg(windows)]
 mod windows;
@@ -28,7 +28,7 @@ impl From<KeystoreError> for Error {
             KeystoreError::Serialization(_) => "ERR_SERIALIZATION",
             KeystoreError::Platform(_) => "ERR_PLATFORM",
         };
-        
+
         Error::new(napi::Status::GenericFailure, format!("{}: {}", code, err))
     }
 }
@@ -62,12 +62,18 @@ pub struct NapiKeystore {
 impl NapiKeystore {
     #[napi(constructor)]
     pub fn new() -> Result<Self, Error> {
-        let inner = Box::new(windows::WindowsKeystore::new()?) as Box<dyn KeystoreOperations + Send + Sync>;
+        let inner =
+            Box::new(windows::WindowsKeystore::new()?) as Box<dyn KeystoreOperations + Send + Sync>;
         Ok(Self { inner })
     }
-    
+
     #[napi]
-    pub fn set_password(&self, service: String, account: String, value: String) -> Result<(), Error> {
+    pub fn set_password(
+        &self,
+        service: String,
+        account: String,
+        value: String,
+    ) -> Result<(), Error> {
         let entry = KeystoreEntry {
             service: service.clone(),
             account: account.clone(),
@@ -75,17 +81,17 @@ impl NapiKeystore {
         };
         Ok(self.inner.set_password(&entry)?)
     }
-    
+
     #[napi]
     pub fn get_password(&self, service: String, account: String) -> Result<String, Error> {
         Ok(self.inner.get_password(&service, &account)?)
     }
-    
+
     #[napi]
     pub fn delete_password(&self, service: String, account: String) -> Result<(), Error> {
         Ok(self.inner.delete_password(&service, &account)?)
     }
-    
+
     #[napi]
     pub fn is_available(&self) -> bool {
         self.inner.is_available()
@@ -97,12 +103,18 @@ impl NapiKeystore {
 impl NapiKeystore {
     #[napi(constructor)]
     pub fn new() -> Result<Self, Error> {
-        let inner = Box::new(macos::MacOsKeystore::new()?) as Box<dyn KeystoreOperations + Send + Sync>;
+        let inner =
+            Box::new(macos::MacOsKeystore::new()?) as Box<dyn KeystoreOperations + Send + Sync>;
         Ok(Self { inner })
     }
-    
+
     #[napi]
-    pub fn set_password(&self, service: String, account: String, value: String) -> Result<(), Error> {
+    pub fn set_password(
+        &self,
+        service: String,
+        account: String,
+        value: String,
+    ) -> Result<(), Error> {
         let entry = KeystoreEntry {
             service: service.clone(),
             account: account.clone(),
@@ -110,17 +122,17 @@ impl NapiKeystore {
         };
         Ok(self.inner.set_password(&entry)?)
     }
-    
+
     #[napi]
     pub fn get_password(&self, service: String, account: String) -> Result<String, Error> {
         Ok(self.inner.get_password(&service, &account)?)
     }
-    
+
     #[napi]
     pub fn delete_password(&self, service: String, account: String) -> Result<(), Error> {
         Ok(self.inner.delete_password(&service, &account)?)
     }
-    
+
     #[napi]
     pub fn is_available(&self) -> bool {
         self.inner.is_available()
@@ -132,12 +144,18 @@ impl NapiKeystore {
 impl NapiKeystore {
     #[napi(constructor)]
     pub fn new() -> Result<Self, Error> {
-        let inner = Box::new(linux::LinuxKeystore::new()?) as Box<dyn KeystoreOperations + Send + Sync>;
+        let inner =
+            Box::new(linux::LinuxKeystore::new()?) as Box<dyn KeystoreOperations + Send + Sync>;
         Ok(Self { inner })
     }
-    
+
     #[napi]
-    pub fn set_password(&self, service: String, account: String, value: String) -> Result<(), Error> {
+    pub fn set_password(
+        &self,
+        service: String,
+        account: String,
+        value: String,
+    ) -> Result<(), Error> {
         let entry = KeystoreEntry {
             service: service.clone(),
             account: account.clone(),
@@ -145,17 +163,17 @@ impl NapiKeystore {
         };
         Ok(self.inner.set_password(&entry)?)
     }
-    
+
     #[napi]
     pub fn get_password(&self, service: String, account: String) -> Result<String, Error> {
         Ok(self.inner.get_password(&service, &account)?)
     }
-    
+
     #[napi]
     pub fn delete_password(&self, service: String, account: String) -> Result<(), Error> {
         Ok(self.inner.delete_password(&service, &account)?)
     }
-    
+
     #[napi]
     pub fn is_available(&self) -> bool {
         self.inner.is_available()
@@ -167,12 +185,18 @@ impl NapiKeystore {
 impl NapiKeystore {
     #[napi(constructor)]
     pub fn new() -> Result<Self, Error> {
-        let inner = Box::new(fallback::FallbackKeystore::new()?) as Box<dyn KeystoreOperations + Send + Sync>;
+        let inner = Box::new(fallback::FallbackKeystore::new()?)
+            as Box<dyn KeystoreOperations + Send + Sync>;
         Ok(Self { inner })
     }
-    
+
     #[napi]
-    pub fn set_password(&self, service: String, account: String, value: String) -> Result<(), Error> {
+    pub fn set_password(
+        &self,
+        service: String,
+        account: String,
+        value: String,
+    ) -> Result<(), Error> {
         let entry = KeystoreEntry {
             service: service.clone(),
             account: account.clone(),
@@ -180,17 +204,17 @@ impl NapiKeystore {
         };
         Ok(self.inner.set_password(&entry)?)
     }
-    
+
     #[napi]
     pub fn get_password(&self, service: String, account: String) -> Result<String, Error> {
         Ok(self.inner.get_password(&service, &account)?)
     }
-    
+
     #[napi]
     pub fn delete_password(&self, service: String, account: String) -> Result<(), Error> {
         Ok(self.inner.delete_password(&service, &account)?)
     }
-    
+
     #[napi]
     pub fn is_available(&self) -> bool {
         self.inner.is_available()

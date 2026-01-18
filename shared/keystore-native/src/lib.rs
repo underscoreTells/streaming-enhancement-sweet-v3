@@ -5,7 +5,7 @@ use napi_derive::napi;
 pub struct KeystoreEntry {
     pub service: String,
     pub account: String,
-    pub value: String
+    pub value: String,
 }
 
 pub mod error;
