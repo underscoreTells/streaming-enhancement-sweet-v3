@@ -92,6 +92,7 @@ impl FallbackKeystore {
         #[cfg(unix)]
         {
             use std::os::unix::fs::OpenOptionsExt;
+            use std::io::Write;
             std::fs::OpenOptions::new()
                 .write(true)
                 .create_new(true)
@@ -112,7 +113,22 @@ impl FallbackKeystore {
 
         #[cfg(not(unix))]
         {
-            fs::write(&key_file, key.as_slice())?;
+            use std::io::Write;
+            std::fs::OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .open(&key_file)
+                .map_err(|e| {
+                    if e.kind() == std::io::ErrorKind::AlreadyExists {
+                        KeystoreError::Platform(format!(
+                            "Key file already exists but cannot be read: {}",
+                            key_file.display()
+                        ))
+                    } else {
+                        KeystoreError::Io(e)
+                    }
+                })?
+                .write_all(key.as_slice())?;
         }
 
         Ok(key)
@@ -133,20 +149,81 @@ impl FallbackKeystore {
     fn save_data(&self, data: &KeystoreData) -> Result<(), KeystoreError> {
         let json = serde_json::to_string_pretty(data)
             .map_err(|e| KeystoreError::Serialization(e.to_string()))?;
-        
+
         let parent_dir = self.file_path.parent().unwrap();
         fs::create_dir_all(parent_dir)?;
-        
-        fs::write(&self.file_path, json)?;
-        
+
+        let temp_path = parent_dir.join(format!(
+            ".{}-{:x}.tmp",
+            self.file_path.file_name().unwrap().to_string_lossy(),
+            std::process::id()
+        ));
+
         #[cfg(unix)]
         {
-            use std::os::unix::fs::PermissionsExt;
-            let mut perms = fs::metadata(&self.file_path)?.permissions();
-            perms.set_mode(0o600);
-            fs::set_permissions(&self.file_path, perms)?;
+            use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
+            use std::io::Write;
+
+            let mut temp_file = std::fs::OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .mode(0o600)
+                .open(&temp_path)
+                .map_err(|e| {
+                    if e.kind() == std::io::ErrorKind::AlreadyExists {
+                        KeystoreError::Platform(format!(
+                            "Temp file already exists: {}",
+                            temp_path.display()
+                        ))
+                    } else {
+                        KeystoreError::Io(e)
+                    }
+                })?;
+
+            temp_file.write_all(json.as_bytes())?;
+            temp_file.flush()?;
+            temp_file.sync_all()?;
         }
-        
+
+        #[cfg(not(unix))]
+        {
+            use std::io::Write;
+
+            let mut temp_file = std::fs::OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .open(&temp_path)
+                .map_err(|e| {
+                    if e.kind() == std::io::ErrorKind::AlreadyExists {
+                        KeystoreError::Platform(format!(
+                            "Temp file already exists: {}",
+                            temp_path.display()
+                        ))
+                    } else {
+                        KeystoreError::Io(e)
+                    }
+                })?;
+
+            temp_file.write_all(json.as_bytes())?;
+            temp_file.flush()?;
+
+            #[cfg(windows)]
+            {
+                use std::os::windows::fs::MetadataExt;
+                let mut perms = temp_file.metadata()?.permissions();
+                perms.set_readonly(false);
+            }
+        }
+
+        #[cfg(windows)]
+        {
+            if self.file_path.exists() {
+                fs::remove_file(&self.file_path)?;
+            }
+        }
+
+        fs::rename(&temp_path, &self.file_path)?;
+
         Ok(())
     }
     
