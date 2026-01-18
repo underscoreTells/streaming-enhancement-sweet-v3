@@ -135,9 +135,10 @@ impl FallbackKeystore {
             let cipher = Aes256Gcm::new(&self.key);
             if let Ok(decrypted) = cipher.decrypt(Nonce::from_slice(&entry.nonce), entry.ciphertext.as_ref()) {
                 if let Ok(plaintext) = String::from_utf8(decrypted) {
-                    let parts: Vec<&str> = plaintext.splitn(3, ':').collect();
-                    if parts.len() == 3 && parts[0] == service && parts[1] == account {
-                        return Some(i);
+                    if let Ok((s, a, _)) = serde_json::from_str::<(String, String, String)>(&plaintext) {
+                        if s == service && a == account {
+                            return Some(i);
+                        }
                     }
                 }
             }
@@ -151,7 +152,8 @@ impl KeystoreOperations for FallbackKeystore {
     fn set_password(&self, entry: &KeystoreEntry) -> Result<(), KeystoreError> {
         let mut data = self.load_data()?;
         
-        let plaintext = format!("{}:{}:{}", entry.service, entry.account, entry.value);
+        let plaintext = serde_json::to_string(&(entry.service, entry.account, entry.value))
+            .map_err(|e| KeystoreError::Serialization(e.to_string()))?;
         
         let cipher = Aes256Gcm::new(&self.key);
         let nonce = Aes256Gcm::generate_nonce(&mut OsRng);
@@ -180,9 +182,10 @@ impl KeystoreOperations for FallbackKeystore {
             let cipher = Aes256Gcm::new(&self.key);
             if let Ok(decrypted) = cipher.decrypt(Nonce::from_slice(&entry.nonce), entry.ciphertext.as_ref()) {
                 if let Ok(plaintext) = String::from_utf8(decrypted) {
-                    let parts: Vec<&str> = plaintext.splitn(3, ':').collect();
-                    if parts.len() == 3 && parts[0] == service && parts[1] == account {
-                        return Ok(parts[2].to_string());
+                    if let Ok((s, a, v)) = serde_json::from_str::<(String, String, String)>(&plaintext) {
+                        if s == service && a == account {
+                            return Ok(v);
+                        }
                     }
                 }
             }
