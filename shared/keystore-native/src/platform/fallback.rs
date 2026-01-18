@@ -73,26 +73,48 @@ impl FallbackKeystore {
         };
         
         if let Ok(key_data) = fs::read(&key_file) {
-            if key_data.len() == KEY_SIZE {
-                return Ok(Key::<Aes256Gcm>::from_slice(&key_data).clone());
+            if key_data.len() != KEY_SIZE {
+                return Err(KeystoreError::Platform(format!(
+                    "Invalid key file size: expected {} bytes, found {} bytes in {}",
+                    KEY_SIZE,
+                    key_data.len(),
+                    key_file.display()
+                )));
             }
+            return Ok(Key::<Aes256Gcm>::from_slice(&key_data).clone());
         }
-        
+
         let key = Aes256Gcm::generate_key(&mut OsRng);
-        
+
         let parent_dir = key_file.parent().unwrap();
         fs::create_dir_all(parent_dir)?;
-        
-        fs::write(&key_file, key.as_slice())?;
-        
+
         #[cfg(unix)]
         {
-            use std::os::unix::fs::PermissionsExt;
-            let mut perms = fs::metadata(&key_file)?.permissions();
-            perms.set_mode(0o600);
-            fs::set_permissions(&key_file, perms)?;
+            use std::os::unix::fs::OpenOptionsExt;
+            std::fs::OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .mode(0o600)
+                .open(&key_file)
+                .map_err(|e| {
+                    if e.kind() == std::io::ErrorKind::AlreadyExists {
+                        KeystoreError::Platform(format!(
+                            "Key file already exists but cannot be read: {}",
+                            key_file.display()
+                        ))
+                    } else {
+                        KeystoreError::Io(e)
+                    }
+                })?
+                .write_all(key.as_slice())?;
         }
-        
+
+        #[cfg(not(unix))]
+        {
+            fs::write(&key_file, key.as_slice())?;
+        }
+
         Ok(key)
     }
     
