@@ -5,7 +5,7 @@ Local analytics & integration tool for livestreamers (Twitch, Kick, YouTube). Pr
 
 ## Current Feature
 **Feature**: OAuth Flow & Keystore Abstraction
-**Status**: Planning
+**Status**: In Progress
 
 **Full Implementation Plan**: @docs/feature-plans/oauth-flow-keystore.md
 
@@ -13,15 +13,15 @@ Local analytics & integration tool for livestreamers (Twitch, Kick, YouTube). Pr
 **Phase 1: Rust Native Binding** - Build `@streaming-enhancement/keystore-native` package
 
 ### Tasks (Phase 1)
-- [ ] Initialize Rust project with napi-rs
-- [ ] Configure Cargo.toml with platform-specific dependencies
-- [ ] Configure napi-rs to generate TypeScript bindings
-- [ ] Implement Windows Credential Manager binding
-- [ ] Implement macOS Keychain binding
-- [ ] Implement Linux Secret Service binding
-- [ ] Implement encryption utilities for fallback
+- [x] Initialize Rust project with napi-rs
+- [x] Configure Cargo.toml with platform-specific dependencies
+- [x] Configure napi-rs to generate TypeScript bindings
+- [x] Implement Windows Credential Manager binding
+- [x] Implement macOS Keychain binding
+- [x] Implement Linux Secret Service binding (using keyring crate v3.5)
+- [x] Implement encryption utilities for fallback (AES-256-GCM)
 - [ ] Write unit tests for each platform
-- [ ] Package and publish to npm (or build into monorepo)
+- [ ] Build native addon and generate Node.js bindings
 
 ### Dependencies
 - Rust: `napi`, `napi-derive`, `serde`, `windows-rs` (Windows), `security-framework` (macOS), `libsecret-sys` (Linux)
