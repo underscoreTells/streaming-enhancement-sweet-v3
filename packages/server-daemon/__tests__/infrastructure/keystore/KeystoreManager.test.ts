@@ -37,13 +37,15 @@ describe('KeystoreManager', () => {
     const originalPlatform = process.platform;
     Object.defineProperty(process, 'platform', { value: 'fake-platform' });
     
-    const manager = new KeystoreManager();
-    const status = manager.getStatus();
-    
-    expect(status.strategyType).toBe('encrypted-file');
-    expect(status.isFallback).toBe(true);
-    
-    Object.defineProperty(process, 'platform', { value: originalPlatform });
+    try {
+      const manager = new KeystoreManager();
+      const status = manager.getStatus();
+      
+      expect(status.strategyType).toBe('encrypted-file');
+      expect(status.isFallback).toBe(true);
+    } finally {
+      Object.defineProperty(process, 'platform', { value: originalPlatform });
+    }
   });
 
   it('should delegate setPassword to strategy', async () => {

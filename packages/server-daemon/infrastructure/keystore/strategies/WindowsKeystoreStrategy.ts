@@ -10,15 +10,25 @@ const logger = winston.createLogger({
 
 export class WindowsKeystoreStrategy implements KeystoreStrategy {
   private available: boolean | null = null;
-  private keystore: NapiKeystore;
+  private keystore: NapiKeystore | null = null;
 
   constructor() {
-    this.keystore = new NapiKeystore();
+    try {
+      this.keystore = new NapiKeystore();
+    } catch (error) {
+      logger.error('Failed to initialize NapiKeystore', error);
+      this.available = false;
+      return;
+    }
     this.checkAvailability();
   }
 
   private checkAvailability(): void {
     try {
+      if (!this.keystore) {
+        this.available = false;
+        return;
+      }
       this.available = this.keystore.isAvailable();
       if (!this.available) {
         logger.warn('Windows Credential Manager not available');
@@ -34,6 +44,12 @@ export class WindowsKeystoreStrategy implements KeystoreStrategy {
   }
 
   async setPassword(service: string, account: string, password: string): Promise<void> {
+    if (!this.keystore) {
+      throw createKeystoreError(
+        'Windows Credential Manager not available',
+        KEYSTORE_ERROR_CODES.WRITE_FAILED
+      );
+    }
     try {
       this.keystore.setPassword(service, account, password);
     } catch (error) {
@@ -47,12 +63,18 @@ export class WindowsKeystoreStrategy implements KeystoreStrategy {
   }
 
   async getPassword(service: string, account: string): Promise<string | null> {
+    if (!this.keystore) {
+      throw createKeystoreError(
+        'Windows Credential Manager not available',
+        KEYSTORE_ERROR_CODES.READ_FAILED
+      );
+    }
     try {
       const password = this.keystore.getPassword(service, account);
       return password;
     } catch (error) {
-      const err = error as Error;
-      if (err.message.includes('No entry found')) {
+      const err = error as Error & { code?: string };
+      if (err.code === 'ERR_KEY_NOT_FOUND') {
         return null;
       }
       throw createKeystoreError(
@@ -64,17 +86,23 @@ export class WindowsKeystoreStrategy implements KeystoreStrategy {
   }
 
   async deletePassword(service: string, account: string): Promise<boolean> {
+    if (!this.keystore) {
+      throw createKeystoreError(
+        'Windows Credential Manager not available',
+        KEYSTORE_ERROR_CODES.DELETE_FAILED
+      );
+    }
     try {
       this.keystore.deletePassword(service, account);
       return true;
     } catch (error) {
-      const err = error as Error;
-      if (err.message.includes('No entry found')) {
+      const err = error as Error & { code?: string };
+      if (err.code === 'ERR_KEY_NOT_FOUND') {
         return false;
       }
       throw createKeystoreError(
         `Failed to delete password: ${err.message}`,
-        KEYSTORE_ERROR_CODES.UNKNOWN,
+        KEYSTORE_ERROR_CODES.DELETE_FAILED,
         err
       );
     }

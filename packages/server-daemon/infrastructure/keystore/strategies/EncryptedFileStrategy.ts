@@ -99,7 +99,9 @@ export class EncryptedFileStrategy implements KeystoreStrategy {
   }
 
   private createEntryKey(service: string, account: string): string {
-    return `${service}:${account}`;
+    const serviceEncoded = Buffer.from(service, 'utf-8').toString('base64');
+    const accountEncoded = Buffer.from(account, 'utf-8').toString('base64');
+    return `${serviceEncoded}:${accountEncoded}`;
   }
 
   private async loadKeystoreData(): Promise<Record<string, any>> {

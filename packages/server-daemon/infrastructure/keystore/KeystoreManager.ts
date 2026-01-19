@@ -44,16 +44,28 @@ export class KeystoreManager {
 
     switch (platform) {
       case 'win32':
-        nativeStrategy = new WindowsKeystoreStrategy();
-        type = 'windows';
+        try {
+          nativeStrategy = new WindowsKeystoreStrategy();
+          type = 'windows';
+        } catch (error) {
+          logger.error('Failed to initialize Windows keystore strategy', error);
+        }
         break;
       case 'darwin':
-        nativeStrategy = new MacosKeystoreStrategy();
-        type = 'macos';
+        try {
+          nativeStrategy = new MacosKeystoreStrategy();
+          type = 'macos';
+        } catch (error) {
+          logger.error('Failed to initialize macOS keystore strategy', error);
+        }
         break;
       case 'linux':
-        nativeStrategy = new LinuxKeystoreStrategy();
-        type = 'linux';
+        try {
+          nativeStrategy = new LinuxKeystoreStrategy();
+          type = 'linux';
+        } catch (error) {
+          logger.error('Failed to initialize Linux keystore strategy', error);
+        }
         break;
       default:
         logger.warn(`Unsupported platform: ${platform}, using encrypted file fallback`);
@@ -64,9 +76,15 @@ export class KeystoreManager {
         };
     }
 
-    if (nativeStrategy.isAvailable()) {
-      logger.info(`Using ${type} keystore strategy`);
-      return { strategy: nativeStrategy, type, isFallback: false };
+    if (nativeStrategy) {
+      try {
+        if (nativeStrategy.isAvailable()) {
+          logger.info(`Using ${type} keystore strategy`);
+          return { strategy: nativeStrategy, type, isFallback: false };
+        }
+      } catch (error) {
+        logger.error(`Failed to check ${type} keystore availability`, error);
+      }
     }
 
     logger.warn(`Native ${type} keystore unavailable, falling back to encrypted file`);

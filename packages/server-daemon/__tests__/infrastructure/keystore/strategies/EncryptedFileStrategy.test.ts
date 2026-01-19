@@ -14,7 +14,7 @@ describe('EncryptedFileStrategy', () => {
     strategy = new EncryptedFileStrategy();
     strategy['keyPath'] = path.join(tempDir, 'key');
     strategy['dataPath'] = path.join(tempDir, 'data.json');
-    strategy['key'] = Buffer.from('testkey12345678901234567890123456', 'hex');
+    strategy['key'] = Buffer.from('0000000000000000000000000000000000000000000000000000000000000000', 'hex');
   });
 
   afterEach(async () => {
