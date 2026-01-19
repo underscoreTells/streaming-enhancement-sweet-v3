@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Database from 'better-sqlite3';
 import { MigrationRunner } from '../../../infrastructure/database/migrations/MigrationRunner';
 import { Migration } from '../../../infrastructure/database/migrations/Migration';
+import path from 'path';
 
 describe('MigrationRunner', () => {
   let db: Database.Database;
@@ -9,7 +10,7 @@ describe('MigrationRunner', () => {
 
   beforeEach(() => {
     db = new Database(':memory:');
-    runner = new MigrationRunner(db, __dirname + '/mock-migrations');
+    runner = new MigrationRunner(db, path.join(__dirname, 'mock-migrations'));
   });
 
   afterEach(() => {

@@ -52,9 +52,16 @@ export class DatabaseProxy {
   }
 
   async query(sql: string, params: any[] = []): Promise<any[]> {
-    const normalizedSql = sql.trim().toLowerCase();
-    const forbidden = ['insert', 'update', 'delete', 'drop', 'create', 'alter', 'truncate'];
-    if (forbidden.some(cmd => normalizedSql.startsWith(cmd))) {
+    let normalizedSql = sql.trim();
+
+    normalizedSql = normalizedSql.replace(/\/\*[\s\S]*?\*\//g, '');
+
+    normalizedSql = normalizedSql.replace(/\bWITH\b[\s\S]*?\bAS\b\s*\([\s\S]*?\)\s*/gi, '');
+
+    normalizedSql = normalizedSql.toLowerCase().trim();
+
+    const forbiddenKeywords = /\b(insert|update|delete|drop|create|alter|truncate|replace)\b/i;
+    if (forbiddenKeywords.test(normalizedSql)) {
       throw new Error('Write operations must use repository methods');
     }
     return this.database.raw(sql, params);

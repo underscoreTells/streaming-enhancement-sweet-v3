@@ -27,6 +27,7 @@ const getDefaultConfig = (): Partial<AppConfig> => {
 
   return {
     database: { path: dbPath },
+    keystore: {},
     logging: { level: 'info' }
   };
 };
@@ -51,6 +52,10 @@ export const loadConfig = (): AppConfig => {
     database: {
       ...defaultConfig.database,
       ...userConfig.database
+    },
+    keystore: {
+      ...defaultConfig.keystore,
+      ...userConfig.keystore
     },
     logging: {
       ...defaultConfig.logging,

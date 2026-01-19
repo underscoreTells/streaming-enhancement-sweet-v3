@@ -31,6 +31,14 @@ export class DatabaseConnection {
         : undefined
     });
 
+    try {
+      if (fs.existsSync(this.dbPath)) {
+        fs.chmodSync(this.dbPath, 0o600);
+      }
+    } catch (error) {
+      logger.warn(`Failed to set file permissions on database: ${error}`);
+    }
+
     this.db.pragma('journal_mode = WAL');
     this.db.pragma('busy_timeout = 5000');
 

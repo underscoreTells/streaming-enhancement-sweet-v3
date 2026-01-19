@@ -6,7 +6,7 @@ export class DatabaseFactory {
   static async createProxy(config: AppConfig): Promise<DatabaseProxy> {
     const db = new DatabaseConnection(
       config.database.path,
-      config.database.migrationsDir || path.join(__dirname, 'migrations')
+      config.database.migrationsDir || path.join(__dirname, 'database', 'migrations')
     );
     const proxy = new DatabaseProxy(db);
     await proxy.initialize();

@@ -67,10 +67,10 @@ describe('OAuthCredentialsRepository', () => {
       expect(() => repo.addCredential('twitch', 'client789', 'secret012', ['scope2'])).toThrow('already exists');
     });
 
-    it('stores scopes as comma-separated string', () => {
+    it('stores scopes as JSON string', () => {
       repo.addCredential('twitch', 'client123', 'secret456', ['scope1', 'scope2', 'scope3']);
       const row = nativeDb.prepare('SELECT scopes FROM oauth_credentials WHERE platform = ?').get('twitch') as any;
-      expect(row.scopes).toBe('scope1,scope2,scope3');
+      expect(row.scopes).toBe(JSON.stringify(['scope1', 'scope2', 'scope3']));
     });
   });
 

@@ -54,9 +54,14 @@ export class MigrationRunner {
       }
 
       logger.info(`Running migration: ${migration.version}`);
-      migration.up(this.db);
 
-      this.db.prepare('INSERT INTO _migrations (version) VALUES (?)').run(migration.version);
+      const runMigration = this.db.transaction(() => {
+        migration.up(this.db);
+        this.db.prepare('INSERT INTO _migrations (version) VALUES (?)').run(migration.version);
+      });
+
+      runMigration();
+
       logger.info(`Migration completed: ${migration.version}`);
     }
 
