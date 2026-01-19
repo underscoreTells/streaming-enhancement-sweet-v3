@@ -1,0 +1,37 @@
+[package]
+name = "keystore-native"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+napi = { version = "3.0.0-alpha.0", features = ["napi8", "async"] }
+napi-derive = "3.0.0-alpha.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "1.0"
+cfg-if = "1.0"
+aes-gcm = "0.10"
+sha2 = "0.10"
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.58", features = [
+    "Win32_Foundation",
+    "Win32_Security_Credentials",
+] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+security-framework = "2.11"
+security-framework-sys = "2.11"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+keyring = "3.5"
+
+[build-dependencies]
+napi-build = "2.1"
+
+[dev-dependencies]
+tempfile = "3.13"
+uuid = { version = "1.0", features = ["v4"] }

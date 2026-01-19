@@ -1,0 +1,61 @@
+{
+  "name": "@streaming-enhancement/keystore-native",
+  "version": "0.1.0",
+  "description": "Native key storage for streaming-enhancement using platform keystores (Windows Credential Manager, macOS Keychain, Linux Secret Service)",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "napi": {
+    "name": "keystore-native",
+    "triples": {
+      "defaults": true,
+      "additional": [
+        "x86_64-pc-windows-msvc",
+        "aarch64-pc-windows-msvc",
+        "x86_64-apple-darwin",
+        "aarch64-apple-darwin",
+        "x86_64-unknown-linux-gnu",
+        "aarch64-unknown-linux-gnu"
+      ]
+    }
+  },
+  "license": "MIT",
+  "author": "Streaming Enhancement Team",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/underscoreTells/streaming-enhancement-sweet-v3.git",
+    "directory": "shared/keystore-native"
+  },
+  "keywords": [
+    "keystore",
+    "password",
+    "credentials",
+    "windows",
+    "macos",
+    "linux",
+    "keychain",
+    "credential-manager",
+    "secret-service"
+  ],
+  "files": [
+    "index.d.ts",
+    "index.js",
+    "linux-*/",
+    "darwin-*/",
+    "win32-*/"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "artifacts": "napi artifacts",
+    "build": "napi build --platform --release",
+    "build:debug": "napi build --platform",
+    "prepublishOnly": "napi prepublish -t npm",
+    "test": "node test.js",
+    "version": "napi version",
+    "prepack": "napi prepublish -t npm"
+  }
+}
