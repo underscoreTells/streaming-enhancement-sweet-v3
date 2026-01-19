@@ -14,13 +14,13 @@ use std::sync::Mutex;
 const KEY_SIZE: usize = 32;
 const NONCE_SIZE: usize = 12;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 struct EncryptedEntry {
     nonce: [u8; NONCE_SIZE],
     ciphertext: Vec<u8>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 struct KeystoreData {
     entries: Vec<EncryptedEntry>,
 }
