@@ -19,19 +19,39 @@ const getConfigPath = (): string => {
   return path.join(os.homedir(), '.config', 'streaming-enhancement', 'config.json');
 };
 
-const getDefaultConfig = (): AppConfig => {
+const getDefaultDatabasePath = (): string => {
   const platform = os.platform();
-  const dbPath = platform === 'win32'
-    ? path.join(process.env.LOCALAPPDATA || '', 'streaming-enhancement', 'database.db')
-    : path.join(os.homedir(), '.local', 'share', 'streaming-enhancement', 'database.db');
+  if (platform === 'win32') {
+    return path.join(process.env.LOCALAPPDATA || '', 'streaming-enhancement', 'database.db');
+  }
+  return path.join(os.homedir(), '.local', 'share', 'streaming-enhancement', 'database.db');
+};
 
+const getDefaultLogDirectory = (): string => {
+  const platform = os.platform();
+  if (platform === 'win32') {
+    return path.join(process.env.LOCALAPPDATA || '', 'streaming-enhancement', 'logs');
+  }
+  return path.join(os.homedir(), '.local', 'state', 'streaming-enhancement', 'logs');
+};
+
+const getDefaultConfig = (): AppConfig => {
   return {
-    database: { path: dbPath },
+    server: {
+      port: 3000,
+      shutdownTimeout: 10000,
+      healthCheckPath: '/status',
+    },
+    database: { path: getDefaultDatabasePath() },
     keystore: {},
-    logging: { level: 'info' },
+    logging: {
+      level: 'info',
+      directory: getDefaultLogDirectory(),
+      maxFiles: 7,
+      maxSize: '20m',
+    },
     oauth: {
       redirect_uri: 'http://localhost:3000/callback',
-      server_port: 3000,
     }
   };
 };
@@ -51,8 +71,11 @@ export const loadConfig = (): AppConfig => {
     }
   }
 
-  // Deep merge nested objects to preserve defaults when user only overrides some fields
   const mergedConfig = {
+    server: {
+      ...defaultConfig.server,
+      ...(userConfig.server || {})
+    },
     database: {
       ...defaultConfig.database,
       ...(userConfig.database || {})

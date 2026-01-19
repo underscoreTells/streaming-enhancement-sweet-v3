@@ -5,7 +5,7 @@ Local analytics & integration tool for livestreamers (Twitch, Kick, YouTube). Pr
 
 ## Current Feature
 **Feature**: Daemon Server Core
-**Status**: Not Started (Planning complete)
+**Status**: In Progress - Phase 1 (Configuration & Schema Updates)
 
 **Full Implementation Plan**: @docs/feature-plans/daemon-server-core.md
 

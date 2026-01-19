@@ -21,7 +21,7 @@ async function main() {
   const keystore = new KeystoreManager(undefined);
   const credentialRepo = new OAuthCredentialsRepository(db);
 
-  const server = new DaemonServer(logger);
+  const server = new DaemonServer(logger, config);
   const oauthController = new OAuthController(
     logger,
     keystore,

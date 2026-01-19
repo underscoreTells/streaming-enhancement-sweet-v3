@@ -77,8 +77,14 @@ export class LinuxKeystoreStrategy implements KeystoreStrategy {
       const nestedError = (err as any).error as Error & { code?: string } | undefined;
       const errorCode = err.code || nestedError?.code || err.message?.split(':')[0];
       if (errorCode === 'ERR_KEY_NOT_FOUND' || err.message?.includes('ERR_KEY_NOT_FOUND')) {
-        return null;
+        return false;
       }
+      throw createKeystoreError(
+        `Failed to delete password: ${err.message}`,
+        KEYSTORE_ERROR_CODES.DELETE_FAILED,
+        err
+      );
+    }
       throw createKeystoreError(
         `Failed to get password: ${err.message}`,
         KEYSTORE_ERROR_CODES.READ_FAILED,
@@ -102,8 +108,14 @@ export class LinuxKeystoreStrategy implements KeystoreStrategy {
       const nestedError = (err as any).error as Error & { code?: string } | undefined;
       const errorCode = err.code || nestedError?.code || err.message?.split(':')[0];
       if (errorCode === 'ERR_KEY_NOT_FOUND' || err.message?.includes('ERR_KEY_NOT_FOUND')) {
-        return false;
+        return null;
       }
+      throw createKeystoreError(
+        `Failed to get password: ${err.message}`,
+        KEYSTORE_ERROR_CODES.READ_FAILED,
+        err
+      );
+    }
       throw createKeystoreError(
         `Failed to delete password: ${err.message}`,
         KEYSTORE_ERROR_CODES.DELETE_FAILED,

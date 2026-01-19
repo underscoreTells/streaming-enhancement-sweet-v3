@@ -9,10 +9,12 @@ export class DaemonServer {
   private server: ReturnType<Express['listen']> | null = null;
   private logger: Logger;
   private config: AppConfig;
+  private port: number;
 
-  constructor(logger: Logger) {
+  constructor(logger: Logger, config: AppConfig) {
     this.logger = logger;
-    this.config = loadConfig();
+    this.config = config;
+    this.port = config.server.port;
     this.app = express();
     this.middleware();
   }
@@ -41,10 +43,10 @@ export class DaemonServer {
   public start(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.server = this.app.listen(
-        this.config.oauth.server_port,
+        this.port,
         () => {
           this.logger.info(
-            `Daemon server listening on port ${this.config.oauth.server_port}`
+            `Daemon server listening on port ${this.port}`
           );
           resolve();
         }
