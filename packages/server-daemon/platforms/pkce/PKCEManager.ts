@@ -67,16 +67,16 @@ export class PKCEManager {
   }
 
   private startCleanupInterval(intervalMs: number): void {
-    this.cleanupInterval = setInterval(() => {
-      this.cleanupExpiredVerifiers();
+    this.cleanupInterval = setInterval(async () => {
+      await this.cleanupExpiredVerifiers();
     }, intervalMs);
 
     // Ensure the interval doesn't prevent process exit
     this.cleanupInterval.unref();
   }
 
-  private cleanupExpiredVerifiers(): void {
-    this.mutex.runExclusive(() => {
+  private async cleanupExpiredVerifiers(): Promise<void> {
+    await this.mutex.runExclusive(() => {
       for (const [state, entry] of this.verifiers) {
         if (this.isExpired(entry)) {
           this.verifiers.delete(state);

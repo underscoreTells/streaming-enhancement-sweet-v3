@@ -123,24 +123,22 @@ describe('KickOAuth', () => {
       ]);
     });
 
-    it('should use redirect_uri from config', () => {
-      const { url } = kickOAuth.generateAuthorizationUrl();
+    it('should use redirect_uri from config', async () => {
+      const { url } = await kickOAuth.generateAuthorizationUrl();
       expect(url).toContain('redirect_uri=');
       const urlObj = new URL(url);
       expect(urlObj.searchParams.get('redirect_uri')).toBe('http://localhost:3000/callback');
     });
 
-    it('should throw error when credentials missing', () => {
+    it('should throw error when credentials missing', async () => {
       mockRepo.clear();
-      expect(() => {
-        kickOAuth.generateAuthorizationUrl();
-      }).toThrow('Kick OAuth credentials not found in database');
+      await expect(kickOAuth.generateAuthorizationUrl()).rejects.toThrow('Kick OAuth credentials not found in database. Please add client credentials first.');
     });
   });
 
   describe('Authorization URL Generation', () => {
-    it('should generate correct Kick auth URL with PKCE', () => {
-      const { url, state } = kickOAuth.generateAuthorizationUrl();
+    it('should generate correct Kick auth URL with PKCE', async () => {
+      const { url, state } = await kickOAuth.generateAuthorizationUrl();
 
       expect(url).toContain('https://id.kick.com/oauth/authorize');
       expect(url).toContain('client_id=test_kick_client_id');
@@ -157,34 +155,34 @@ describe('KickOAuth', () => {
       expect(scope).toContain('events:subscribe');
     });
 
-    it('should generate unique states for multiple calls', () => {
-      const result1 = kickOAuth.generateAuthorizationUrl();
-      const result2 = kickOAuth.generateAuthorizationUrl();
+    it('should generate unique states for multiple calls', async () => {
+      const result1 = await kickOAuth.generateAuthorizationUrl();
+      const result2 = await kickOAuth.generateAuthorizationUrl();
 
       expect(result1.state).not.toBe(result2.state);
       expect(result1.url).toContain(result1.state);
       expect(result2.url).toContain(result2.state);
     });
 
-    it('should generate unique code_verifiers for multiple calls', () => {
-      const result1 = kickOAuth.generateAuthorizationUrl();
-      const result2 = kickOAuth.generateAuthorizationUrl();
+    it('should generate unique code_verifiers for multiple calls', async () => {
+      const result1 = await kickOAuth.generateAuthorizationUrl();
+      const result2 = await kickOAuth.generateAuthorizationUrl();
 
-      const verifier1 = pkceManager.getVerifier(result1.state);
-      const verifier2 = pkceManager.getVerifier(result2.state);
+      const verifier1 = await pkceManager.getVerifier(result1.state);
+      const verifier2 = await pkceManager.getVerifier(result2.state);
 
       expect(verifier1).not.toBe(verifier2);
     });
 
-    it('should use custom state if provided', () => {
+    it('should use custom state if provided', async () => {
       const customState = 'custom-state-12345';
-      const { url, state } = kickOAuth.generateAuthorizationUrl(customState);
+      const { url, state } = await kickOAuth.generateAuthorizationUrl(customState);
 
       expect(state).toBe(customState);
       expect(url).toContain(`state=${customState}`);
     });
 
-    it('should include all scopes in auth URL', () => {
+    it('should include all scopes in auth URL', async () => {
       mockRepo.setCredential('kick', 'client_id', 'client_secret', ['scope1', 'scope2', 'scope3']);
 
       const oauth = new KickOAuth(
@@ -195,12 +193,12 @@ describe('KickOAuth', () => {
         pkceManager
       );
 
-      const { url } = oauth.generateAuthorizationUrl();
+      const { url } = await oauth.generateAuthorizationUrl();
       expect(url).toContain('scope1+scope2+scope3');
     });
 
     it('should include code_challenge derived from code_verifier', async () => {
-      const { url, state } = kickOAuth.generateAuthorizationUrl();
+      const { url, state } = await kickOAuth.generateAuthorizationUrl();
       const verifier = await pkceManager.getVerifier(state);
       const expectedChallenge = createHash('sha256').update(verifier!).digest('base64url');
 
@@ -224,7 +222,7 @@ describe('KickOAuth', () => {
         },
       });
 
-      const { state } = kickOAuth.generateAuthorizationUrl();
+      const { state } = await kickOAuth.generateAuthorizationUrl();
 
       await kickOAuth.handleOAuthCallback('test_code', state, 'testuser');
 
@@ -264,7 +262,7 @@ describe('KickOAuth', () => {
         },
       });
 
-      const { state } = kickOAuth.generateAuthorizationUrl();
+      const { state } = await kickOAuth.generateAuthorizationUrl();
       expect(await pkceManager.getVerifier(state)).not.toBeNull();
 
       await kickOAuth.handleOAuthCallback('code', state, 'testuser');
@@ -282,7 +280,7 @@ describe('KickOAuth', () => {
         },
       });
 
-      const { state } = kickOAuth.generateAuthorizationUrl();
+      const { state } = await kickOAuth.generateAuthorizationUrl();
       await kickOAuth.handleOAuthCallback('code', state, 'testuser');
 
       const storedJson = await mockKeystore.getPassword('streaming-enhancement', 'oauth:kick:testuser');
@@ -300,7 +298,7 @@ describe('KickOAuth', () => {
         },
       });
 
-      const { state } = kickOAuth.generateAuthorizationUrl();
+      const { state } = await kickOAuth.generateAuthorizationUrl();
       await kickOAuth.handleOAuthCallback('code', state, 'testuser');
 
       const storedJson = await mockKeystore.getPassword('streaming-enhancement', 'oauth:kick:testuser');
@@ -317,7 +315,7 @@ describe('KickOAuth', () => {
         },
       });
 
-      const { state } = kickOAuth.generateAuthorizationUrl();
+      const { state } = await kickOAuth.generateAuthorizationUrl();
       await kickOAuth.handleOAuthCallback('code', state, 'testuser');
 
       const storedJson = await mockKeystore.getPassword('streaming-enhancement', 'oauth:kick:testuser');
@@ -334,7 +332,7 @@ describe('KickOAuth', () => {
         },
       });
 
-      const { state } = kickOAuth.generateAuthorizationUrl();
+      const { state } = await kickOAuth.generateAuthorizationUrl();
       await kickOAuth.handleOAuthCallback('code', state, 'testuser');
 
       const storedJson = await mockKeystore.getPassword('streaming-enhancement', 'oauth:kick:testuser');
@@ -351,7 +349,7 @@ describe('KickOAuth', () => {
         },
       });
 
-      const { state } = kickOAuth.generateAuthorizationUrl();
+      const { state } = await kickOAuth.generateAuthorizationUrl();
       await kickOAuth.handleOAuthCallback('code', state, 'testuser');
 
       const storedJson = await mockKeystore.getPassword('streaming-enhancement', 'oauth:kick:testuser');
@@ -376,7 +374,7 @@ describe('KickOAuth', () => {
         },
       });
 
-      const { state } = kickOAuth.generateAuthorizationUrl();
+      const { state } = await kickOAuth.generateAuthorizationUrl();
       await kickOAuth.handleOAuthCallback('code', state, 'testuser');
       mockFetch.clear();
     });
@@ -484,7 +482,7 @@ describe('KickOAuth', () => {
         },
       });
 
-      const { state } = kickOAuth.generateAuthorizationUrl();
+      const { state } = await kickOAuth.generateAuthorizationUrl();
       await kickOAuth.handleOAuthCallback('code', state, 'no_refresh_user');
 
       await expect(kickOAuth.refreshToken('no_refresh_user')).rejects.toThrow(
@@ -512,7 +510,7 @@ describe('KickOAuth', () => {
         },
       });
 
-      const { state } = kickOAuth.generateAuthorizationUrl();
+      const { state } = await kickOAuth.generateAuthorizationUrl();
       await kickOAuth.handleOAuthCallback('code', state, 'testuser');
 
       const tokenSet = await kickOAuth.getAccessToken('testuser');
@@ -533,7 +531,7 @@ describe('KickOAuth', () => {
         },
       });
 
-      const { state } = kickOAuth.generateAuthorizationUrl();
+      const { state } = await kickOAuth.generateAuthorizationUrl();
       await kickOAuth.handleOAuthCallback('code', state, 'testuser');
 
       await new Promise(resolve => setTimeout(resolve, 250));
@@ -572,7 +570,7 @@ describe('KickOAuth', () => {
         },
       });
 
-      const { state } = kickOAuth.generateAuthorizationUrl();
+      const { state } = await kickOAuth.generateAuthorizationUrl();
       await kickOAuth.handleOAuthCallback('code', state, 'testuser');
 
       await new Promise(resolve => setTimeout(resolve, 250));
@@ -599,12 +597,9 @@ describe('KickOAuth', () => {
   });
 
   describe('Error Handling', () => {
-    it('should throw clear error for missing credentials', () => {
+    it('should throw clear error for missing credentials', async () => {
       mockRepo.clear();
-
-      expect(() => {
-        kickOAuth.generateAuthorizationUrl();
-      }).toThrow('Kick OAuth credentials not found in database');
+      await expect(kickOAuth.generateAuthorizationUrl()).rejects.toThrow('Kick OAuth credentials not found in database. Please add client credentials first.');
     });
 
     it('should handle OAuth errors from API', async () => {
@@ -616,7 +611,7 @@ describe('KickOAuth', () => {
         },
       });
 
-      const { state } = kickOAuth.generateAuthorizationUrl();
+      const { state } = await kickOAuth.generateAuthorizationUrl();
 
       await expect(kickOAuth.handleOAuthCallback('invalid_code', state, 'testuser')).rejects.toThrow();
     });

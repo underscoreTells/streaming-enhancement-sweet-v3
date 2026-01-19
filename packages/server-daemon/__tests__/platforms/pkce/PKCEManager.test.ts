@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { createHash } from 'crypto';
 import { PKCEManager } from '../../../platforms/pkce/PKCEManager';
 
@@ -7,6 +7,12 @@ describe('PKCEManager', () => {
 
   beforeEach(() => {
     pkceManager = new PKCEManager();
+  });
+
+  afterEach(() => {
+    if (pkceManager) {
+      pkceManager.destroy();
+    }
   });
 
   describe('generateCodeVerifier', () => {

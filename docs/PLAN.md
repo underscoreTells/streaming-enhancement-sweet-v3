@@ -120,7 +120,7 @@ All tasks complete:
 All tasks complete:
 - [x] Implement PKCEManager standalone class with mutex for thread safety
 - [x] Create PKCE utilities (code_verifier generation, code_challenge creation)
-- [x] Modify OAuthFlow base class to add handleOAuthCallback method
+- [x] Remove handleOAuthCallback method from OAuthFlow base class (platform-specific implementations handle callbacks directly)
 - [x] Make generateState protected for subclass access
 - [x] Make generateAuthorizationUrl accept optional state parameter
 - [x] Implement Kick specific OAuth endpoints
@@ -135,11 +135,12 @@ All tasks complete:
 - [x] Test backward compatibility with TwitchOAuth (23 tests still passing)
 
 **Status**: Phase 6 complete ✅
-- All 19 PKCEManager tests passing (122 total platform tests)
-- All 33 KickOAuth tests passing (122 total platform tests including all previous)
+- All 19 PKCEManager tests passing (174 total tests: 155 Phase 5 + 19 PKCEManager)
+- All 33 KickOAuth tests passing (207 total tests: 155 Phase 5 + 19 PKCEManager + 33 KickOAuth)
 - TypeScript compilation successful
 - ESLint passing with no errors
 - PKCEManager implements thread-safe verifier storage with async-mutex
+- PKCEManager includes 10 minute TTL with 5 minute cleanup interval for automatic verifier cleanup
 - KickOAuth class extends OAuthFlow base class with PKCE integration
 - State parameter validation working (throws error if not provided)
 - Code_verifier generation and storage working correctly
@@ -150,7 +151,7 @@ All tasks complete:
 - Credentials retrieved from database
 - Tokens stored in keystore correctly
 - Error handling comprehensive and tested
-- Native fetch API used (Node.js 25+)
+- Native fetch API used (Node.js 21+)
 - Redirect URI configurable via OAuthConfig
 
 ### Next: Phase 7 Tasks

@@ -621,7 +621,7 @@ packages/
   - Backward compatibility verified: TwitchOAuth tests still pass (23 tests)
   - TypeScript compilation successful
   - ESLint passing with no errors
-  - Native fetch API used (Node.js 25+)
+  - Native fetch API used (Node.js 21+)
   - Redirect URI configurable via OAuthConfig
 - ⏸️ Phase 7: YouTube OAuth - Not started
 - ⏸️ Phase 8: HTTP Endpoints - Not started

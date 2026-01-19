@@ -105,10 +105,18 @@ export async function refreshAccessToken(
 }
 
 function normalizeTokenResponse(data: any): KickTokenResponse {
+  let expires_in: number | undefined;
+  if (data.expires_in !== undefined && data.expires_in !== null) {
+    const parsed = typeof data.expires_in === 'string' ? parseInt(data.expires_in, 10) : data.expires_in;
+    if (typeof parsed === 'number' && Number.isFinite(parsed) && !Number.isNaN(parsed)) {
+      expires_in = parsed;
+    }
+  }
+
   return {
     access_token: data.access_token,
     refresh_token: data.refresh_token,
-    expires_in: typeof data.expires_in === 'string' ? parseInt(data.expires_in, 10) : data.expires_in,
+    expires_in,
     scope: data.scope ? (Array.isArray(data.scope) ? data.scope : data.scope.split(' ')) : undefined,
     token_type: data.token_type,
   };
