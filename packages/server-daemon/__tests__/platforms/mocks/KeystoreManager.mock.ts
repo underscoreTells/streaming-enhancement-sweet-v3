@@ -3,10 +3,8 @@ export class MockKeystoreManager {
 
   async getPassword(service: string, account: string): Promise<string | null> {
     const key = `${service}:${account}`;
-    if (this.store.has(key)) {
-      return this.store.get(key);
-    }
-    return null;
+    const value = this.store.get(key);
+    return value ?? null;
   }
 
   async setPassword(service: string, account: string, password: string): Promise<void> {
