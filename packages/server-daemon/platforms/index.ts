@@ -25,3 +25,13 @@ export {
   isInvalidResponseError,
   isNetworkError,
 } from './errors';
+
+export { TwitchOAuth } from './Twitch/TwitchOAuth';
+export { createTwitchOAuth } from './Twitch/factory';
+export * from './Twitch/http';
+
+export { KickOAuth } from './Kick/KickOAuth';
+export { createKickOAuth } from './Kick/factory';
+export * from './Kick/http';
+
+export { PKCEManager } from './pkce/PKCEManager';
