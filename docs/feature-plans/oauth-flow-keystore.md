@@ -338,7 +338,7 @@ packages/
   - Test verifier storage/retrieval/cleanup
   - Test PKCE flow integration
 - [x] Modify OAuthFlow base class
-  - Add `handleOAuthCallback(code, state, username)` method for complete OAuth flow
+  - Remove `handleOAuthCallback(code, state, username)` method (platform-specific implementations handle callbacks directly)
   - Make `generateState()` protected for subclass access
   - Make `generateAuthorizationUrl(state?)` accept optional state parameter
 - [x] Create KickOAuth class extending OAuthFlow

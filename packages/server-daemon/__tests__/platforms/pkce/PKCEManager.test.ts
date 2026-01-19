@@ -45,6 +45,29 @@ describe('PKCEManager', () => {
       const verifier2 = pkceManager.generateCodeVerifier();
       expect(verifier1).not.toBe(verifier2);
     });
+
+    it('should throw error for length less than 43 (RFC 7636)', () => {
+      expect(() => pkceManager.generateCodeVerifier(42)).toThrow(RangeError);
+      expect(() => pkceManager.generateCodeVerifier(0)).toThrow(RangeError);
+      expect(() => pkceManager.generateCodeVerifier(1)).toThrow(RangeError);
+    });
+
+    it('should throw error for length greater than 128 (RFC 7636)', () => {
+      expect(() => pkceManager.generateCodeVerifier(129)).toThrow(RangeError);
+      expect(() => pkceManager.generateCodeVerifier(200)).toThrow(RangeError);
+    });
+
+    it('should include allowed range in error message', () => {
+      expect(() => pkceManager.generateCodeVerifier(42)).toThrow(RangeError);
+      try {
+        pkceManager.generateCodeVerifier(42);
+      } catch (error) {
+        expect(error).toBeInstanceOf(RangeError);
+        expect((error as RangeError).message).toContain('43 and 128');
+        expect((error as RangeError).message).toContain('RFC 7636');
+        expect((error as RangeError).message).toContain('42');
+      }
+    });
   });
 
   describe('generateCodeChallenge', () => {

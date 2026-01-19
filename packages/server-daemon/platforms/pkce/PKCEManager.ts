@@ -18,6 +18,9 @@ export class PKCEManager {
   }
 
   generateCodeVerifier(length = 64): string {
+    if (length < 43 || length > 128) {
+      throw new RangeError(`PKCE code_verifier length must be between 43 and 128 characters per RFC 7636. Received: ${length}`);
+    }
     const bytes = randomBytes(Math.ceil(length * 0.75));
     return bytes.toString('base64url').slice(0, length);
   }

@@ -155,7 +155,7 @@ All tasks complete:
 - Redirect URI configurable via OAuthConfig
 
 ### Next: Phase 7 Tasks
-- [ ] Implement YouTube specific OAuth endpoints
+- [ ] Implement YouTube-specific OAuth endpoints
 - [ ] Create YouTubeStrategy class extending OAuthFlow
 - [ ] Implement YouTube token exchange API calls
 - [ ] Implement YouTube refresh token flow
