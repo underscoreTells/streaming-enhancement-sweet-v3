@@ -138,24 +138,24 @@ export abstract class OAuthFlow {
   }
 
   private async storeTokenSet(username: string, tokenSet: TokenSet): Promise<void> {
-    const token = serializeTokenSet(tokenSet);
-    await this.keystore.setCredentials(
+    const serialized = serializeTokenSet(tokenSet);
+    await this.keystore.setPassword(
       'streaming-enhancement',
       `oauth:${this.platform}:${username}`,
-      token
+      serialized
     );
   }
 
   private async retrieveTokenSet(username: string): Promise<TokenSet | null> {
     try {
-      const token = await this.keystore.getCredentials(
+      const serialized = await this.keystore.getPassword(
         'streaming-enhancement',
         `oauth:${this.platform}:${username}`
       );
-      if (!token) {
+      if (!serialized) {
         return null;
       }
-      return deserializeTokenSet(token);
+      return deserializeTokenSet(serialized);
     } catch (error) {
       this.logger.warn(`Failed to retrieve token for user ${username}: ${error}`);
       return null;

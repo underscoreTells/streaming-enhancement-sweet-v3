@@ -13,6 +13,6 @@
     "moduleResolution": "node",
     "types": ["node"]
   },
-  "include": ["infrastructure/**/*", "__tests__/**/*"],
+  "include": ["infrastructure/**/*", "platforms/**/*", "__tests__/**/*"],
   "exclude": ["node_modules", "dist"]
 }

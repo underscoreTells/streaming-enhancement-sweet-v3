@@ -1,5 +1,3 @@
-import type { OAuthToken } from '@streaming-enhancement/keystore-native';
-
 export interface TokenSet {
   access_token: string;
   refresh_token?: string;
@@ -8,17 +6,27 @@ export interface TokenSet {
   scope: string[];
 }
 
-export function serializeTokenSet(tokenSet: TokenSet): OAuthToken {
-  return {
+export interface SerializedTokenSet {
+  access_token: string;
+  refresh_token?: string;
+  expires_at: string;
+  refresh_at: string;
+  scope: string[];
+}
+
+export function serializeTokenSet(tokenSet: TokenSet): string {
+  const serialized: SerializedTokenSet = {
     access_token: tokenSet.access_token,
     refresh_token: tokenSet.refresh_token,
     expires_at: tokenSet.expires_at.toISOString(),
     refresh_at: tokenSet.refresh_at.toISOString(),
     scope: tokenSet.scope,
   };
+  return JSON.stringify(serialized);
 }
 
-export function deserializeTokenSet(token: OAuthToken): TokenSet {
+export function deserializeTokenSet(json: string): TokenSet {
+  const token: SerializedTokenSet = JSON.parse(json);
   return {
     access_token: token.access_token,
     refresh_token: token.refresh_token,

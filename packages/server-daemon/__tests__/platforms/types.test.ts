@@ -10,7 +10,7 @@ import {
 
 describe('TokenSet', () => {
   describe('serializeTokenSet', () => {
-    it('should serialize TokenSet to OAuthToken', () => {
+    it('should serialize TokenSet to JSON string', () => {
       const tokenSet: TokenSet = {
         access_token: 'test_access_token',
         refresh_token: 'test_refresh_token',
@@ -20,12 +20,13 @@ describe('TokenSet', () => {
       };
 
       const serialized = serializeTokenSet(tokenSet);
+      const parsed = JSON.parse(serialized);
 
-      expect(serialized.access_token).toBe('test_access_token');
-      expect(serialized.refresh_token).toBe('test_refresh_token');
-      expect(serialized.expires_at).toBe('2025-01-19T12:00:00.000Z');
-      expect(serialized.refresh_at).toBe('2025-01-19T11:55:00.000Z');
-      expect(serialized.scope).toEqual(['read', 'write']);
+      expect(parsed.access_token).toBe('test_access_token');
+      expect(parsed.refresh_token).toBe('test_refresh_token');
+      expect(parsed.expires_at).toBe('2025-01-19T12:00:00.000Z');
+      expect(parsed.refresh_at).toBe('2025-01-19T11:55:00.000Z');
+      expect(parsed.scope).toEqual(['read', 'write']);
     });
 
     it('should handle missing refresh_token', () => {
@@ -37,22 +38,23 @@ describe('TokenSet', () => {
       };
 
       const serialized = serializeTokenSet(tokenSet);
+      const parsed = JSON.parse(serialized);
 
-      expect(serialized.refresh_token).toBeUndefined();
+      expect(parsed.refresh_token).toBeUndefined();
     });
   });
 
   describe('deserializeTokenSet', () => {
-    it('should deserialize OAuthToken to TokenSet', () => {
-      const oauthToken = {
+    it('should deserialize JSON string to TokenSet', () => {
+      const json = JSON.stringify({
         access_token: 'test_access_token',
         refresh_token: 'test_refresh_token',
         expires_at: '2025-01-19T12:00:00.000Z',
         refresh_at: '2025-01-19T11:55:00.000Z',
         scope: ['read', 'write'],
-      };
+      });
 
-      const deserialized = deserializeTokenSet(oauthToken);
+      const deserialized = deserializeTokenSet(json);
 
       expect(deserialized.access_token).toBe('test_access_token');
       expect(deserialized.refresh_token).toBe('test_refresh_token');
@@ -62,14 +64,14 @@ describe('TokenSet', () => {
     });
 
     it('should handle missing refresh_token', () => {
-      const oauthToken = {
+      const json = JSON.stringify({
         access_token: 'test_access_token',
         expires_at: '2025-01-19T12:00:00.000Z',
         refresh_at: '2025-01-19T11:55:00.000Z',
         scope: ['read'],
-      };
+      });
 
-      const deserialized = deserializeTokenSet(oauthToken);
+      const deserialized = deserializeTokenSet(json);
 
       expect(deserialized.refresh_token).toBeUndefined();
     });

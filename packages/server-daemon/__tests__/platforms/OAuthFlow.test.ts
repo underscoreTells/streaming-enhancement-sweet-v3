@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { createLogger } from 'winston';
 import { OAuthFlow } from '../../platforms/OAuthFlow';
 import { MockKeystoreManager } from './mocks/KeystoreManager.mock';
+import { KeystoreManager } from '../../infrastructure/keystore/KeystoreManager';
 
 class TestOAuthFlow extends OAuthFlow {
   readonly platform = 'test';
@@ -47,12 +48,30 @@ class TestOAuthFlow extends OAuthFlow {
     return this.mockRefreshResponse;
   }
 
-  setMockExchangeResponse(response: any) {
-    this.mockExchangeResponse = response;
+  setMockExchangeResponse(response: {
+    access_token: string;
+    refresh_token?: string;
+    expires_in?: number;
+    scope?: string[];
+  }) {
+    this.mockExchangeResponse = {
+      ...this.mockExchangeResponse,
+      ...response,
+    };
   }
 
-  setMockRefreshResponse(response: any) {
-    this.mockRefreshResponse = response;
+  setMockRefreshResponse(response: {
+    access_token: string;
+    refresh_token?: string;
+    expires_in?: number;
+    scope?: string[];
+  }) {
+    this.mockRefreshResponse = {
+      access_token: response.access_token,
+      refresh_token: response.refresh_token,
+      expires_in: response.expires_in ?? this.mockRefreshResponse.expires_in,
+      scope: response.scope ?? this.mockRefreshResponse.scope,
+    };
   }
 
   setMockScopes(scopes: string[]) {
@@ -70,7 +89,8 @@ describe('OAuthFlow', () => {
       silent: true,
     });
     mockKeystore = new MockKeystoreManager();
-    oauthFlow = new TestOAuthFlow(logger, mockKeystore);
+    // Cast mock to KeystoreManager since it implements the same interface
+    oauthFlow = new TestOAuthFlow(logger, mockKeystore as unknown as KeystoreManager);
   });
 
   describe('generateAuthorizationUrl', () => {
@@ -116,17 +136,18 @@ describe('OAuthFlow', () => {
 
       await oauthFlow.processAccessToken('testuser', tokens);
 
-      const stored = await mockKeystore.getCredentials(
+      const storedJson = await mockKeystore.getPassword(
         'streaming-enhancement',
         'oauth:test:testuser'
       );
 
-      expect(stored).toBeDefined();
-      expect(stored?.access_token).toBe('test_access_token');
-      expect(stored?.refresh_token).toBe('test_refresh_token');
-      expect(stored?.scope).toEqual(['read', 'write']);
-      expect(new Date(stored!.expires_at)).toBeInstanceOf(Date);
-      expect(new Date(stored!.refresh_at)).toBeInstanceOf(Date);
+      expect(storedJson).toBeDefined();
+      const stored = JSON.parse(storedJson!);
+      expect(stored.access_token).toBe('test_access_token');
+      expect(stored.refresh_token).toBe('test_refresh_token');
+      expect(stored.scope).toEqual(['read', 'write']);
+      expect(new Date(stored.expires_at)).toBeInstanceOf(Date);
+      expect(new Date(stored.refresh_at)).toBeInstanceOf(Date);
     });
 
     it('should use default expires_in when not provided', async () => {
@@ -138,13 +159,14 @@ describe('OAuthFlow', () => {
 
       await oauthFlow.processAccessToken('testuser', tokens);
 
-      const stored = await mockKeystore.getCredentials(
+      const storedJson = await mockKeystore.getPassword(
         'streaming-enhancement',
         'oauth:test:testuser'
       );
 
-      expect(stored).toBeDefined();
-      const expiresAt = new Date(stored!.expires_at);
+      expect(storedJson).toBeDefined();
+      const stored = JSON.parse(storedJson!);
+      const expiresAt = new Date(stored.expires_at);
       const now = Date.now();
       const oneDayInMs = 24 * 60 * 60 * 1000;
       
@@ -161,13 +183,14 @@ describe('OAuthFlow', () => {
 
       await oauthFlow.processAccessToken('testuser', tokens);
 
-      const stored = await mockKeystore.getCredentials(
+      const storedJson = await mockKeystore.getPassword(
         'streaming-enhancement',
         'oauth:test:testuser'
       );
 
-      expect(stored).toBeDefined();
-      expect(stored?.refresh_token).toBeUndefined();
+      expect(storedJson).toBeDefined();
+      const stored = JSON.parse(storedJson!);
+      expect(stored.refresh_token).toBeUndefined();
     });
   });
 
@@ -301,13 +324,14 @@ describe('OAuthFlow', () => {
 
       await oauthFlow.processAccessToken('testuser', tokens);
 
-      const stored = await mockKeystore.getCredentials(
+      const storedJson = await mockKeystore.getPassword(
         'streaming-enhancement',
         'oauth:test:testuser'
       );
 
-      const expiresAt = new Date(stored!.expires_at);
-      const refreshAt = new Date(stored!.refresh_at);
+      const stored = JSON.parse(storedJson!);
+      const expiresAt = new Date(stored.expires_at);
+      const refreshAt = new Date(stored.refresh_at);
       const bufferMinutes = (expiresAt.getTime() - refreshAt.getTime()) / (60 * 1000);
 
       expect(bufferMinutes).toBe(5);

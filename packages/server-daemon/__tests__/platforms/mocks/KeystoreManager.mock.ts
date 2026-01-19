@@ -1,21 +1,19 @@
-import { OAuthToken } from '@streaming-enhancement/keystore-native';
-
 export class MockKeystoreManager {
-  private store = new Map<string, OAuthToken>();
+  private store = new Map<string, string>();
 
-  async getCredentials(service: string, account: string): Promise<OAuthToken | null> {
+  async getPassword(service: string, account: string): Promise<string | null> {
     const key = `${service}:${account}`;
     return this.store.get(key) || null;
   }
 
-  async setCredentials(service: string, account: string, token: OAuthToken): Promise<void> {
+  async setPassword(service: string, account: string, password: string): Promise<void> {
     const key = `${service}:${account}`;
-    this.store.set(key, token);
+    this.store.set(key, password);
   }
 
-  async deleteCredentials(service: string, account: string): Promise<void> {
+  async deletePassword(service: string, account: string): Promise<boolean> {
     const key = `${service}:${account}`;
-    this.store.delete(key);
+    return this.store.delete(key);
   }
 
   clear(): void {
