@@ -87,16 +87,11 @@ export class TwitchOAuth extends OAuthFlow {
       refreshToken
     );
 
-      this.logger.debug('Successfully refreshed access token', {
-        hasRefreshToken: !!response.refresh_token,
-        expiresIn: response.expires_in,
-      });
+    this.logger.debug('Successfully refreshed access token', {
+      hasRefreshToken: !!response.refresh_token,
+      expiresIn: response.expires_in,
+    });
 
-      return response;
-    }
-
-  async handleOAuthCallback(code: string, state: string, username: string): Promise<void> {
-    const tokens = await this.exchangeCodeForTokens(code);
-    await this.processAccessToken(username, tokens);
+    return response;
   }
 }

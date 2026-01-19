@@ -1,6 +1,7 @@
-import express, { Express } from 'express';
+import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { Logger } from 'winston';
+import { ZodError } from 'zod';
 import { loadConfig, type AppConfig } from '../config/Config';
 
 export class DaemonServer {
@@ -24,6 +25,17 @@ export class DaemonServer {
 
   public attachRoutes(routePath: string, routes: express.Router): void {
     this.app.use(routePath, routes);
+  }
+
+  public attachErrorHandler(): void {
+    this.app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+      if (err instanceof ZodError) {
+        res.status(400).json({ error: err.issues[0].message });
+        return;
+      }
+      this.logger.error('Unhandled error:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    });
   }
 
   public start(): Promise<void> {
