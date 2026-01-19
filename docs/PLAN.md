@@ -10,7 +10,7 @@ Local analytics & integration tool for livestreamers (Twitch, Kick, YouTube). Pr
 **Full Implementation Plan**: @docs/feature-plans/oauth-flow-keystore.md
 
 ### Next Phase
-**Phase 6: Kick OAuth Implementation** - Platform-specific OAuth implementation for Kick
+**Phase 7: YouTube OAuth Implementation** - Platform-specific OAuth implementation for YouTube
 
 ### Completed: Phase 1 - Rust Native Binding ✅
 All tasks complete:
