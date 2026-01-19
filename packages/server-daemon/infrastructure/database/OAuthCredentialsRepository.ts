@@ -30,10 +30,19 @@ export class OAuthCredentialsRepository {
   }
 
   private serializeScopes(scopes: string[]): string {
-    return scopes.join(',');
+    return JSON.stringify(scopes);
   }
 
   private deserializeScopes(scopesStr: string): string[] {
+    // Handle both JSON format and legacy comma-separated format for backwards compatibility
+    if (scopesStr.startsWith('[')) {
+      try {
+        return JSON.parse(scopesStr);
+      } catch {
+        // Fall through to legacy parsing
+      }
+    }
+    // Legacy comma-separated format
     return scopesStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
   }
 

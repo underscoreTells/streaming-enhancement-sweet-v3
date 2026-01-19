@@ -46,7 +46,17 @@ export const loadConfig = (): AppConfig => {
     }
   }
 
-  const mergedConfig = { ...defaultConfig, ...userConfig };
+  // Deep merge nested objects to preserve defaults when user only overrides some fields
+  const mergedConfig: Partial<AppConfig> = {
+    database: {
+      ...defaultConfig.database,
+      ...userConfig.database
+    },
+    logging: {
+      ...defaultConfig.logging,
+      ...userConfig.logging
+    }
+  };
 
   try {
     const validatedConfig = AppConfigSchema.parse(mergedConfig);

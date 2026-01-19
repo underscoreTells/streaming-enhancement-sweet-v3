@@ -29,7 +29,7 @@ export class MigrationRunner {
 
   private loadMigrations(): Migration[] {
     const migrations: Migration[] = [];
-    const files = fs.readdirSync(this.migrationsPath).filter(f => f.endsWith('.ts'));
+    const files = fs.readdirSync(this.migrationsPath).filter(f => f.endsWith('.ts') || f.endsWith('.js'));
 
     for (const file of files) {
       const migrationPath = path.join(this.migrationsPath, file);

@@ -61,7 +61,12 @@ export class DatabaseProxy {
   }
 
   async transaction<T>(fn: (db: import('better-sqlite3').Database) => T): Promise<T> {
-    return this.database.transaction(() => fn(this.database.getNativeDb()));
+    const release = await this.writeMutex.acquire();
+    try {
+      return this.database.transaction(() => fn(this.database.getNativeDb()));
+    } finally {
+      release();
+    }
   }
 
   isHealthy(): boolean {

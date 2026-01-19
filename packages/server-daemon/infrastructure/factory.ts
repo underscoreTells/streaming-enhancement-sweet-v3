@@ -3,13 +3,13 @@ import { DatabaseConnection, DatabaseProxy } from './database';
 import path from 'path';
 
 export class DatabaseFactory {
-  static createProxy(config: AppConfig): DatabaseProxy {
+  static async createProxy(config: AppConfig): Promise<DatabaseProxy> {
     const db = new DatabaseConnection(
       config.database.path,
       config.database.migrationsDir || path.join(__dirname, 'migrations')
     );
     const proxy = new DatabaseProxy(db);
-    proxy.initialize();
+    await proxy.initialize();
     return proxy;
   }
 }
