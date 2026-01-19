@@ -12,10 +12,14 @@ mod macos;
 #[cfg(target_os = "linux")]
 mod linux;
 
+// Fallback is available on non-standard platforms, for tests, and on Linux when Secret Service is unavailable
 #[cfg(not(any(windows, target_os = "macos", target_os = "linux")))]
 mod fallback;
 
-#[cfg(all(test, any(windows, target_os = "macos", target_os = "linux")))]
+#[cfg(target_os = "linux")]
+mod fallback;
+
+#[cfg(all(test, any(windows, target_os = "macos")))]
 mod fallback;
 
 impl From<KeystoreError> for Error {
@@ -144,9 +148,16 @@ impl NapiKeystore {
 impl NapiKeystore {
     #[napi(constructor)]
     pub fn new() -> Result<Self, Error> {
-        let inner =
-            Box::new(linux::LinuxKeystore::new()?) as Box<dyn KeystoreOperations + Send + Sync>;
-        Ok(Self { inner })
+        // Try native Linux keystore first, fall back to encrypted file if unavailable
+        let linux_keystore = linux::LinuxKeystore::new()?;
+        if linux_keystore.is_available() {
+            let inner = Box::new(linux_keystore) as Box<dyn KeystoreOperations + Send + Sync>;
+            Ok(Self { inner })
+        } else {
+            let inner = Box::new(fallback::FallbackKeystore::new()?)
+                as Box<dyn KeystoreOperations + Send + Sync>;
+            Ok(Self { inner })
+        }
     }
 
     #[napi]

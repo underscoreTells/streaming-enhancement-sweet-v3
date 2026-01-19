@@ -3,7 +3,7 @@ use super::KeystoreEntry;
 use super::KeystoreOperations;
 
 use windows::core::{HSTRING, PCWSTR};
-use windows::Win32::Foundation::{GetLastError, ERROR_NOT_FOUND};
+use windows::Win32::Foundation::ERROR_NOT_FOUND;
 use windows::Win32::Security::Credentials::*;
 
 pub struct WindowsKeystore;
@@ -12,11 +12,21 @@ impl WindowsKeystore {
     pub fn new() -> Result<Self, KeystoreError> {
         Ok(Self)
     }
+
+    /// Builds a unique credential name by escaping colons in service/account names.
+    /// This prevents collision when service or account contains colons.
+    /// Uses backslash as escape character: ':' -> '\:', '\' -> '\\'
+    fn build_credential_name(service: &str, account: &str) -> String {
+        fn escape(s: &str) -> String {
+            s.replace('\\', "\\\\").replace(':', "\\:")
+        }
+        format!("{}:{}", escape(service), escape(account))
+    }
 }
 
 impl KeystoreOperations for WindowsKeystore {
     fn set_password(&self, entry: &KeystoreEntry) -> Result<(), KeystoreError> {
-        let credential_name = format!("{}:{}", entry.service, entry.account);
+        let credential_name = Self::build_credential_name(&entry.service, &entry.account);
         let credential_name_hstring = HSTRING::from(credential_name.as_str());
 
         let mut cred_blob = entry.value.as_bytes().to_vec();
@@ -45,7 +55,7 @@ impl KeystoreOperations for WindowsKeystore {
     }
 
     fn get_password(&self, service: &str, account: &str) -> Result<String, KeystoreError> {
-        let credential_name = format!("{}:{}", service, account);
+        let credential_name = Self::build_credential_name(service, account);
         let credential_name_hstring = HSTRING::from(credential_name.as_str());
 
         unsafe {
@@ -87,7 +97,7 @@ impl KeystoreOperations for WindowsKeystore {
     }
 
     fn delete_password(&self, service: &str, account: &str) -> Result<(), KeystoreError> {
-        let credential_name = format!("{}:{}", service, account);
+        let credential_name = Self::build_credential_name(service, account);
         let credential_name_hstring = HSTRING::from(credential_name.as_str());
 
         unsafe {
@@ -289,6 +299,51 @@ mod tests {
 
         keystore
             .delete_password("utf8-service", "utf8-account")
+            .unwrap();
+    }
+
+    #[test]
+    fn test_colon_in_service_account_no_collision() {
+        let keystore = WindowsKeystore::new().unwrap();
+
+        // These two entries would collide if we just used "service:account" format
+        // "foo:bar" + "baz" = "foo:bar:baz"
+        // "foo" + "bar:baz" = "foo:bar:baz"
+        let entry1 = create_test_entry("foo:bar", "baz", "password1");
+        let entry2 = create_test_entry("foo", "bar:baz", "password2");
+
+        keystore.set_password(&entry1).unwrap();
+        keystore.set_password(&entry2).unwrap();
+
+        // Both entries should be retrievable without collision
+        assert_eq!(
+            keystore.get_password("foo:bar", "baz").unwrap(),
+            "password1"
+        );
+        assert_eq!(
+            keystore.get_password("foo", "bar:baz").unwrap(),
+            "password2"
+        );
+
+        keystore.delete_password("foo:bar", "baz").unwrap();
+        keystore.delete_password("foo", "bar:baz").unwrap();
+    }
+
+    #[test]
+    fn test_backslash_in_service_account() {
+        let keystore = WindowsKeystore::new().unwrap();
+
+        let entry = create_test_entry("service\\with\\backslash", "account\\test", "password");
+
+        keystore.set_password(&entry).unwrap();
+
+        let result = keystore
+            .get_password("service\\with\\backslash", "account\\test")
+            .unwrap();
+        assert_eq!(result, "password");
+
+        keystore
+            .delete_password("service\\with\\backslash", "account\\test")
             .unwrap();
     }
 }

@@ -147,16 +147,6 @@ impl FallbackKeystore {
         Ok(key)
     }
 
-    fn load_data(&self) -> Result<KeystoreData, KeystoreError> {
-        if !self.file_path.exists() {
-            return Ok(KeystoreData { entries: vec![] });
-        }
-
-        let data = fs::read_to_string(&self.file_path).map_err(KeystoreError::Io)?;
-
-        serde_json::from_str(&data).map_err(|e| KeystoreError::Serialization(e.to_string()))
-    }
-
     fn save_data(&self, data: &KeystoreData) -> Result<(), KeystoreError> {
         let json = serde_json::to_string_pretty(data)
             .map_err(|e| KeystoreError::Serialization(e.to_string()))?;
@@ -273,40 +263,34 @@ impl KeystoreOperations for FallbackKeystore {
             ciphertext,
         };
 
-        // Clone the current data to avoid mutating in-memory state before successful save
-        let mut cloned_data = {
-            let data = self
-                .data
-                .lock()
-                .map_err(|e| KeystoreError::Platform(format!("Failed to acquire lock: {}", e)))?;
-            data.clone()
-        };
-
-        if let Some(index) =
-            Self::derive_index(&cloned_data, &self.key, &entry.service, &entry.account)
-        {
-            cloned_data.entries[index] = encrypted_entry;
-        } else {
-            cloned_data.entries.push(encrypted_entry);
-        }
-
-        // Save first; if this fails, in-memory data remains unchanged
-        self.save_data(&cloned_data)?;
-
-        // Only update in-memory data after successful save
+        // Hold the lock through the entire operation to prevent race conditions
         let mut data = self
             .data
             .lock()
             .map_err(|e| KeystoreError::Platform(format!("Failed to acquire lock: {}", e)))?;
-        *data = cloned_data;
+
+        if let Some(index) =
+            Self::derive_index(&data, &self.key, &entry.service, &entry.account)
+        {
+            data.entries[index] = encrypted_entry;
+        } else {
+            data.entries.push(encrypted_entry);
+        }
+
+        // Save while still holding the lock to prevent concurrent modifications
+        self.save_data(&data)?;
 
         Ok(())
     }
 
     fn get_password(&self, service: &str, account: &str) -> Result<String, KeystoreError> {
-        let data = self.load_data()?;
+        // Use the in-memory cache instead of reading from disk every time
+        let data = self
+            .data
+            .lock()
+            .map_err(|e| KeystoreError::Platform(format!("Failed to acquire lock: {}", e)))?;
 
-        for entry in data.entries {
+        for entry in &data.entries {
             let cipher = Aes256Gcm::new(&self.key);
             if let Ok(decrypted) =
                 cipher.decrypt(Nonce::from_slice(&entry.nonce), entry.ciphertext.as_ref())
@@ -330,27 +314,17 @@ impl KeystoreOperations for FallbackKeystore {
     }
 
     fn delete_password(&self, service: &str, account: &str) -> Result<(), KeystoreError> {
-        // Clone the current data to avoid mutating in-memory state before successful save
-        let mut cloned_data = {
-            let data = self
-                .data
-                .lock()
-                .map_err(|e| KeystoreError::Platform(format!("Failed to acquire lock: {}", e)))?;
-            data.clone()
-        };
+        // Hold the lock through the entire operation to prevent race conditions
+        let mut data = self
+            .data
+            .lock()
+            .map_err(|e| KeystoreError::Platform(format!("Failed to acquire lock: {}", e)))?;
 
-        if let Some(index) = Self::derive_index(&cloned_data, &self.key, service, account) {
-            cloned_data.entries.remove(index);
+        if let Some(index) = Self::derive_index(&data, &self.key, service, account) {
+            data.entries.remove(index);
 
-            // Save first; if this fails, in-memory data remains unchanged
-            self.save_data(&cloned_data)?;
-
-            // Only update in-memory data after successful save
-            let mut data = self
-                .data
-                .lock()
-                .map_err(|e| KeystoreError::Platform(format!("Failed to acquire lock: {}", e)))?;
-            *data = cloned_data;
+            // Save while still holding the lock to prevent concurrent modifications
+            self.save_data(&data)?;
 
             Ok(())
         } else {
