@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Authentication Complete - {platformName}</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --platform-color: {platformColor};
+      --platform-hover: {platformHover};
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 450px;
+      width: 100%;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .logo {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 24px;
+    }
+
+    .logo svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    h1 {
+      color: #ffffff;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    p {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 16px;
+      line-height: 1.5;
+      margin-bottom: 32px;
+    }
+
+    .close-button {
+      background: var(--platform-color);
+      color: white;
+      border: none;
+      padding: 14px 32px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: inherit;
+    }
+
+    .close-button:hover {
+      background: var(--platform-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .close-button:active {
+      transform: translateY(0);
+    }
+
+    .footer {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .footer p {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">
+      {platformLogo}
+    </div>
+    <h1>Authentication Complete</h1>
+    <p>You have successfully connected your {platformName} account. You can now close this window.</p>
+    <button class="close-button" onclick="window.close()">Close Window</button>
+    <div class="footer">
+      <p>Streaming Enhancement Application</p>
+    </div>
+  </div>
+</body>
+</html>
