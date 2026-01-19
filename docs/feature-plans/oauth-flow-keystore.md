@@ -323,7 +323,58 @@ packages/
 
 ---
 
-### Phase 6: HTTP Endpoints
+### Phase 6: Kick OAuth Implementation
+**Location**: `packages/server-daemon/platforms/Kick/`
+
+- [x] Create PKCEManager standalone class (`platforms/pkce/PKCEManager.ts`)
+  - `generateCodeVerifier(length)` - Generate random 43-128 char string using crypto.randomBytes
+  - `generateCodeChallenge(verifier)` - SHA256 hash verifier, then base64url encode
+  - `storeVerifier(state, verifier)` - Store in Map with thread-safe async-mutex
+  - `getVerifier(state)` - Retrieve from Map with mutex
+  - `clearVerifier(state)` - Remove from Map with mutex
+  - TTL-based cleanup sfor stored verifiers (10 min TTL, 5 min cleanup interval)
+- [x] Write PKCEManager unit tests (19 tests passing)
+  - Test code_verifier generation (default, custom, max length)
+  - Test code_challenge generation
+  - Test verifier storage/retrieval/cleanup
+  - Test PKCE flow integration
+- [x] Modify OAuthFlow base class
+  - Remove `handleOAuthCallback(code, state, username)` method (platform-specific implementations handle callbacks directly)
+  - Make `generateState()` protected for subclass access
+  - Make `generateAuthorizationUrl(state?)` accept optional state parameter
+- [x] Create KickOAuth class extending OAuthFlow
+  - Inject PKCEManager via constructor
+  - Implement Kick OAuth endpoints (`https://id.kick.com/oauth/authorize`, `https://id.kick.com/oauth/token`)
+  - Override `generateAuthorizationUrl(state?)` to add PKCE parameters (`code_challenge`, `code_challenge_method=S256`)
+  - Override `handleOAuthCallback()` to validate state, retrieve code_verifier, and clean up
+  - Implement token exchange with PKCE code_verifier
+  - Implement refresh token flow (no PKCE needed for refresh)
+  - Add Kick-specific configuration validation
+- [x] Write Kick HTTP helpers (`platforms/Kick/http.ts`)
+  - Define `KickTokenResponse` interface
+  - Define `KickOAuthError` class with type guards
+  - Implement `exchangeCodeForTokens()` with code_verifier
+  - Implement `refreshAccessToken()`
+  - Normalize token responses (handle string/number expires_in, space-delimited/array scopes)
+- [x] Create KickOAuth factory function
+- [x] Export Kick module from platforms index
+- [x] Write KickOAuth integration tests (33 tests passing)
+  - Test configuration (load credentials, redirect_uri, error on missing)
+  - Test authorization URL generation (PKCE parameters, unique states/code_verifiers)
+  - Test PKCE-specific logic (code_challenge derived from verifier)
+  - Test callback handling (state validation, verifier retrieval/cleanup)
+  - Test token exchange and storage
+  - Test token refresh
+  - Test getAccessToken with auto-refresh
+  - Test error handling (state missing, verifier not found, network errors)
+- [x] Verify backward compatibility with TwitchOAuth (23 tests still passing)
+
+**Output**: Complete Kick OAuth flow with PKCE implementation
+**Test Results**: All 122 platform tests passing (19 PKCEManager + 33 KickOAuth + 23 TwitchOAuth + 15 OAuthFlow + 19 errors + 13 types)
+
+---
+
+### Phase 7: HTTP Endpoints
 **Location**: `packages/server-daemon/controllers/OAuthController.ts`
 
 - [ ] Implement `OAuthController` class
@@ -555,12 +606,29 @@ packages/
   - Redirect URI configurable via OAuthConfig
   - Error handling comprehensive and tested
   - ESLint passing with no errors
-- ⏸️ Phase 6: Kick OAuth - In Progress
+- ✅ Phase 6: Kick OAuth - Complete
+  - All 19 PKCEManager unit tests passing
+  - All 33 KickOAuth unit tests passing (122 total platform tests including previous phases)
+  - PKCEManager standalone class with thread-safe async-mutex for verifier storage
+  - PKCE utilities: code_verifier generation (43-128 chars), code_challenge creation (SHA256 + base64url)
+  - OAuthFlow base class updated: removed `handleOAuthCallback()` from base class, `generateState()` now protected, state parameter optional
+  - KickOAuth class extends OAuthFlow with PKCEManager injection
+  - Kick OAuth flow with PKCE: code_challenge and code_challenge_method=S256 in auth URL
+  - State validation: throws error if not provided (Kick requires state)
+  - Code_verifier storage/retrieval/cleanup working correctly
+  - Token exchange with code_verifier implemented
+  - Refresh token flow implemented (no PKCE needed for refresh)
+  - Kick-specific error handling (state missing, verifier not found, KickOAuthError)
+  - Backward compatibility verified: TwitchOAuth tests still pass (23 tests)
+  - TypeScript compilation successful
+  - ESLint passing with no errors
+  - Native fetch API used (Node.js 21+)
+  - Redirect URI configurable via OAuthConfig
 - ⏸️ Phase 7: YouTube OAuth - Not started
 - ⏸️ Phase 8: HTTP Endpoints - Not started
 - ⏸️ Phase 9: CLI Commands - Not started
 - ⏸️ Phase 10: Install Script - Not started
-- ⏸️ Phase 11: Testing - Partial (Unit Tests complete for Phase 1, 2, 3, 4, 5)
+- ⏸️ Phase 11: Testing - Partial (Unit Tests complete for Phase 1, 2, 3, 4, 5, 6)
 
 ## Completion Criteria
 - [ ] All phases implemented

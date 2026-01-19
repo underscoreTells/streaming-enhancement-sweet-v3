@@ -44,10 +44,10 @@ export abstract class OAuthFlow {
     throw new Error('refreshAccessToken must be implemented by subclass');
   }
 
-  generateAuthorizationUrl(): { url: string; state: string } {
-    const state = this.generateState();
-    const url = this.buildAuthUrl(state);
-    return { url, state };
+  generateAuthorizationUrl(state?: string): { url: string; state: string } {
+    const finalState = state ?? this.generateState();
+    const url = this.buildAuthUrl(finalState);
+    return { url, state: finalState };
   }
 
   async processAccessToken(
@@ -96,7 +96,7 @@ export abstract class OAuthFlow {
     });
   }
 
-  private generateState(): string {
+  protected generateState(): string {
     return randomBytes(32).toString('base64url');
   }
 
