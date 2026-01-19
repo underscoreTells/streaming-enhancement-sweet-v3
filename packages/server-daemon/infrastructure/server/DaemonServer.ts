@@ -39,7 +39,7 @@ export class DaemonServer {
   }
 
   public start(): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       this.server = this.app.listen(
         this.config.oauth.server_port,
         () => {
@@ -49,6 +49,11 @@ export class DaemonServer {
           resolve();
         }
       );
+
+      this.server.on('error', (error) => {
+        this.logger.error('Failed to start server:', error);
+        reject(error);
+      });
     });
   }
 

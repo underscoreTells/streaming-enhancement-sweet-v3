@@ -554,8 +554,8 @@ packages/
   - Code_verifier storage/retrieval/cleanup working correctly
   - Token exchange with code_verifier implemented
   - Refresh token flow implemented (no PKCE needed for refresh)
-  - Kick-specific error handling (state missing, verifier not found, KickOAuthError)
-  - Backward compatibility verified: TwitchOAuth tests still pass (23 tests)
+   - Kick-specific error handling (state missing, verifier not found, KickOAuthError)
+   - Backward compatibility verified: TwitchOAuth tests still pass (23 tests)
    - TypeScript compilation successful
    - ESLint passing with no errors
    - Native fetch API used (Node.js 21+)

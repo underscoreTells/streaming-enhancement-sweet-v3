@@ -71,6 +71,13 @@ export class OAuthController {
       const { platform, username } = req.params;
       platformSchema.parse(platform);
 
+      const credentials = this.credentialRepo.getCredential(platform as string);
+      if (!credentials) {
+        const error = new Error(`OAuth credentials not found for platform: ${platform}`) as any;
+        error.status = 404;
+        throw error;
+      }
+
       const oauth = this.getOAuth(platform as string);
       const { url, state } = await oauth.generateAuthorizationUrl();
 

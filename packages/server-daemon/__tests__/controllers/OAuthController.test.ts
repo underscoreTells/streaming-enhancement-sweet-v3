@@ -123,37 +123,55 @@ describe('OAuthController', () => {
     it('should handle OAuth callback for Twitch', async () => {
       credentialRepo.addCredential('twitch', 'test-client-id', 'test-secret', ['scope1']);
 
+      const startResponse = await request(app)
+        .get('/oauth/start/twitch/testuser')
+        .expect(200);
+
+      const state = startResponse.body.state;
+
       const response = await request(app)
-        .get('/oauth/callback/twitch/test-state?code=test-code')
+        .get(`/oauth/callback/twitch/${state}?code=test-code`)
         .expect(200);
 
       expect(response.text).toContain('Authentication Complete');
       expect(response.text).toContain('Twitch');
-      expect(mockTwitchOAuth.handleOAuthCallback).toHaveBeenCalledWith('test-code', 'test-state');
+      expect(mockTwitchOAuth.handleOAuthCallback).toHaveBeenCalledWith('test-code', state);
     });
 
     it('should handle OAuth callback for Kick', async () => {
       credentialRepo.addCredential('kick', 'test-client-id', 'test-secret', ['scope1']);
 
+      const startResponse = await request(app)
+        .get('/oauth/start/kick/testuser')
+        .expect(200);
+
+      const state = startResponse.body.state;
+
       const response = await request(app)
-        .get('/oauth/callback/kick/test-state?code=test-code')
+        .get(`/oauth/callback/kick/${state}?code=test-code`)
         .expect(200);
 
       expect(response.text).toContain('Authentication Complete');
       expect(response.text).toContain('Kick');
-      expect(mockKickOAuth.handleOAuthCallback).toHaveBeenCalledWith('test-code', 'test-state');
+      expect(mockKickOAuth.handleOAuthCallback).toHaveBeenCalledWith('test-code', state);
     });
 
     it('should handle OAuth callback for YouTube', async () => {
       credentialRepo.addCredential('youtube', 'test-client-id', 'test-secret', ['scope1']);
 
+      const startResponse = await request(app)
+        .get('/oauth/start/youtube/testuser')
+        .expect(200);
+
+      const state = startResponse.body.state;
+
       const response = await request(app)
-        .get('/oauth/callback/youtube/test-state?code=test-code')
+        .get(`/oauth/callback/youtube/${state}?code=test-code`)
         .expect(200);
 
       expect(response.text).toContain('Authentication Complete');
       expect(response.text).toContain('YouTube');
-      expect(mockYouTubeOAuth.handleOAuthCallback).toHaveBeenCalledWith('test-code', 'test-state');
+      expect(mockYouTubeOAuth.handleOAuthCallback).toHaveBeenCalledWith('test-code', state);
     });
 
     it('should return 400 for missing code parameter', async () => {

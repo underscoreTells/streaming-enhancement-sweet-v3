@@ -30,6 +30,7 @@ async function main() {
   );
 
   server.attachRoutes('/oauth', oauthController.getRouter());
+  server.attachErrorHandler();
   await server.start();
 
   logger.info('Server ready');
