@@ -53,7 +53,7 @@ export class LinuxKeystoreStrategy implements KeystoreStrategy {
     try {
       this.keystore.setPassword(service, account, password);
     } catch (error) {
-      const err = error as Error;
+      const err = error as Error & { code?: string };
       throw createKeystoreError(
         `Failed to set password: ${err.message}`,
         KEYSTORE_ERROR_CODES.WRITE_FAILED,
@@ -74,7 +74,9 @@ export class LinuxKeystoreStrategy implements KeystoreStrategy {
       return password;
     } catch (error) {
       const err = error as Error & { code?: string };
-      if (err.code === 'ERR_KEY_NOT_FOUND') {
+      const nestedError = (err as any).error as Error & { code?: string } | undefined;
+      const errorCode = err.code || nestedError?.code || err.message?.split(':')[0];
+      if (errorCode === 'ERR_KEY_NOT_FOUND' || err.message?.includes('ERR_KEY_NOT_FOUND')) {
         return null;
       }
       throw createKeystoreError(
@@ -97,7 +99,9 @@ export class LinuxKeystoreStrategy implements KeystoreStrategy {
       return true;
     } catch (error) {
       const err = error as Error & { code?: string };
-      if (err.code === 'ERR_KEY_NOT_FOUND') {
+      const nestedError = (err as any).error as Error & { code?: string } | undefined;
+      const errorCode = err.code || nestedError?.code || err.message?.split(':')[0];
+      if (errorCode === 'ERR_KEY_NOT_FOUND' || err.message?.includes('ERR_KEY_NOT_FOUND')) {
         return false;
       }
       throw createKeystoreError(
