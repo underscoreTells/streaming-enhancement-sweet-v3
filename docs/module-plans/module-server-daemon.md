@@ -53,6 +53,9 @@ Each platform provides a unified facade that handles API calls, OAuth, WebSocket
   - **Tests**: @tests/keystore-tests.md
   - **API**: @api/oauth-endpoints.md
   - **Status**: Phases 1-8 complete with 252/252 unit tests passing. Daemon server integration moved to Daemon Server Core feature.
+- [ ] Feature: Daemon Server Core (In Progress - Planning complete)
+  - **Implementation**: @docs/feature-plans/daemon-server-core.md
+  - **Status**: CLI entry point, health checks, graceful shutdown, PID tracking, initialization orchestration
 - [x] Feature: SQLite persistence layer (schema, migrations, operations)
 - [ ] Feature: Shared data models (normalized Stream, User, Chat, Event types)
 - [ ] Feature: Basic HTTP endpoints (health, config, stream queries)
