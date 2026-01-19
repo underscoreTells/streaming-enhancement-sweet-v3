@@ -610,7 +610,7 @@ packages/
   - All 33 KickOAuth unit tests passing (122 total platform tests including previous phases)
   - PKCEManager standalone class with thread-safe async-mutex for verifier storage
   - PKCE utilities: code_verifier generation (43-128 chars), code_challenge creation (SHA256 + base64url)
-  - OAuthFlow base class updated: `handleOAuthCallback()` method, `generateState()` protected, optional state parameter
+  - OAuthFlow base class updated: removed `handleOAuthCallback()` from base class, `generateState()` now protected, state parameter optional
   - KickOAuth class extends OAuthFlow with PKCEManager injection
   - Kick OAuth flow with PKCE: code_challenge and code_challenge_method=S256 in auth URL
   - State validation: throws error if not provided (Kick requires state)
