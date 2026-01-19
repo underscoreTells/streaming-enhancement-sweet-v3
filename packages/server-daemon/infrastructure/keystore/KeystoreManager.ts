@@ -1,4 +1,4 @@
-import { KeystoreStrategy, createKeystoreError, KEYSSTORE_ERROR_CODES, isKeystoreError } from './strategies/KeystoreStrategy';
+import { KeystoreStrategy, createKeystoreError, KEYSTORE_ERROR_CODES, isKeystoreError } from './strategies/KeystoreStrategy';
 import { WindowsKeystoreStrategy } from './strategies/WindowsKeystoreStrategy';
 import { MacosKeystoreStrategy } from './strategies/MacosKeystoreStrategy';
 import { LinuxKeystoreStrategy } from './strategies/LinuxKeystoreStrategy';
@@ -103,7 +103,7 @@ export class KeystoreManager {
       }
       throw createKeystoreError(
         'Failed to set password',
-        KEYSSTORE_ERROR_CODES.UNKNOWN,
+        KEYSTORE_ERROR_CODES.UNKNOWN,
         error as Error
       );
     }
@@ -118,7 +118,7 @@ export class KeystoreManager {
       }
       throw createKeystoreError(
         'Failed to get password',
-        KEYSSTORE_ERROR_CODES.UNKNOWN,
+        KEYSTORE_ERROR_CODES.UNKNOWN,
         error as Error
       );
     }
@@ -133,7 +133,7 @@ export class KeystoreManager {
       }
       throw createKeystoreError(
         'Failed to delete password',
-        KEYSSTORE_ERROR_CODES.UNKNOWN,
+        KEYSTORE_ERROR_CODES.UNKNOWN,
         error as Error
       );
     }

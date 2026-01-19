@@ -1,4 +1,4 @@
-import { KeystoreStrategy, createKeystoreError, KEYSSTORE_ERROR_CODES } from './KeystoreStrategy';
+import { KeystoreStrategy, createKeystoreError, KEYSTORE_ERROR_CODES } from './KeystoreStrategy';
 import winston from 'winston';
 import { NapiKeystore } from '@streaming-enhancement/keystore-native';
 
@@ -40,7 +40,7 @@ export class WindowsKeystoreStrategy implements KeystoreStrategy {
       const err = error as Error;
       throw createKeystoreError(
         `Failed to set password: ${err.message}`,
-        KEYSSTORE_ERROR_CODES.WRITE_FAILED,
+        KEYSTORE_ERROR_CODES.WRITE_FAILED,
         err
       );
     }
@@ -57,7 +57,7 @@ export class WindowsKeystoreStrategy implements KeystoreStrategy {
       }
       throw createKeystoreError(
         `Failed to get password: ${err.message}`,
-        KEYSSTORE_ERROR_CODES.READ_FAILED,
+        KEYSTORE_ERROR_CODES.READ_FAILED,
         err
       );
     }
@@ -74,7 +74,7 @@ export class WindowsKeystoreStrategy implements KeystoreStrategy {
       }
       throw createKeystoreError(
         `Failed to delete password: ${err.message}`,
-        KEYSSTORE_ERROR_CODES.UNKNOWN,
+        KEYSTORE_ERROR_CODES.UNKNOWN,
         err
       );
     }

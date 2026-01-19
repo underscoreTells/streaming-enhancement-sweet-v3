@@ -1,4 +1,4 @@
-export { KeystoreStrategy, KEYSSTORE_ERROR_CODES, createKeystoreError, isKeystoreError } from './strategies/KeystoreStrategy';
+export { KeystoreStrategy, KEYSTORE_ERROR_CODES, createKeystoreError, isKeystoreError } from './strategies/KeystoreStrategy';
 export { WindowsKeystoreStrategy } from './strategies/WindowsKeystoreStrategy';
 export { MacosKeystoreStrategy } from './strategies/MacosKeystoreStrategy';
 export { LinuxKeystoreStrategy } from './strategies/LinuxKeystoreStrategy';

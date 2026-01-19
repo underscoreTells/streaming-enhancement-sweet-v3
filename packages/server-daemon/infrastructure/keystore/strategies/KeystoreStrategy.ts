@@ -5,7 +5,7 @@ export interface KeystoreStrategy {
   isAvailable(): boolean;
 }
 
-export const KEYSSTORE_ERROR_CODES = {
+export const KEYSTORE_ERROR_CODES = {
   UNAVAILABLE: 'KEYSTORE_UNAVAILABLE',
   NOT_FOUND: 'KEYSTORE_NOT_FOUND',
   PERMISSION_DENIED: 'KEYSTORE_PERMISSION_DENIED',
@@ -16,7 +16,7 @@ export const KEYSSTORE_ERROR_CODES = {
   UNKNOWN: 'KEYSTORE_UNKNOWN_ERROR'
 } as const;
 
-export type KeystoreErrorCode = typeof KEYSSTORE_ERROR_CODES[keyof typeof KEYSSTORE_ERROR_CODES];
+export type KeystoreErrorCode = typeof KEYSTORE_ERROR_CODES[keyof typeof KEYSTORE_ERROR_CODES];
 
 export function createKeystoreError(message: string, code: KeystoreErrorCode, originalError?: Error): Error {
   const error = new Error(message) as Error & { code: KeystoreErrorCode; originalError?: Error };
@@ -28,5 +28,9 @@ export function createKeystoreError(message: string, code: KeystoreErrorCode, or
 }
 
 export function isKeystoreError(error: Error): error is Error & { code: KeystoreErrorCode } {
-  return 'code' in error && typeof error.code === 'string';
+  if (!('code' in error) || typeof error.code !== 'string') {
+    return false;
+  }
+  const validCodes = Object.values(KEYSTORE_ERROR_CODES) as string[];
+  return validCodes.includes(error.code);
 }

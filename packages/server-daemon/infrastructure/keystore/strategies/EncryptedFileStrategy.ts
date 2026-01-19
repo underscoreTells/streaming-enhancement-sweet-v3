@@ -1,4 +1,4 @@
-import { KeystoreStrategy, createKeystoreError, KEYSSTORE_ERROR_CODES } from './KeystoreStrategy';
+import { KeystoreStrategy, createKeystoreError, KEYSTORE_ERROR_CODES } from './KeystoreStrategy';
 import * as crypto from 'crypto';
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -78,7 +78,7 @@ export class EncryptedFileStrategy implements KeystoreStrategy {
     } catch (error) {
       throw createKeystoreError(
         'Failed to decrypt password',
-        KEYSSTORE_ERROR_CODES.DECRYPTION_FAILED,
+        KEYSTORE_ERROR_CODES.DECRYPTION_FAILED,
         error as Error
       );
     }
@@ -112,7 +112,7 @@ export class EncryptedFileStrategy implements KeystoreStrategy {
       }
       throw createKeystoreError(
         'Failed to load keystore data',
-        KEYSSTORE_ERROR_CODES.READ_FAILED,
+        KEYSTORE_ERROR_CODES.READ_FAILED,
         error as Error
       );
     }
@@ -122,6 +122,7 @@ export class EncryptedFileStrategy implements KeystoreStrategy {
     const content = JSON.stringify(data, null, 2);
     const tempPath = this.dataPath + '.tmp';
     
+    await this.ensureDirectoryExists(this.dataPath);
     await fs.writeFile(tempPath, content, 'utf-8');
     await fs.rename(tempPath, this.dataPath);
   }
@@ -134,7 +135,7 @@ export class EncryptedFileStrategy implements KeystoreStrategy {
       if (key.length === 64) {
         return key;
       }
-      throw createKeystoreError('Invalid key file format', KEYSSTORE_ERROR_CODES.READ_FAILED);
+      throw createKeystoreError('Invalid key file format', KEYSTORE_ERROR_CODES.READ_FAILED);
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
         const newKey = crypto.randomBytes(32).toString('hex');
@@ -154,7 +155,10 @@ export class EncryptedFileStrategy implements KeystoreStrategy {
   private getConfigDirectory(): string {
     switch (process.platform) {
       case 'win32':
-        return path.join(process.env.APPDATA || '', 'streaming-enhancement');
+        return path.join(
+          process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming'),
+          'streaming-enhancement'
+        );
       case 'darwin':
         return path.join(os.homedir(), 'Library/Application Support/streaming-enhancement');
       case 'linux':
@@ -167,7 +171,10 @@ export class EncryptedFileStrategy implements KeystoreStrategy {
   private getDataDirectory(): string {
     switch (process.platform) {
       case 'win32':
-        return path.join(process.env.LOCALAPPDATA || '', 'streaming-enhancement');
+        return path.join(
+          process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local'),
+          'streaming-enhancement'
+        );
       case 'darwin':
         return path.join(os.homedir(), 'Library/Application Support/streaming-enhancement');
       case 'linux':
