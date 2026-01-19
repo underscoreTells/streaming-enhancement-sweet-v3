@@ -5,12 +5,12 @@ Local analytics & integration tool for livestreamers (Twitch, Kick, YouTube). Pr
 
 ## Current Feature
 **Feature**: OAuth Flow & Keystore Abstraction
-**Status**: In Progress (Phase 9: Daemon Server Integration)
+**Status**: Complete ✅ (Phases 1-8)
 
 **Full Implementation Plan**: @docs/feature-plans/oauth-flow-keystore.md
 
-### Next Phase
-**Phase 9: Daemon Server Integration** - Daemon server wiring with OAuth controller
+### Feature Complete ✅
+OAuth Flow & Keystore Abstraction complete (Phases 1-8). Daemon server integration moved to **Daemon Server Core** feature (see @docs/module-plans/module-server-daemon.md).
 
 ### Completed: Phase 1 - Rust Native Binding ✅
 All tasks complete:
@@ -187,12 +187,8 @@ All tasks complete:
 - JSON and URL-encoded request body parsing
 - Zod validation for platform and credentials parameters
 
-### Next: Phase 9 Tasks
-- [ ] Daemon server entry point wiring with OAuth controller
-- [ ] Database and keystore initialization in main daemon
-- [ ] Graceful shutdown handling
-- [ ] Health check endpoint
-- [ ] Write daemon server integration tests
+### OAuth Feature Complete ✅
+All OAuth flow phases complete (1-8). Daemon server integration moved to **Daemon Server Core** feature.
 
 ### Dependencies
 - Rust: `napi`, `napi-derive`, `serde`, `windows-rs` (Windows), `security-framework` (macOS), `keyring` (Linux)
@@ -201,7 +197,7 @@ All tasks complete:
 ### Notes
 - This feature is a prerequisite for Twitch, Kick, and YouTube platform strategies
 - Phase 1, 2, 3, 4, 5, 6, 7, and 8 complete: Keystore, database, OAuth base abstraction, Twitch OAuth, Kick OAuth with PKCE, YouTube OAuth, HTTP endpoints ready
-- Phase 9 in progress: Daemon server integration
+- Feature complete ✅ - Daemon server integration moved to Daemon Server Core feature
 - Database uses WAL mode for better concurrency
 - Proxy pattern ensures single writer via async-mutex
 - Scopes stored as comma-separated string, returned as string[] to consumers
