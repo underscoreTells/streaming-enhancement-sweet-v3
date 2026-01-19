@@ -332,6 +332,7 @@ packages/
   - `storeVerifier(state, verifier)` - Store in Map with thread-safe async-mutex
   - `getVerifier(state)` - Retrieve from Map with mutex
   - `clearVerifier(state)` - Remove from Map with mutex
+  - TTL-based cleanup sfor stored verifiers (10 min TTL, 5 min cleanup interval)
 - [x] Write PKCEManager unit tests (19 tests passing)
   - Test code_verifier generation (default, custom, max length)
   - Test code_challenge generation
