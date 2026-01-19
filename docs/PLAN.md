@@ -79,7 +79,7 @@ All tasks complete:
 - [x] Implement "Authentication Complete" HTML page template for OAuth callbacks
 - [x] Add OAuth error handling with error codes and type guards
 - [x] Implement token refresh logic with 5-minute buffer
-- [x] Add并发流 support via async-mutex
+- [x] Add concurrent stream support via async-mutex
 - [x] Write comprehensive unit tests (45 tests passing)
 - [x] Create mock utilities for testing
 - [x] Platform-specific HTML template with inline SVG logos
@@ -119,7 +119,7 @@ All tasks complete:
 - Proxy pattern ensures single writer via async-mutex
 - Scopes stored as comma-separated string, returned as string[] to consumers
 - Phase 3 merged to main on 2024-12-17
-- Phase 4 completed on 2025-01-19
+- Phase 4 completed on 2026-01-19
 - OAuth base layer supports concurrent flows and platform-specific callback styling
 - HTML template uses inline SVG logos for professional appearance (Twitch purple, Kick green, YouTube red)
 
