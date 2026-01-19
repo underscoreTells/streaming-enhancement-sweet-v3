@@ -2,6 +2,8 @@ import { Mutex } from 'async-mutex';
 import { DatabaseConnection } from './Database';
 import { OAuthCredentialsRepository } from './OAuthCredentialsRepository';
 
+type NonPromise<T> = T extends Promise<any> ? never : T;
+
 export class DatabaseProxy {
   private database: DatabaseConnection;
   private oauthRepo: OAuthCredentialsRepository;
@@ -67,7 +69,7 @@ export class DatabaseProxy {
     return this.database.raw(sql, params);
   }
 
-  async transaction<T>(fn: (db: import('better-sqlite3').Database) => T): Promise<T> {
+  async transaction<T>(fn: (db: import('better-sqlite3').Database) => NonPromise<T>): Promise<T> {
     const release = await this.writeMutex.acquire();
     try {
       return this.database.transaction(() => fn(this.database.getNativeDb()));

@@ -4,6 +4,8 @@ import path from 'path';
 import { MigrationRunner } from './migrations/MigrationRunner';
 import winston from 'winston';
 
+type NonPromise<T> = T extends Promise<any> ? never : T;
+
 const logger = winston.createLogger({
   level: 'info',
   format: winston.format.json(),
@@ -80,7 +82,7 @@ export class DatabaseConnection {
     return this.db.exec(sql);
   }
 
-  transaction<T>(fn: () => T): T {
+  transaction<T>(fn: () => NonPromise<T>): T {
     return this.db.transaction(fn)();
   }
 }

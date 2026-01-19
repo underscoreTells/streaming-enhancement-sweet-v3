@@ -168,6 +168,15 @@ describe('DatabaseProxy', () => {
       });
       expect(result).not.toBeNull();
     });
+
+    it('rejects async transaction callbacks', async () => {
+      await proxy.addCredential('twitch', 'client123', 'secret456', ['scope1']);
+      await expect(proxy.transaction(
+        // @ts-expect-error - Test that async callbacks are rejected at runtime
+        async (db: Database.Database) => {
+        return db.prepare('SELECT * FROM oauth_credentials WHERE platform = ?').get('twitch');
+      })).rejects.toThrow('Transaction function cannot return a promise');
+    });
   });
 
   describe('close', () => {

@@ -73,6 +73,18 @@ describe('DatabaseConnection', () => {
         });
       }).toThrow();
     });
+
+    it('rejects async transaction callbacks', () => {
+      db = new DatabaseConnection(testDbPath, path.join(__dirname, '../../../infrastructure/database/migrations'));
+      expect(() => {
+        return db.transaction(
+          // @ts-expect-error - Test that async callbacks are rejected at runtime
+          async () => {
+          await new Promise(resolve => setTimeout(resolve, 1));
+          return 'success';
+        });
+      }).toThrow('Transaction function cannot return a promise');
+    });
   });
 
   describe('close', () => {
