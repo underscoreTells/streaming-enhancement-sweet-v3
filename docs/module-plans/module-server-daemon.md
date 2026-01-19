@@ -48,7 +48,7 @@ Each platform provides a unified facade that handles API calls, OAuth, WebSocket
 - [ ] Feature: YouTube platform strategy (OAuth + API + data translation)
 
 ### Infrastructure
-- [ ] Feature: OAuth flow and secure keystore abstraction (In Progress - Phases 1-4 complete)
+- [ ] Feature: OAuth flow and secure keystore abstraction (In Progress - Phases 1-8 complete, Phase 9 pending)
   - **Implementation**: @docs/feature-plans/oauth-flow-keystore.md
   - **Tests**: @tests/keystore-tests.md
   - **API**: @api/oauth-endpoints.md
