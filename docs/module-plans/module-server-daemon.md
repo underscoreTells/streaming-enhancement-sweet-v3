@@ -49,7 +49,7 @@ Each platform provides a unified facade that handles API calls, OAuth, WebSocket
 - [ ] Feature: YouTube platform strategy (OAuth + API + data translation)
 
 ### Infrastructure
-- [ ] Feature: OAuth flow and secure keystore abstraction (In Progress - Phases 1-3 complete)
+- [ ] Feature: OAuth flow and secure keystore abstraction (In Progress - Phases 1-4 complete)
   - **Implementation**: @docs/feature-plans/oauth-flow-keystore.md
   - **Tests**: @tests/keystore-tests.md
   - **API**: @api/oauth-endpoints.md
@@ -88,7 +88,7 @@ Each platform provides a unified facade that handles API calls, OAuth, WebSocket
 
 - **Multi-Strategy Support**: Daemon can instantiate multiple platform strategies simultaneously (e.g., `new TwitchStrategy()`, `new KickStrategy()`) for cross-platform monitoring.
 
-- **OAuth Flow**: OAuth is handled locally. Each platform strategy starts a short-lived HTTP server to handle OAuth callbacks. The server serves a basic HTML page at the redirect URL with an "Ok" button that the user can click to confirm the callback was received. Access tokens are stored securely in native OS keystores (Windows Credential Manager, macOS Keychain, Linux Secret Service) with encrypted file fallback. See @docs/feature-plans/oauth-flow-keystore.md for implementation details.
+- **OAuth Flow**: OAuth is handled locally. Each platform strategy starts a short-lived HTTP server to handle OAuth callbacks. The server serves a platform-styled HTML page at the redirect URL with "Authentication Complete" message and a manual "Close Window" button. Access tokens are stored securely in native OS keystores (Windows Credential Manager, macOS Keychain, Linux Secret Service) with encrypted file fallback. Concurrent OAuth flows are supported via async-mutex. See @docs/feature-plans/oauth-flow-keystore.md for implementation details.
 
 - **Client Event Registration**: Clients (CLI, Web UI) register with the daemon via WebSocket to receive real-time stream events, chat messages, and platform-specific updates. The daemon maintains a registry of connected clients and broadcasts events to relevant subscribers.
 

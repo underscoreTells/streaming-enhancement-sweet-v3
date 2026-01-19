@@ -1,0 +1,199 @@
+import { randomBytes } from 'crypto';
+import { Logger } from 'winston';
+import { Mutex } from 'async-mutex';
+import { KeystoreManager } from '../infrastructure/keystore/KeystoreManager';
+import { TokenSet, serializeTokenSet, deserializeTokenSet, calculateRefreshTimes } from './types';
+import { RefreshFailedError } from './errors';
+
+export abstract class OAuthFlow {
+  protected readonly logger: Logger;
+  protected readonly keystore: KeystoreManager;
+  protected readonly mutex: Mutex;
+
+  constructor(logger: Logger, keystore: KeystoreManager) {
+    this.logger = logger;
+    this.keystore = keystore;
+    this.mutex = new Mutex();
+  }
+
+  abstract readonly platform: string;
+
+  protected abstract getAuthUrlBase(): string;
+
+  protected abstract getClientId(): string;
+
+  protected abstract getRedirectUri(): string;
+
+  protected abstract getScopes(): string[];
+
+  protected async exchangeCodeForTokens(_code: string): Promise<{
+    access_token: string;
+    refresh_token?: string;
+    expires_in?: number;
+    scope?: string[];
+  }> {
+    throw new Error('exchangeCodeForTokens must be implemented by subclass');
+  }
+
+  protected async refreshAccessToken(_refreshToken: string): Promise<{
+    access_token: string;
+    refresh_token?: string;
+    expires_in?: number;
+    scope?: string[];
+  }> {
+    throw new Error('refreshAccessToken must be implemented by subclass');
+  }
+
+  generateAuthorizationUrl(): { url: string; state: string } {
+    const state = this.generateState();
+    const url = this.buildAuthUrl(state);
+    return { url, state };
+  }
+
+  async processAccessToken(
+    username: string,
+    tokens: {
+      access_token: string;
+      refresh_token?: string;
+      expires_in?: number;
+      scope?: string[];
+    }
+  ): Promise<void> {
+    const tokenSet = this.createTokenSet(tokens);
+    await this.storeTokenSet(username, tokenSet);
+    this.logger.info(`OAuth tokens stored for user ${username} on platform ${this.platform}`);
+  }
+
+  async getAccessToken(username: string): Promise<TokenSet> {
+    return this.mutex.runExclusive(async () => {
+      try {
+        const token = await this.retrieveTokenSet(username);
+        if (!token) {
+          throw new Error(`No token found for user ${username}`);
+        }
+
+        if (this.shouldRefresh(token)) {
+          this.logger.debug(`Refreshing token for user ${username} on platform ${this.platform}`);
+          const refreshed = await this.refreshTokenInternal(username, token);
+          return refreshed;
+        }
+
+        return token;
+      } catch (error) {
+        this.logger.error(`Failed to get access token for user ${username}: ${error}`);
+        throw error;
+      }
+    });
+  }
+
+  async refreshToken(username: string): Promise<TokenSet> {
+    return this.mutex.runExclusive(async () => {
+      const token = await this.retrieveTokenSet(username);
+      if (!token) {
+        throw new Error(`No token found for user ${username}`);
+      }
+      return this.refreshTokenInternal(username, token);
+    });
+  }
+
+  private generateState(): string {
+    return randomBytes(32).toString('base64url');
+  }
+
+  private buildAuthUrl(state: string): string {
+    const params = new URLSearchParams({
+      client_id: this.getClientId(),
+      redirect_uri: this.getRedirectUri(),
+      response_type: 'code',
+      state,
+    });
+
+    const scopes = this.getScopes();
+    if (scopes.length > 0) {
+      params.append('scope', scopes.join(' '));
+    }
+
+    return `${this.getAuthUrlBase()}?${params.toString()}`;
+  }
+
+  private createTokenSet(
+    tokens: {
+      access_token: string;
+      refresh_token?: string;
+      expires_in?: number;
+      scope?: string[];
+    }
+  ): TokenSet {
+    const expiresIn = tokens.expires_in ?? 24 * 60 * 60;
+    const expiresAt = new Date(Date.now() + expiresIn * 1000);
+    const { expires_at, refresh_at } = calculateRefreshTimes(expiresAt);
+
+    return {
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token,
+      expires_at,
+      refresh_at,
+      scope: tokens.scope ?? [],
+    };
+  }
+
+  private async storeTokenSet(username: string, tokenSet: TokenSet): Promise<void> {
+    const token = serializeTokenSet(tokenSet);
+    await this.keystore.setCredentials(
+      'streaming-enhancement',
+      `oauth:${this.platform}:${username}`,
+      token
+    );
+  }
+
+  private async retrieveTokenSet(username: string): Promise<TokenSet | null> {
+    try {
+      const token = await this.keystore.getCredentials(
+        'streaming-enhancement',
+        `oauth:${this.platform}:${username}`
+      );
+      if (!token) {
+        return null;
+      }
+      return deserializeTokenSet(token);
+    } catch (error) {
+      this.logger.warn(`Failed to retrieve token for user ${username}: ${error}`);
+      return null;
+    }
+  }
+
+  private shouldRefresh(tokenSet: TokenSet): boolean {
+    return tokenSet.refresh_at <= new Date();
+  }
+
+  private async refreshTokenInternal(username: string, tokenSet: TokenSet): Promise<TokenSet> {
+    if (!tokenSet.refresh_token) {
+      throw new RefreshFailedError(
+        `No refresh token available for user ${username}. User must re-authenticate.`
+      );
+    }
+
+    try {
+      const tokens = await this.refreshAccessToken(tokenSet.refresh_token);
+      const newTokenSet = this.createTokenSet(tokens);
+
+      if (!tokens.refresh_token) {
+        newTokenSet.refresh_token = tokenSet.refresh_token;
+      }
+
+      await this.storeTokenSet(username, newTokenSet);
+      this.logger.info(`Token refreshed successfully for user ${username} on platform ${this.platform}`);
+
+      return newTokenSet;
+    } catch (error) {
+      if (error instanceof RefreshFailedError) {
+        throw error;
+      }
+      this.logger.error(`Failed to refresh token for user ${username}: ${error}`);
+      throw new RefreshFailedError(
+        `Failed to refresh access token for user ${username}`,
+        error instanceof Error ? error : undefined
+      );
+    }
+  }
+}
