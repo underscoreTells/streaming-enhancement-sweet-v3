@@ -13,12 +13,7 @@ impl LinuxKeystore {
 impl KeystoreOperations for LinuxKeystore {
     fn set_password(&self, entry: &KeystoreEntry) -> Result<(), KeystoreError> {
         keyring::Entry::new(&entry.service, &entry.account)
-            .map_err(|e| match e {
-                keyring::Error::NoEntry => {
-                    KeystoreError::KeyNotFound(format!("{}:{}", entry.service, entry.account))
-                }
-                _ => KeystoreError::Platform(format!("Failed to create entry: {}", e)),
-            })?
+            .map_err(|e| KeystoreError::Platform(format!("Failed to create entry: {}", e)))?
             .set_password(&entry.value)
             .map_err(|e| match e {
                 keyring::Error::NoEntry => {
@@ -29,12 +24,8 @@ impl KeystoreOperations for LinuxKeystore {
     }
 
     fn get_password(&self, service: &str, account: &str) -> Result<String, KeystoreError> {
-        let entry = keyring::Entry::new(service, account).map_err(|e| match e {
-            keyring::Error::NoEntry => {
-                KeystoreError::KeyNotFound(format!("{}:{}", service, account))
-            }
-            _ => KeystoreError::Platform(format!("Failed to create entry: {}", e)),
-        })?;
+        let entry = keyring::Entry::new(service, account)
+            .map_err(|e| KeystoreError::Platform(format!("Failed to create entry: {}", e)))?;
 
         entry.get_password().map_err(|e| match e {
             keyring::Error::NoEntry => {
@@ -45,12 +36,8 @@ impl KeystoreOperations for LinuxKeystore {
     }
 
     fn delete_password(&self, service: &str, account: &str) -> Result<(), KeystoreError> {
-        let entry = keyring::Entry::new(service, account).map_err(|e| match e {
-            keyring::Error::NoEntry => {
-                KeystoreError::KeyNotFound(format!("{}:{}", service, account))
-            }
-            _ => KeystoreError::Platform(format!("Failed to create entry: {}", e)),
-        })?;
+        let entry = keyring::Entry::new(service, account)
+            .map_err(|e| KeystoreError::Platform(format!("Failed to create entry: {}", e)))?;
 
         entry.delete_credential().map_err(|e| match e {
             keyring::Error::NoEntry => {

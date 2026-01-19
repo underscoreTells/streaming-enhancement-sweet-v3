@@ -273,18 +273,32 @@ impl KeystoreOperations for FallbackKeystore {
             ciphertext,
         };
 
+        // Clone the current data to avoid mutating in-memory state before successful save
+        let mut cloned_data = {
+            let data = self
+                .data
+                .lock()
+                .map_err(|e| KeystoreError::Platform(format!("Failed to acquire lock: {}", e)))?;
+            data.clone()
+        };
+
+        if let Some(index) =
+            Self::derive_index(&cloned_data, &self.key, &entry.service, &entry.account)
+        {
+            cloned_data.entries[index] = encrypted_entry;
+        } else {
+            cloned_data.entries.push(encrypted_entry);
+        }
+
+        // Save first; if this fails, in-memory data remains unchanged
+        self.save_data(&cloned_data)?;
+
+        // Only update in-memory data after successful save
         let mut data = self
             .data
             .lock()
             .map_err(|e| KeystoreError::Platform(format!("Failed to acquire lock: {}", e)))?;
-
-        if let Some(index) = Self::derive_index(&data, &self.key, &entry.service, &entry.account) {
-            data.entries[index] = encrypted_entry;
-        } else {
-            data.entries.push(encrypted_entry);
-        }
-
-        self.save_data(&*data)?;
+        *data = cloned_data;
 
         Ok(())
     }
@@ -316,15 +330,27 @@ impl KeystoreOperations for FallbackKeystore {
     }
 
     fn delete_password(&self, service: &str, account: &str) -> Result<(), KeystoreError> {
-        let mut data = self
-            .data
-            .lock()
-            .map_err(|e| KeystoreError::Platform(format!("Failed to acquire lock: {}", e)))?;
+        // Clone the current data to avoid mutating in-memory state before successful save
+        let mut cloned_data = {
+            let data = self
+                .data
+                .lock()
+                .map_err(|e| KeystoreError::Platform(format!("Failed to acquire lock: {}", e)))?;
+            data.clone()
+        };
 
-        if let Some(index) = Self::derive_index(&data, &self.key, service, account) {
-            data.entries.remove(index);
+        if let Some(index) = Self::derive_index(&cloned_data, &self.key, service, account) {
+            cloned_data.entries.remove(index);
 
-            self.save_data(&*data)?;
+            // Save first; if this fails, in-memory data remains unchanged
+            self.save_data(&cloned_data)?;
+
+            // Only update in-memory data after successful save
+            let mut data = self
+                .data
+                .lock()
+                .map_err(|e| KeystoreError::Platform(format!("Failed to acquire lock: {}", e)))?;
+            *data = cloned_data;
 
             Ok(())
         } else {
