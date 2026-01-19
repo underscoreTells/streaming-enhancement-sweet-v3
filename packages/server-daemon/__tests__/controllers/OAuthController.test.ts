@@ -10,6 +10,11 @@ import { loadConfig, type AppConfig } from '../../infrastructure/config/Config';
 import { createTwitchOAuth, createKickOAuth, createYouTubeOAuth } from '../../platforms';
 import { ZodError } from 'zod';
 import type { Request, Response, NextFunction } from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 vi.mock('../../platforms/Twitch/factory');
 vi.mock('../../platforms/Kick/factory');
@@ -38,7 +43,7 @@ describe('OAuthController', () => {
     handleOAuthCallback: vi.fn().mockResolvedValue(undefined),
   };
 
-  beforeEach(() => {
+  beforeEach(async () => {
     logger = createLogger({ silent: true });
 
     vi.mocked(createTwitchOAuth).mockReturnValue(mockTwitchOAuth as any);
@@ -46,7 +51,17 @@ describe('OAuthController', () => {
     vi.mocked(createYouTubeOAuth).mockReturnValue(mockYouTubeOAuth as any);
 
     const config = loadConfig();
-    db = new DatabaseConnection(config.database.path, config.database.migrationsDir || '');
+    db = new DatabaseConnection(':memory:', '');
+    const nativeDb = db.getNativeDb();
+    nativeDb.exec(`
+      CREATE TABLE oauth_credentials (
+        platform TEXT PRIMARY KEY,
+        client_id TEXT NOT NULL,
+        client_secret TEXT NOT NULL,
+        scopes TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
     keystore = new KeystoreManager(undefined);
     credentialRepo = new OAuthCredentialsRepository(db);
     oauthConfig = config.oauth;
@@ -59,6 +74,10 @@ describe('OAuthController', () => {
     app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
       if (err instanceof ZodError) {
         res.status(400).json({ error: err.issues[0].message });
+        return;
+      }
+      if (typeof (err as any).status === 'number') {
+        res.status((err as any).status).json({ error: err.message });
         return;
       }
       logger.error('Unhandled error:', err);
