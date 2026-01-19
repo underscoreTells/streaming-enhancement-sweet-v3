@@ -57,6 +57,9 @@ describe('OAuthController', () => {
 
   afterEach(async () => {
     vi.clearAllMocks();
+    if (db) {
+      await db.close();
+    }
   });
 
   describe('GET /oauth/start/:platform/:username', () => {
@@ -135,7 +138,7 @@ describe('OAuthController', () => {
 
       expect(response.text).toContain('Authentication Complete');
       expect(response.text).toContain('Twitch');
-      expect(mockTwitchOAuth.handleOAuthCallback).toHaveBeenCalledWith('test-code', state);
+      expect(mockTwitchOAuth.handleOAuthCallback).toHaveBeenCalledWith('test-code', state, 'testuser');
     });
 
     it('should handle OAuth callback for Kick', async () => {
@@ -153,7 +156,7 @@ describe('OAuthController', () => {
 
       expect(response.text).toContain('Authentication Complete');
       expect(response.text).toContain('Kick');
-      expect(mockKickOAuth.handleOAuthCallback).toHaveBeenCalledWith('test-code', state);
+      expect(mockKickOAuth.handleOAuthCallback).toHaveBeenCalledWith('test-code', state, 'testuser');
     });
 
     it('should handle OAuth callback for YouTube', async () => {
@@ -171,7 +174,7 @@ describe('OAuthController', () => {
 
       expect(response.text).toContain('Authentication Complete');
       expect(response.text).toContain('YouTube');
-      expect(mockYouTubeOAuth.handleOAuthCallback).toHaveBeenCalledWith('test-code', state);
+      expect(mockYouTubeOAuth.handleOAuthCallback).toHaveBeenCalledWith('test-code', state, 'testuser');
     });
 
     it('should return 400 for missing code parameter', async () => {
