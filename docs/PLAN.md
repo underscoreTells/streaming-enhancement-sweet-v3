@@ -5,7 +5,7 @@ Local analytics & integration tool for livestreamers (Twitch, Kick, YouTube). Pr
 
 ## Current Feature
 **Feature**: OAuth Flow & Keystore Abstraction
-**Status**: In Progress (Phase 3 Complete ✅)
+**Status**: In Progress (Phase 4: OAuth Base Layer)
 
 **Full Implementation Plan**: @docs/feature-plans/oauth-flow-keystore.md
 
@@ -84,11 +84,12 @@ All tasks complete:
 ### Notes
 - This feature is a prerequisite for Twitch, Kick, and YouTube platform strategies
 - Phase 1, 2, and 3 complete: Keystore and database abstraction ready for OAuth implementation
+- Phase 4 in progress: OAuth Base Layer implementation
 - Install script will handle Rust compilation for end users
 - Database uses WAL mode for better concurrency
 - Proxy pattern ensures single writer via async-mutex
 - Scopes stored as comma-separated string, returned as string[] to consumers
-- Branch: feature/phase3-database-schema
+- Phase 3 merged to main on 2024-12-17
 
 ## Current Module
 **Module**: server-daemon

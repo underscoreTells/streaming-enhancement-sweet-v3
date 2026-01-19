@@ -49,11 +49,11 @@ Each platform provides a unified facade that handles API calls, OAuth, WebSocket
 - [ ] Feature: YouTube platform strategy (OAuth + API + data translation)
 
 ### Infrastructure
-- [ ] Feature: OAuth flow and secure keystore abstraction
+- [ ] Feature: OAuth flow and secure keystore abstraction (In Progress - Phases 1-3 complete)
   - **Implementation**: @docs/feature-plans/oauth-flow-keystore.md
   - **Tests**: @tests/keystore-tests.md
   - **API**: @api/oauth-endpoints.md
-- [ ] Feature: SQLite persistence layer (schema, migrations, operations)
+- [x] Feature: SQLite persistence layer (schema, migrations, operations)
 - [ ] Feature: Shared data models (normalized Stream, User, Chat, Event types)
 - [ ] Feature: Basic HTTP endpoints (health, config, stream queries)
 
