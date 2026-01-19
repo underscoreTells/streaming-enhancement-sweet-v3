@@ -100,6 +100,14 @@ export abstract class OAuthFlow {
     return randomBytes(32).toString('base64url');
   }
 
+  /**
+   * Override this method to add platform-specific parameters to the authorization URL.
+   * @returns A record of additional query parameters to include in the auth URL.
+   */
+  protected getExtraAuthParams(): Record<string, string> {
+    return {};
+  }
+
   private buildAuthUrl(state: string): string {
     const params = new URLSearchParams({
       client_id: this.getClientId(),
@@ -111,6 +119,11 @@ export abstract class OAuthFlow {
     const scopes = this.getScopes();
     if (scopes.length > 0) {
       params.append('scope', scopes.join(' '));
+    }
+
+    const extraParams = this.getExtraAuthParams();
+    for (const [key, value] of Object.entries(extraParams)) {
+      params.append(key, value);
     }
 
     return `${this.getAuthUrlBase()}?${params.toString()}`;

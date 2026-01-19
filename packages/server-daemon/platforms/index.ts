@@ -34,4 +34,8 @@ export { KickOAuth } from './Kick/KickOAuth';
 export { createKickOAuth } from './Kick/factory';
 export * from './Kick/http';
 
+export { YouTubeOAuth } from './YouTube/YouTubeOAuth';
+export { createYouTubeOAuth } from './YouTube/factory';
+export * from './YouTube/http';
+
 export { PKCEManager } from './pkce/PKCEManager';
