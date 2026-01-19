@@ -551,7 +551,7 @@ packages/
   - TwitchOAuth class implements OAuthFlow base class
   - Credentials retrieved from database via OAuthCredentialsRepository
   - Tokens stored in keystore correctly
-  - Native fetch API used (Node.js 25+)
+  - Native fetch API used (Node.js 21+)
   - Redirect URI configurable via OAuthConfig
   - Error handling comprehensive and tested
   - ESLint passing with no errors

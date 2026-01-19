@@ -18,7 +18,7 @@ export const LoggingConfigSchema = z.object({
 
 export const OAuthConfigSchema = z.object({
   redirect_uri: z.string().url().default('http://localhost:3000/callback'),
-  server_port: z.number().min(1).max(65535).default(3000),
+  server_port: z.number().int().min(1).max(65535).default(3000),
 });
 
 export const AppConfigSchema = z.object({
