@@ -92,8 +92,8 @@ describe('OAuthFlow', () => {
   });
 
   describe('generateAuthorizationUrl', () => {
-    it('should generate authorization URL with state', () => {
-      const result = oauthFlow.generateAuthorizationUrl();
+    it('should generate authorization URL with state', async () => {
+      const result = await oauthFlow.generateAuthorizationUrl();
 
       expect(result.url).toBeDefined();
       expect(result.state).toBeDefined();
@@ -105,18 +105,18 @@ describe('OAuthFlow', () => {
       expect(result.url).toContain('read+write');
     });
 
-    it('should generate unique states for multiple calls', () => {
-      const result1 = oauthFlow.generateAuthorizationUrl();
-      const result2 = oauthFlow.generateAuthorizationUrl();
+    it('should generate unique states for multiple calls', async () => {
+      const result1 = await oauthFlow.generateAuthorizationUrl();
+      const result2 = await oauthFlow.generateAuthorizationUrl();
 
       expect(result1.state).not.toBe(result2.state);
       expect(result1.url).toContain(result1.state);
       expect(result2.url).toContain(result2.state);
     });
 
-    it('should not include scope parameter when scopes array is empty', () => {
+    it('should not include scope parameter when scopes array is empty', async () => {
       oauthFlow.setMockScopes([]);
-      const result = oauthFlow.generateAuthorizationUrl();
+      const result = await oauthFlow.generateAuthorizationUrl();
 
       expect(result.url).not.toContain('scope=');
       expect(result.url).toContain('code');

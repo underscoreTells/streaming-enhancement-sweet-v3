@@ -114,24 +114,24 @@ describe('YouTubeOAuth', () => {
       ]);
     });
 
-    it('should use redirect_uri from config', () => {
-      const { url } = youtubeOAuth.generateAuthorizationUrl();
+    it('should use redirect_uri from config', async () => {
+      const { url } = await youtubeOAuth.generateAuthorizationUrl();
       expect(url).toContain('redirect_uri=');
       const urlObj = new URL(url);
       expect(urlObj.searchParams.get('redirect_uri')).toBe('http://localhost:3000/callback');
     });
 
-    it('should throw error when credentials missing', () => {
+    it('should throw error when credentials missing', async () => {
       mockRepo.clear();
-      expect(() => {
-        youtubeOAuth.generateAuthorizationUrl();
-      }).toThrow('YouTube OAuth credentials not found in database');
+      await expect(() => {
+        return youtubeOAuth.generateAuthorizationUrl();
+      }).rejects.toThrow('YouTube OAuth credentials not found in database');
     });
   });
 
   describe('Authorization URL Generation', () => {
-    it('should generate correct YouTube auth URL', () => {
-      const { url, state } = youtubeOAuth.generateAuthorizationUrl();
+    it('should generate correct YouTube auth URL', async () => {
+      const { url, state } = await youtubeOAuth.generateAuthorizationUrl();
 
       expect(url).toContain('https://accounts.google.com/o/oauth2/v2/auth');
       expect(url).toContain('client_id=test_client_id');
@@ -146,31 +146,31 @@ describe('YouTubeOAuth', () => {
       expect(scope).toContain('https://www.googleapis.com/auth/youtube');
     });
 
-    it('should generate unique states for multiple calls', () => {
-      const result1 = youtubeOAuth.generateAuthorizationUrl();
-      const result2 = youtubeOAuth.generateAuthorizationUrl();
+    it('should generate unique states for multiple calls', async () => {
+      const result1 = await youtubeOAuth.generateAuthorizationUrl();
+      const result2 = await youtubeOAuth.generateAuthorizationUrl();
 
       expect(result1.state).not.toBe(result2.state);
       expect(result1.url).toContain(result1.state);
       expect(result2.url).toContain(result2.state);
     });
 
-    it('should include access_type=offline for refresh tokens', () => {
-      const { url } = youtubeOAuth.generateAuthorizationUrl();
+    it('should include access_type=offline for refresh tokens', async () => {
+      const { url } = await youtubeOAuth.generateAuthorizationUrl();
       expect(url).toContain('access_type=offline');
     });
 
-    it('should include include_granted_scopes=true for incremental authorization', () => {
-      const { url } = youtubeOAuth.generateAuthorizationUrl();
+    it('should include include_granted_scopes=true for incremental authorization', async () => {
+      const { url } = await youtubeOAuth.generateAuthorizationUrl();
       expect(url).toContain('include_granted_scopes=true');
     });
 
-    it('should include prompt=consent to ensure refresh token on re-authorization', () => {
-      const { url } = youtubeOAuth.generateAuthorizationUrl();
+    it('should include prompt=consent to ensure refresh token on re-authorization', async () => {
+      const { url } = await youtubeOAuth.generateAuthorizationUrl();
       expect(url).toContain('prompt=consent');
     });
 
-    it('should include all scopes in auth URL', () => {
+    it('should include all scopes in auth URL', async () => {
       mockRepo.setCredential('youtube', 'client_id', 'client_secret', [
         'https://www.googleapis.com/auth/youtube.readonly',
         'https://www.googleapis.com/auth/youtube.upload',
@@ -184,7 +184,7 @@ describe('YouTubeOAuth', () => {
         config
       );
 
-      const { url } = oauth.generateAuthorizationUrl();
+      const { url } = await oauth.generateAuthorizationUrl();
       expect(url).toContain('youtube.readonly');
       expect(url).toContain('youtube.upload');
       expect(url).toContain('youtube');
@@ -516,12 +516,12 @@ describe('YouTubeOAuth', () => {
   });
 
   describe('Error Handling', () => {
-    it('should throw clear error for missing credentials', () => {
+    it('should throw clear error for missing credentials', async () => {
       mockRepo.clear();
 
-      expect(() => {
-        youtubeOAuth.generateAuthorizationUrl();
-      }).toThrow('YouTube OAuth credentials not found in database');
+      await expect(() => {
+        return youtubeOAuth.generateAuthorizationUrl();
+      }).rejects.toThrow('YouTube OAuth credentials not found in database');
     });
   });
 });

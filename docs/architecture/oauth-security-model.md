@@ -151,13 +151,13 @@ The application is a local daemon running on the user's machine with the followi
 **State Parameter**: Random string generated per OAuth request
 - Generation: Cryptographically secure random (32 bytes)
 - Validation: Must match between authorize and callback
-- Lifetime: 5 minutes (temporary server timeouts)
+- Lifetime: 5 minutes (daemon server state timeout)
 - Uniqueness: Unique per request (prevents replay attacks)
 
 #### Redirect URI Validation
-- Format: `http://localhost:<random-port>/oauth/callback/:platform/:state`
+- Format: `http://localhost:<configured-port>/oauth/callback/:platform/:state`
 - Validation: Must match authorized redirect URIs in OAuth app
-- Random port: Prevents port conflicts and predictable URIs
+- Configured port: Default 3000, configurable in config.json (prevents conflicts if changed)
 
 #### HTTPS Enforcement
 - All OAuth endpoints use HTTPS (twitch.tv, kick.com, youtube.com)

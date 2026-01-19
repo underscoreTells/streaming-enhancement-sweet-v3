@@ -118,24 +118,24 @@ describe('TwitchOAuth', () => {
       ]);
     });
 
-    it('should use redirect_uri from config', () => {
-      const { url } = twitchOAuth.generateAuthorizationUrl();
+    it('should use redirect_uri from config', async () => {
+      const { url } = await twitchOAuth.generateAuthorizationUrl();
       expect(url).toContain('redirect_uri=');
       const urlObj = new URL(url);
       expect(urlObj.searchParams.get('redirect_uri')).toBe('http://localhost:3000/callback');
     });
 
-    it('should throw error when credentials missing', () => {
+    it('should throw error when credentials missing', async () => {
       mockRepo.clear();
-      expect(() => {
-        twitchOAuth.generateAuthorizationUrl();
-      }).toThrow('Twitch OAuth credentials not found in database');
+      await expect(() => {
+        return twitchOAuth.generateAuthorizationUrl();
+      }).rejects.toThrow('Twitch OAuth credentials not found in database');
     });
   });
 
   describe('Authorization URL Generation', () => {
-    it('should generate correct Twitch auth URL', () => {
-      const { url, state } = twitchOAuth.generateAuthorizationUrl();
+    it('should generate correct Twitch auth URL', async () => {
+      const { url, state } = await twitchOAuth.generateAuthorizationUrl();
 
       expect(url).toContain('https://id.twitch.tv/oauth2/authorize');
       expect(url).toContain('client_id=test_client_id');
@@ -150,16 +150,16 @@ describe('TwitchOAuth', () => {
       expect(scope).toContain('bits:read');
     });
 
-    it('should generate unique states for multiple calls', () => {
-      const result1 = twitchOAuth.generateAuthorizationUrl();
-      const result2 = twitchOAuth.generateAuthorizationUrl();
+    it('should generate unique states for multiple calls', async () => {
+      const result1 = await twitchOAuth.generateAuthorizationUrl();
+      const result2 = await twitchOAuth.generateAuthorizationUrl();
 
       expect(result1.state).not.toBe(result2.state);
       expect(result1.url).toContain(result1.state);
       expect(result2.url).toContain(result2.state);
     });
 
-    it('should include all scopes in auth URL', () => {
+    it('should include all scopes in auth URL', async () => {
       mockRepo.setCredential('twitch', 'client_id', 'client_secret', ['scope1', 'scope2', 'scope3']);
 
       const oauth = new TwitchOAuth(
@@ -169,7 +169,7 @@ describe('TwitchOAuth', () => {
         config
       );
 
-      const { url } = oauth.generateAuthorizationUrl();
+      const { url } = await oauth.generateAuthorizationUrl();
       expect(url).toContain('scope1+scope2+scope3');
     });
   });
@@ -507,12 +507,12 @@ describe('TwitchOAuth', () => {
   });
 
   describe('Error Handling', () => {
-    it('should throw clear error for missing credentials', () => {
+    it('should throw clear error for missing credentials', async () => {
       mockRepo.clear();
 
-      expect(() => {
-        twitchOAuth.generateAuthorizationUrl();
-      }).toThrow('Twitch OAuth credentials not found in database');
+      await expect(() => {
+        return twitchOAuth.generateAuthorizationUrl();
+      }).rejects.toThrow('Twitch OAuth credentials not found in database');
     });
   });
 });

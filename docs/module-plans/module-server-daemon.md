@@ -35,11 +35,10 @@ Each platform provides a unified facade that handles API calls, OAuth, WebSocket
 - `YouTubeStrategy`: Complete YouTube integration (REST API + WebSocket + data normalization)
 
 ### Infrastructure
-- `Server`: HTTP/WebSocket server setup
+- `DaemonServer`: HTTP/WebSocket server setup
 - `Database`: SQLite connection and operations (better-sqlite3)
 - `ConfigManager`: Configuration handling (OAuth tokens, settings)
 - `Logger`: Structured logging
-- `OAuthServer`: Temporary HTTP server for local OAuth callback handling (serves simple "Ok" page)
 
 ## Features List
 
@@ -88,7 +87,7 @@ Each platform provides a unified facade that handles API calls, OAuth, WebSocket
 
 - **Multi-Strategy Support**: Daemon can instantiate multiple platform strategies simultaneously (e.g., `new TwitchStrategy()`, `new KickStrategy()`) for cross-platform monitoring.
 
-- **OAuth Flow**: OAuth is handled locally. Each platform strategy starts a short-lived HTTP server to handle OAuth callbacks. The server serves a platform-styled HTML page at the redirect URL with "Authentication Complete" message and a manual "Close Window" button. Access tokens are stored securely in native OS keystores (Windows Credential Manager, macOS Keychain, Linux Secret Service) with encrypted file fallback. Concurrent OAuth flows are supported via async-mutex. See @docs/feature-plans/oauth-flow-keystore.md for implementation details.
+- **OAuth Flow**: OAuth is handled locally. The daemon server serves OAuth endpoints for token management and callbacks. OAuth clients (Twitch, Kick, YouTube) redirect to daemon server's callback endpoint, which exchanges authorization codes for tokens and serves a platform-styled HTML "Authentication Complete" page. Access tokens are stored securely in native OS keystores (Windows Credential Manager, macOS Keychain, Linux Secret Service) with encrypted file fallback. Concurrent OAuth flows are supported via async-mutex. See @docs/feature-plans/oauth-flow-keystore.md for implementation details.
 
 - **Client Event Registration**: Clients (CLI, Web UI) register with the daemon via WebSocket to receive real-time stream events, chat messages, and platform-specific updates. The daemon maintains a registry of connected clients and broadcasts events to relevant subscribers.
 
