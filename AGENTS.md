@@ -5,7 +5,10 @@ Read these files for complete context:
 - @docs/WORKFLOW.md - AI-assisted development methodology and file structure
 - @docs/PLAN.md - Current feature being implemented
 - @docs/module-plans/module-server-daemon.md - Server daemon module details
-- @docs/feature-plans/oauth-flow-keystore.md - OAuth flow & keystore implementation plan
+- @docs/feature-plans/daemon-server-core.md - Daemon Server Core feature plan (current)
+
+### Completed Features
+- @docs/archive/feature-plans/oauth-flow-keystore.md - OAuth flow & keystore implementation (complete)
 
 ### Documentation Structure
 ```
@@ -122,7 +125,18 @@ project-root/
 - Users register apps in their dev consoles
 - **Tokens stored** in native OS keystores (Windows Credential Manager, macOS Keychain, Linux Secret Service)
 - **Keystore fallback**: Encrypted file (AES-256-GCM) when native unavailable
+- **Status**: Complete ✅ (see @docs/archive/feature-plans/oauth-flow-keystore.md)
 - **See**: @docs/architecture/keystore-strategy-pattern.md for architecture
+
+## Daemon Server Core (Current Feature)
+- **Status**: In Progress (Planning complete, implementation starting)
+- **Implementation**: @docs/feature-plans/daemon-server-core.md
+- **CLI Command**: `streaming-daemon start [--port PORT] [--config PATH] [--log-level LEVEL]`
+- **Health Check**: GET /status (localhost only) with component-level status
+- **Graceful Shutdown**: SIGTERM/SIGINT handlers with configurable timeout (default 10s)
+- **PID File**: Track running daemon, prevent duplicate instances
+- **Exit Codes**: 0 (success), 1 (config error), 2 (init error), 3 (startup error)
+- **Dependencies**: commander, winston-daily-rotate-file
 
 ## Platform-Specific Requirements
 
@@ -137,12 +151,22 @@ When documenting file/directory locations, specify paths for all supported platf
 ### Server Daemon Structure
 ```
 server-daemon/
-├── controllers/       # HTTP/WebSocket request handlers
-├── services/          # Business logic (StreamEventService, ObsService, TtsService)
-├── platforms/         # Unified strategy facades (TwitchStrategy, KickStrategy, YouTubeStrategy)
-└── infrastructure/    # Server setup, database (SQLite), OAuth, config, logging
+├── src/
+│   ├── index.ts              # Main CLI entry point
+│   ├── daemon/               # Daemon orchestration
+│   │   ├── DaemonApp.ts      # Main daemon orchestrator
+│   │   ├── HealthCheck.ts    # Health check service
+│   │   ├── ShutdownHandler.ts # Graceful shutdown
+│   │   └── PidManager.ts    # PID file management
+│   ├── cli/                  # CLI commands
+│   │   └── StartCommand.ts   # Start command
+│   ├── controllers/          # HTTP/WebSocket request handlers
+│   ├── services/             # Business logic (StreamEventService, ObsService, TtsService)
+│   ├── platforms/            # Unified strategy facades (TwitchStrategy, KickStrategy, YouTubeStrategy)
+│   └── infrastructure/       # Server setup, database (SQLite), OAuth, config, logging
+└── __tests__/                # Tests
 
-shared/models/         # Unified data types for cross-platform consistency
+shared/models/                # Unified data types for cross-platform consistency
 ```
 
 ### CLI Structure
@@ -164,6 +188,9 @@ cli/
 - `npm run build` - Build for production
 - `npm test` - Run tests
 - `npm run lint` - Run ESLint
+- `npm start` - Start daemon (after build)
+- `./dist/index.js --help` - View CLI help
+- `./dist/index.js start` - Start daemon with defaults
 
 ### CLI (Go)
 - `go build ./cmd/cli` - Build CLI binary
@@ -182,5 +209,6 @@ cli/
 - Unit tests for business logic
 - Integration tests for API endpoints
 - WebSocket connection testing
-- OAuth flow testing with mock credentials
+- OAuth flow testing with mock credentials (part of Daemon Server Core integration tests)
 - Cross-platform CLI testing
+- Daemon lifecycle testing (startup/shutdown/health checks)
