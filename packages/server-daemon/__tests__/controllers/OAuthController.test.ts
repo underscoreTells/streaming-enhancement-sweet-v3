@@ -8,6 +8,8 @@ import { DatabaseConnection } from '../../infrastructure/database/Database';
 import { OAuthCredentialsRepository } from '../../infrastructure/database/OAuthCredentialsRepository';
 import { loadConfig, type AppConfig } from '../../infrastructure/config/Config';
 import { createTwitchOAuth, createKickOAuth, createYouTubeOAuth } from '../../platforms';
+import { ZodError } from 'zod';
+import type { Request, Response, NextFunction } from 'express';
 
 vi.mock('../../platforms/Twitch/factory');
 vi.mock('../../platforms/Kick/factory');
@@ -53,6 +55,15 @@ describe('OAuthController', () => {
     app = express();
     app.use(express.json());
     app.use('/oauth', controller.getRouter());
+
+    app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+      if (err instanceof ZodError) {
+        res.status(400).json({ error: err.issues[0].message });
+        return;
+      }
+      logger.error('Unhandled error:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    });
   });
 
   afterEach(async () => {
@@ -260,16 +271,16 @@ describe('OAuthController', () => {
       expect(response.body).toHaveProperty('error');
     });
 
-    it('should default scopes to empty array', async () => {
+    it('should accept credentials with scopes array', async () => {
       const response = await request(app)
         .post('/oauth/credentials/twitch')
-        .send({ client_id: 'test-id', client_secret: 'test-secret' })
+        .send({ client_id: 'test-id', client_secret: 'test-secret', scopes: ['scope1'] })
         .expect(200);
 
       expect(response.body).toHaveProperty('platform', 'twitch');
 
       const credential = credentialRepo.getCredential('twitch');
-      expect(credential).toHaveProperty('scopes', []);
+      expect(credential).toHaveProperty('scopes', ['scope1']);
     });
   });
 
