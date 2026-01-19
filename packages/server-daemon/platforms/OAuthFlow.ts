@@ -44,10 +44,15 @@ export abstract class OAuthFlow {
     throw new Error('refreshAccessToken must be implemented by subclass');
   }
 
-  generateAuthorizationUrl(state?: string): { url: string; state: string } {
+  async generateAuthorizationUrl(state?: string): Promise<{ url: string; state: string }> {
     const finalState = state ?? this.generateState();
     const url = this.buildAuthUrl(finalState);
     return { url, state: finalState };
+  }
+
+  async handleOAuthCallback(code: string, state: string, username: string): Promise<void> {
+    const tokens = await this.exchangeCodeForTokens(code);
+    await this.processAccessToken(username, tokens);
   }
 
   async processAccessToken(

@@ -102,4 +102,9 @@ export class YouTubeOAuth extends OAuthFlow {
 
     return response;
   }
+
+  async handleOAuthCallback(code: string, state: string, username: string): Promise<void> {
+    const tokens = await this.exchangeCodeForTokens(code);
+    await this.processAccessToken(username, tokens);
+  }
 }

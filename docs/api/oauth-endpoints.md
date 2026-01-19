@@ -75,7 +75,7 @@ curl -X POST http://localhost:3000/oauth/credentials/twitch \
 ---
 
 ### GET /oauth/start/:platform/:username
-Start OAuth flow for a platform. Generates authorization URL and starts temporary HTTP server for callback handling.
+Start OAuth flow for a platform. Generates authorization URL for OAuth callback.
 
 #### Request
 **URL Parameters**:
@@ -167,10 +167,10 @@ Handle OAuth callback from platform. Exchange authorization code for access toke
 #### Redirect URI Format
 The redirect URI for OAuth authorization will be:
 ```
-http://localhost:<random-port>/oauth/callback/:platform/:state
+http://localhost:<configured-port>/oauth/callback/:platform/:state
 ```
 
-The temporary HTTP server listens on a random port and serves this endpoint.
+The daemon server (configured in config.json, default port 3000) serves this endpoint.
 
 ---
 

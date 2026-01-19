@@ -5,3 +5,4 @@ export * from './database/DatabaseProxy';
 export * from './database/OAuthCredentialsRepository';
 export * from './database/schema';
 export * from './factory';
+export * from './server';

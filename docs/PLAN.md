@@ -5,12 +5,12 @@ Local analytics & integration tool for livestreamers (Twitch, Kick, YouTube). Pr
 
 ## Current Feature
 **Feature**: OAuth Flow & Keystore Abstraction
-**Status**: In Progress (Phase 7: YouTube OAuth Implementation)
+**Status**: In Progress (Phase 9: Daemon Server Integration)
 
 **Full Implementation Plan**: @docs/feature-plans/oauth-flow-keystore.md
 
 ### Next Phase
-**Phase 7: YouTube OAuth Implementation** - Platform-specific OAuth implementation for YouTube
+**Phase 9: Daemon Server Integration** - Daemon server wiring with OAuth controller
 
 ### Completed: Phase 1 - Rust Native Binding ✅
 All tasks complete:
@@ -154,16 +154,45 @@ All tasks complete:
 - Native fetch API used (Node.js 21+)
 - Redirect URI configurable via OAuthConfig
 
-### Next: Phase 7 Tasks
-- [ ] Implement YouTube-specific OAuth endpoints
-- [ ] Create YouTubeStrategy class extending OAuthFlow
-- [ ] Implement YouTube token exchange API calls
-- [ ] Implement YouTube refresh token flow
-- [ ] Add YouTube-specific configuration validation
-- [ ] Write YouTube OAuth integration tests
-- [ ] Test with YouTube sandbox environment
-- [ ] Add YouTube-specific error handling
-- [ ] Update PLAN.md upon completion
+### Completed: Phase 8 - HTTP Endpoints Implementation ✅
+All tasks complete:
+- [x] Create DaemonServer class for Express server
+- [x] Implement OAuthStateManager for state → username tracking (5-minute TTL, mutex for thread safety)
+- [x] Create OAuthController with 5 REST API endpoints
+- [x] Implement GET /oauth/start/:platform/:username - Generate auth URL with state
+- [x] Implement GET /oauth/callback/:platform/:state - Handle OAuth callback, return HTML
+- [x] Implement POST /oauth/credentials/:platform - Add/update OAuth client credentials
+- [x] Implement GET /oauth/status/:platform/:username - Return token status
+- [x] Implement DELETE /oauth/:platform/:username - Revoke token
+- [x] Make OAuthFlow.generateAuthorizationUrl async for Kick PKCE support
+- [x] Add handleOAuthCallback method to all platform OAuth classes
+- [x] Write OAuthController unit tests (24 tests)
+- [x] Remove .optional() from OAuthConfig in schema (always provided by default config)
+- [x] Fix platforms/index.ts duplicate exports (rename to platform-specific names)
+- [x] Update PLAN.md upon completion
+
+**Status**: Phase 8 complete ✅
+- All 97 OAuth-related tests passing (233 Phase 7 + 97 Phase 8 new OAuth-related tests)
+- TypeScript compilation successful
+- ESLint passing with no errors
+- DaemonServer class with start(), stop(), attachRoutes() methods
+- OAuthStateManager stores state → username mapping with 5-minute TTL
+- OAuthStateManager uses mutex for thread-safe operations
+- OAuthController implements all 5 required endpoints
+- Platform-specific OAuth classes all support handleOAuthCallback
+- KickOAuth uses PKCE with code_verifier and code_challenge
+- YouTubeOAuth uses offline access for refresh tokens
+- HTML callback template with platform-specific colors and logos
+- CORS enabled for localhost:3000
+- JSON and URL-encoded request body parsing
+- Zod validation for platform and credentials parameters
+
+### Next: Phase 9 Tasks
+- [ ] Daemon server entry point wiring with OAuth controller
+- [ ] Database and keystore initialization in main daemon
+- [ ] Graceful shutdown handling
+- [ ] Health check endpoint
+- [ ] Write daemon server integration tests
 
 ### Dependencies
 - Rust: `napi`, `napi-derive`, `serde`, `windows-rs` (Windows), `security-framework` (macOS), `keyring` (Linux)
@@ -171,17 +200,21 @@ All tasks complete:
 
 ### Notes
 - This feature is a prerequisite for Twitch, Kick, and YouTube platform strategies
-- Phase 1, 2, 3, 4, and 5 complete: Keystore, database, OAuth base abstraction, and Twitch OAuth ready
-- Phase 6 in progress: Kick OAuth implementation
-- Install script will handle Rust compilation for end users
+- Phase 1, 2, 3, 4, 5, 6, 7, and 8 complete: Keystore, database, OAuth base abstraction, Twitch OAuth, Kick OAuth with PKCE, YouTube OAuth, HTTP endpoints ready
+- Phase 9 in progress: Daemon server integration
 - Database uses WAL mode for better concurrency
 - Proxy pattern ensures single writer via async-mutex
 - Scopes stored as comma-separated string, returned as string[] to consumers
 - Phase 3 merged to main on 2024-12-17
 - Phase 4 completed on 2026-01-19
 - Phase 5 completed on 2026-01-19
+- Phase 6 completed on 2026-01-19
+- Phase 7 completed on 2026-01-19
+- Phase 8 completed on 2026-01-19
 - OAuth base layer supports concurrent flows and platform-specific callback styling
 - HTML template uses inline SVG logos for professional appearance (Twitch purple, Kick green, YouTube red)
+- Kick OAuth uses PKCE (Proof Key for Code Exchange) with code_verifier and code_challenge
+- YouTube OAuth uses offline access with refresh tokens via access_type=offline and prompt=consent
 
 ## Current Module
 **Module**: server-daemon

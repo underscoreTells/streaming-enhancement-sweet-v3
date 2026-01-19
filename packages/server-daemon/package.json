@@ -14,15 +14,21 @@
     "@streaming-enhancement/keystore-native": "file:../../shared/keystore-native",
     "async-mutex": "^0.5.0",
     "better-sqlite3": "^12.6.2",
+    "cors": "^2.8.5",
+    "express": "^5.2.1",
     "winston": "^3.19.0",
     "zod": "^4.3.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "@types/better-sqlite3": "^7.6.13",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
     "@types/node": "^25.0.9",
+    "@types/supertest": "^6.0.3",
     "@vitest/coverage-v8": "^4.0.17",
     "eslint": "^9.39.2",
+    "supertest": "^7.2.2",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.26.1",
     "vitest": "^4.0.17"

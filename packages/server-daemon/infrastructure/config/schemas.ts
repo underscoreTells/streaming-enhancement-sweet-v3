@@ -25,7 +25,7 @@ export const AppConfigSchema = z.object({
   database: DatabaseConfigSchema,
   keystore: KeystoreConfigSchema.optional(),
   logging: LoggingConfigSchema,
-  oauth: OAuthConfigSchema.optional(),
+  oauth: OAuthConfigSchema,
 });
 
 export type AppConfig = z.infer<typeof AppConfigSchema>;

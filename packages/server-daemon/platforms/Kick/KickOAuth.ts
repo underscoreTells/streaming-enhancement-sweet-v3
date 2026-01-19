@@ -53,7 +53,36 @@ export class KickOAuth extends OAuthFlow {
 
     await this.pkceManager.clearVerifier(state);
 
-    await this.processAccessToken(username, tokens);
+    await this.processAccessToken(username, this.normalizeTokenResponse(tokens));
+  }
+
+  private normalizeTokenResponse(
+    response: {
+      access_token: string;
+      refresh_token?: string;
+      expires_in?: number | string;
+      scope?: string[];
+    }
+  ): {
+    access_token: string;
+    refresh_token?: string;
+    expires_in?: number;
+    scope?: string[];
+  } {
+    let expires_in: number | undefined;
+    if (response.expires_in !== undefined && response.expires_in !== null) {
+      const parsed = typeof response.expires_in === 'string' ? parseInt(response.expires_in, 10) : response.expires_in;
+      if (typeof parsed === 'number' && Number.isFinite(parsed) && !Number.isNaN(parsed)) {
+        expires_in = parsed;
+      }
+    }
+
+    return {
+      access_token: response.access_token,
+      refresh_token: response.refresh_token,
+      expires_in,
+      scope: response.scope,
+    };
   }
 
   protected getAuthUrlBase(): string {
@@ -86,7 +115,7 @@ export class KickOAuth extends OAuthFlow {
   ): Promise<{
     access_token: string;
     refresh_token?: string;
-    expires_in?: number;
+    expires_in?: number | string;
     scope?: string[];
   }> {
     const credential = this.oauthRepo.getCredential('kick');
@@ -137,12 +166,7 @@ export class KickOAuth extends OAuthFlow {
       expiresIn: response.expires_in,
     });
 
-    return {
-      access_token: response.access_token,
-      refresh_token: response.refresh_token,
-      expires_in: response.expires_in,
-      scope: response.scope,
-    };
+    return this.normalizeTokenResponse(response);
   }
 
   private buildAuthUrlWithPKCE(state: string, codeChallenge: string): string {
@@ -162,4 +186,5 @@ export class KickOAuth extends OAuthFlow {
 
     return `${this.getAuthUrlBase()}?${params.toString()}`;
   }
+
 }

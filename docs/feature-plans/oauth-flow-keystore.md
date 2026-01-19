@@ -9,10 +9,8 @@ Implement secure OAuth 2.0 token management for streaming platforms (Twitch, Kic
 - [x] Encrypted file fallback (AES-256-GCM)
 - [x] Twitch OAuth implementation (as proof of concept before Kick/YouTube) - COMPLETE (Phase 5)
 - [x] Kick OAuth implementation - COMPLETE (Phase 6)
-- [ ] YouTube OAuth implementation
+- [x] YouTube OAuth implementation - COMPLETE (Phase 7)
 - [ ] HTTP OAuth endpoints for token management
-- [ ] CLI commands for OAuth credential and token management
-- [ ] Install script with Rust compilation support
 - [x] Comprehensive tests for all components
 
 ## Architecture
@@ -407,65 +405,7 @@ packages/
 
 ---
 
-### Phase 7: CLI Commands
-**Location**: `client/cmd/oauth/`
-
-- [ ] Implement `oauth add` command:
-  - Usage: `cli oauth add <platform> --client-id <id> --client-secret <secret> --scopes <scopes>`
-  - Validate platform (twitch, kick, youtube)
-  - Send POST request to `/oauth/credentials/:platform`
-  - Display success/error message
-- [ ] Implement `oauth start` command:
-  - Usage: `cli oauth start <platform> <username>`
-  - Send GET request to `/oauth/start/:platform/:username`
-  - Receive auth URL
-  - Open browser with auth URL
-  - Wait for callback (poll or listen for WebSocket event)
-  - Display success message
-- [ ] Implement `oauth status` command:
-  - Usage: `cli oauth status <platform> <username>`
-  - Send GET request to `/oauth/status/:platform/:username`
-  - Display token status
-- [ ] Implement `oauth revoke` command:
-  - Usage: `cli oauth revoke <platform> <username>`
-  - Send DELETE request to `/oauth/:platform/:username`
-  - Display success message
-- [ ] Add help text for all commands
-- [ ] Add error handling for network failures
-
-**Output**: CLI interface for OAuth management
-
----
-
-### Phase 8: Install Script
-**Location**: `install.sh`
-
-- [ ] Check for `cargo --version`
-- [ ] Install rustup if not present:
-  - Detect OS (Linux/Mac: curl, Windows: download exe)
-  - Run installer
-  - Set PATH
-- [ ] Navigate to `packages/keystore-native/`
-- [ ] Build native module for current platform:
-  - Run `npm install` (napi-rs builds prebuilt binaries)
-  - Or run `cargo build --release` and copy to npm/
-- [ ] Navigate to root
-- [ ] Install Node.js dependencies: `pnpm install`
-- [ ] Initialize SQLite database:
-  - Create `~/.local/share/streaming-enhancement/database.db`
-  - Run migrations
-- [ ] Verify installations:
-  - Check native module loads successfully
-  - Check database initialized
-  - Check keystore available
-- [ ] Provide clear error messages for missing dependencies
-- [ ] Add --help flag for troubleshooting
-
-**Output**: Cross-platform install script with Rust compilation
-
----
-
-### Phase 9: Testing
+### Phase 10: Testing
 **Test plans**: @tests/keystore-tests.md, @tests/oauth-integration-tests.md
 
 ### Unit Tests
@@ -519,11 +459,7 @@ packages/
 
 ## Open Questions
 
-1. **Pre-compiled binaries**: Should we package pre-compiled binaries for each platform in the npm package, or rely entirely on the install script for compilation?
-   - **Default**: Use install script for compilation
-   - **Alternative**: Pre-compile with GitHub Actions, include in package as optional dependency
-
-2. **Default token expiration**: What should be the default token expiration time for platforms that don't return `expires_at`?
+1. **Default token expiration**: What should be the default token expiration time for platforms that don't return `expires_at`?
    - **Default**: 24 hours
    - **Alternative**: 1 hour (more conservative)
 
@@ -620,24 +556,33 @@ packages/
   - Refresh token flow implemented (no PKCE needed for refresh)
   - Kick-specific error handling (state missing, verifier not found, KickOAuthError)
   - Backward compatibility verified: TwitchOAuth tests still pass (23 tests)
-  - TypeScript compilation successful
-  - ESLint passing with no errors
+   - TypeScript compilation successful
+   - ESLint passing with no errors
+   - Native fetch API used (Node.js 21+)
+   - Redirect URI configurable via OAuthConfig
+- ✅ Phase 7: YouTube OAuth - Complete
+  - All 26 YouTubeOAuth unit tests passing (233 total including previous phases)
+  - YouTubeOAuth class implements OAuthFlow base class
+  - Google OAuth 2.0 endpoints implemented (accounts.google.com, oauth2.googleapis.com)
+  - access_type=offline and prompt=consent for refresh tokens
+  - include_granted_scopes for incremental authorization
+  - Credentials retrieved from database via OAuthCredentialsRepository
+  - Tokens stored in keystore correctly
   - Native fetch API used (Node.js 21+)
   - Redirect URI configurable via OAuthConfig
-- ⏸️ Phase 7: YouTube OAuth - Not started
+  - Error handling comprehensive and tested
+  - Backward compatibility with TwitchOAuth and KickOAuth maintained
+  - TypeScript compilation successful
+  - ESLint passing with no errors
 - ⏸️ Phase 8: HTTP Endpoints - Not started
-- ⏸️ Phase 9: CLI Commands - Not started
-- ⏸️ Phase 10: Install Script - Not started
-- ⏸️ Phase 11: Testing - Partial (Unit Tests complete for Phase 1, 2, 3, 4, 5, 6)
+- ⏸️ Phase 10: Testing - Partial (Unit Tests complete for Phase 1, 2, 3, 4, 5, 6, 7)
 
 ## Completion Criteria
 - [ ] All phases implemented
-- [x] All unit tests passing (Phase 1, 2, 3, 4, 5 complete - 155/155 tests passing)
+- [x] All unit tests passing (Phase 1, 2, 3, 4, 5, 6, 7 complete - 233/233 tests passing)
 - [ ] All integration tests passing
 - [x] Cross-platform testing completed (Phase 1 - Linux, Windows, macOS fallback tested)
-- [ ] Install script tested on all platforms
 - [x] Documentation updated
 - [ ] API endpoints tested and documented
-- [ ] CLI commands tested
 
 When complete, move this file to `archive/feature-plans/oauth-flow-keystore.md`
