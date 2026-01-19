@@ -67,10 +67,8 @@ class TestOAuthFlow extends OAuthFlow {
     scope?: string[];
   }) {
     this.mockRefreshResponse = {
-      access_token: response.access_token,
-      refresh_token: response.refresh_token,
-      expires_in: response.expires_in ?? this.mockRefreshResponse.expires_in,
-      scope: response.scope ?? this.mockRefreshResponse.scope,
+      ...this.mockRefreshResponse,
+      ...response,
     };
   }
 
@@ -281,13 +279,14 @@ describe('OAuthFlow', () => {
     it('should preserve old refresh_token when new one is not provided', async () => {
       oauthFlow.setMockRefreshResponse({
         access_token: 'new_access_token',
+        refresh_token: undefined,
         expires_in: 3600,
         scope: ['read'],
       });
 
       const tokens = {
         access_token: 'old_token',
-        refresh_token: 'old_refresh_token',
+        refresh_token: 'initial_refresh_token',
         expires_in: 3600,
         scope: ['read'],
       };
@@ -296,7 +295,7 @@ describe('OAuthFlow', () => {
       const refreshed = await oauthFlow.refreshToken('testuser');
 
       expect(refreshed.access_token).toBe('new_access_token');
-      expect(refreshed.refresh_token).toBe('old_refresh_token');
+      expect(refreshed.refresh_token).toBe('initial_refresh_token');
     });
 
     it('should throw RefreshFailedError when refresh_token is missing', async () => {

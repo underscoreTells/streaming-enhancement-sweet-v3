@@ -19,7 +19,7 @@ const getConfigPath = (): string => {
   return path.join(os.homedir(), '.config', 'streaming-enhancement', 'config.json');
 };
 
-const getDefaultConfig = (): Partial<AppConfig> => {
+const getDefaultConfig = (): AppConfig => {
   const platform = os.platform();
   const dbPath = platform === 'win32'
     ? path.join(process.env.LOCALAPPDATA || '', 'streaming-enhancement', 'database.db')
@@ -28,7 +28,11 @@ const getDefaultConfig = (): Partial<AppConfig> => {
   return {
     database: { path: dbPath },
     keystore: {},
-    logging: { level: 'info' }
+    logging: { level: 'info' },
+    oauth: {
+      redirect_uri: 'http://localhost:3000/callback',
+      server_port: 3000,
+    }
   };
 };
 
@@ -48,20 +52,24 @@ export const loadConfig = (): AppConfig => {
   }
 
   // Deep merge nested objects to preserve defaults when user only overrides some fields
-  const mergedConfig: Partial<AppConfig> = {
+  const mergedConfig = {
     database: {
       ...defaultConfig.database,
-      ...userConfig.database
+      ...(userConfig.database || {})
     },
     keystore: {
       ...defaultConfig.keystore,
-      ...userConfig.keystore
+      ...(userConfig.keystore || {})
     },
     logging: {
       ...defaultConfig.logging,
-      ...userConfig.logging
+      ...(userConfig.logging || {})
+    },
+    oauth: {
+      ...defaultConfig.oauth,
+      ...(userConfig.oauth || {})
     }
-  };
+  } as const;
 
   try {
     const validatedConfig = AppConfigSchema.parse(mergedConfig);
@@ -80,3 +88,4 @@ export const loadConfig = (): AppConfig => {
 };
 
 export type { AppConfig };
+export type { OAuthConfig } from './schemas';
