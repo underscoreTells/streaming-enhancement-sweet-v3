@@ -32,6 +32,9 @@ const getDefaultLogDirectory = (): string => {
   if (platform === 'win32') {
     return path.join(process.env.LOCALAPPDATA || '', 'streaming-enhancement', 'logs');
   }
+  if (platform === 'darwin') {
+    return path.join(os.homedir(), 'Library', 'Logs', 'streaming-enhancement');
+  }
   return path.join(os.homedir(), '.local', 'state', 'streaming-enhancement', 'logs');
 };
 

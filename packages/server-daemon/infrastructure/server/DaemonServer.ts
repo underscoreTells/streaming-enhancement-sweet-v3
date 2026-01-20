@@ -2,7 +2,7 @@ import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { Logger } from 'winston';
 import { ZodError } from 'zod';
-import { loadConfig, type AppConfig } from '../config/Config';
+import type { AppConfig } from '../config/Config';
 
 export class DaemonServer {
   private app: Express;
