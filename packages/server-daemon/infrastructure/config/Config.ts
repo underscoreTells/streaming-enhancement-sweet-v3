@@ -60,18 +60,18 @@ const getDefaultConfig = (): AppConfig => {
   };
 };
 
-export const loadConfig = (): AppConfig => {
-  const configPath = getConfigPath();
+export const loadConfig = (configPath?: string): AppConfig => {
+  const resolvedConfigPath = configPath || getConfigPath();
   const defaultConfig = getDefaultConfig();
 
   let userConfig: Partial<AppConfig> = {};
 
-  if (fs.existsSync(configPath)) {
+  if (fs.existsSync(resolvedConfigPath)) {
     try {
-      const configContent = fs.readFileSync(configPath, 'utf-8');
+      const configContent = fs.readFileSync(resolvedConfigPath, 'utf-8');
       userConfig = JSON.parse(configContent);
     } catch {
-      logger.warn(`Failed to load config from ${configPath}, using defaults`);
+      logger.warn(`Failed to load config from ${resolvedConfigPath}, using defaults`);
     }
   }
 
