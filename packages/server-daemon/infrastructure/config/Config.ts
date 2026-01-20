@@ -39,9 +39,10 @@ const getDefaultLogDirectory = (): string => {
 };
 
 const getDefaultConfig = (): AppConfig => {
+  const defaultPort = 3000;
   return {
     server: {
-      port: 3000,
+      port: defaultPort,
       shutdownTimeout: 10000,
       healthCheckPath: '/status',
     },
@@ -54,7 +55,7 @@ const getDefaultConfig = (): AppConfig => {
       maxSize: '20m',
     },
     oauth: {
-      redirect_uri: 'http://localhost:3000/callback',
+      redirect_uri: `http://localhost:${defaultPort}/callback`,
     }
   };
 };
@@ -74,11 +75,18 @@ export const loadConfig = (): AppConfig => {
     }
   }
 
+  const mergedServerConfig = {
+    ...defaultConfig.server,
+    ...(userConfig.server || {})
+  };
+
+  const userOAuthConfig = (userConfig.oauth as any) || {};
+  const mergedOAuthConfig = {
+    redirect_uri: userOAuthConfig.redirect_uri || `http://localhost:${mergedServerConfig.port}/callback`
+  };
+
   const mergedConfig = {
-    server: {
-      ...defaultConfig.server,
-      ...(userConfig.server || {})
-    },
+    server: mergedServerConfig,
     database: {
       ...defaultConfig.database,
       ...(userConfig.database || {})
@@ -91,10 +99,7 @@ export const loadConfig = (): AppConfig => {
       ...defaultConfig.logging,
       ...(userConfig.logging || {})
     },
-    oauth: {
-      ...defaultConfig.oauth,
-      ...(userConfig.oauth || {})
-    }
+    oauth: mergedOAuthConfig
   } as const;
 
   try {

@@ -100,7 +100,8 @@ packages/server-daemon/
 
 **Log directory**:
 - Windows: `%LOCALAPPDATA%/streaming-enhancement/logs/`
-- macOS/Linux: `~/.local/state/streaming-enhancement/logs/`
+- macOS: `~/Library/Logs/streaming-enhancement/`
+- Linux: `~/.local/state/streaming-enhancement/logs/`
 
 **PID file**:
 - Windows: `%LOCALAPPDATA%/streaming-enhancement/daemon.pid`
@@ -522,14 +523,14 @@ This feature creates the daemon server infrastructure needed to run the streamin
 - **API**: @api/oauth-endpoints.md
 
 ## Progress
-- ⏸️ Phase 1: Configuration & Schema Updates - Not started
+- ✅ Phase 1: Configuration & Schema Updates - Complete
 - ⏸️ Phase 2: Logger Factory - Not started
 - ⏸️ Phase 3: PID Manager - Not started
 - ⏸️ Phase 4: Health Check Service - Not started
 - ⏸️ Phase 5: Shutdown Handler - Not started
 - ⏸️ Phase 6: Daemon App Orchestrator - Not started
 - ⏸️ Phase 7: CLI Start Command - Not started
-- ⏸️ Phase 8: Main Entry Point - Not started
+- ✅ Phase 8: Main Entry Point - Complete
 - ⏸️ Phase 9: Health Check Endpoint Integration - Not started
 - ⏸️ Phase 10: OAuth Integration Testing - Not started
 - ⏸️ Phase 11: Documentation & Final Polish - Not started

@@ -2,6 +2,7 @@
   "name": "@streaming-enhancement/server-daemon",
   "version": "0.1.0",
   "description": "Server daemon for streaming enhancement application",
+  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
