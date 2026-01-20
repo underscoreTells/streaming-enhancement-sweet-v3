@@ -9,6 +9,7 @@ Read these files for complete context:
 
 ### Completed Features
 - @docs/archive/feature-plans/oauth-flow-keystore.md - OAuth flow & keystore implementation (complete)
+- @docs/fixes/native-keystore-linux-secret-service.md - Linux keystore Secret Service fix (complete)
 
 ### Documentation Structure
 ```

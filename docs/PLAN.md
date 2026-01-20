@@ -30,6 +30,15 @@ Create executable daemon server with initialization orchestration, health checks
 
 ---
 
+## Recent Fixes
+
+### Linux Secret Service Keystore Fix ✅
+**Status**: Complete
+**Implementation Plan**: @docs/fixes/native-keystore-linux-secret-service.md
+**Completed**: 2026-01-19
+
+Fixed Linux Secret Service password storage by adding `sync-secret-service` feature flag to keyring crate dependency. All 265 tests now passing (was 262/265).
+
 ## Recently Completed Features
 
 ### OAuth Flow & Keystore Abstraction ✅

@@ -27,7 +27,7 @@ security-framework = "2.11"
 security-framework-sys = "2.11"
 
 [target.'cfg(target_os = "linux")'.dependencies]
-keyring = "3.5"
+keyring = { version = "3.5", features = ["sync-secret-service"] }
 
 [build-dependencies]
 napi-build = "2.1"
