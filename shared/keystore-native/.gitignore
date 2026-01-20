@@ -3,5 +3,4 @@ target/
 
 # Logs
 *.log
-.DS_Store# pnpm lock files
-pnpm-lock.yaml
+.DS_Store
