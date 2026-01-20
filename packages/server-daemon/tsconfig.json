@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "commonjs",
+    "module": "es2020",
     "lib": ["ES2022"],
     "outDir": "./dist",
     "rootDir": "./",
@@ -10,9 +10,9 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "types": ["node"]
   },
-  "include": ["infrastructure/**/*", "platforms/**/*", "__tests__/**/*"],
+  "include": ["infrastructure/**/*", "platforms/**/*", "src/**/*", "__tests__/**/*"],
   "exclude": ["node_modules", "dist"]
 }

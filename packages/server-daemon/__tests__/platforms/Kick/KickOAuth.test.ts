@@ -88,7 +88,6 @@ describe('KickOAuth', () => {
     pkceManager = new PKCEManager();
     config = {
       redirect_uri: 'http://localhost:3000/callback',
-      server_port: 3000,
     };
 
     mockRepo.setCredential('kick', 'test_kick_client_id', 'test_kick_client_secret', [

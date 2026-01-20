@@ -19,40 +19,74 @@ const getConfigPath = (): string => {
   return path.join(os.homedir(), '.config', 'streaming-enhancement', 'config.json');
 };
 
-const getDefaultConfig = (): AppConfig => {
+const getDefaultDatabasePath = (): string => {
   const platform = os.platform();
-  const dbPath = platform === 'win32'
-    ? path.join(process.env.LOCALAPPDATA || '', 'streaming-enhancement', 'database.db')
-    : path.join(os.homedir(), '.local', 'share', 'streaming-enhancement', 'database.db');
+  if (platform === 'win32') {
+    return path.join(process.env.LOCALAPPDATA || '', 'streaming-enhancement', 'database.db');
+  }
+  return path.join(os.homedir(), '.local', 'share', 'streaming-enhancement', 'database.db');
+};
 
+const getDefaultLogDirectory = (): string => {
+  const platform = os.platform();
+  if (platform === 'win32') {
+    return path.join(process.env.LOCALAPPDATA || '', 'streaming-enhancement', 'logs');
+  }
+  if (platform === 'darwin') {
+    return path.join(os.homedir(), 'Library', 'Logs', 'streaming-enhancement');
+  }
+  return path.join(os.homedir(), '.local', 'state', 'streaming-enhancement', 'logs');
+};
+
+const getDefaultConfig = (): AppConfig => {
+  const defaultPort = 3000;
   return {
-    database: { path: dbPath },
+    server: {
+      port: defaultPort,
+      shutdownTimeout: 10000,
+      healthCheckPath: '/status',
+    },
+    database: { path: getDefaultDatabasePath() },
     keystore: {},
-    logging: { level: 'info' },
+    logging: {
+      level: 'info',
+      directory: getDefaultLogDirectory(),
+      maxFiles: 7,
+      maxSize: '20m',
+    },
     oauth: {
-      redirect_uri: 'http://localhost:3000/callback',
-      server_port: 3000,
+      redirect_uri: `http://localhost:${defaultPort}/callback`,
     }
   };
 };
 
-export const loadConfig = (): AppConfig => {
-  const configPath = getConfigPath();
+export const loadConfig = (configPath?: string): AppConfig => {
+  const resolvedConfigPath = configPath || getConfigPath();
   const defaultConfig = getDefaultConfig();
 
   let userConfig: Partial<AppConfig> = {};
 
-  if (fs.existsSync(configPath)) {
+  if (fs.existsSync(resolvedConfigPath)) {
     try {
-      const configContent = fs.readFileSync(configPath, 'utf-8');
+      const configContent = fs.readFileSync(resolvedConfigPath, 'utf-8');
       userConfig = JSON.parse(configContent);
     } catch {
-      logger.warn(`Failed to load config from ${configPath}, using defaults`);
+      logger.warn(`Failed to load config from ${resolvedConfigPath}, using defaults`);
     }
   }
 
-  // Deep merge nested objects to preserve defaults when user only overrides some fields
+  const mergedServerConfig = {
+    ...defaultConfig.server,
+    ...(userConfig.server || {})
+  };
+
+  const userOAuthConfig = (userConfig.oauth as any) || {};
+  const mergedOAuthConfig = {
+    redirect_uri: userOAuthConfig.redirect_uri || `http://localhost:${mergedServerConfig.port}/callback`
+  };
+
   const mergedConfig = {
+    server: mergedServerConfig,
     database: {
       ...defaultConfig.database,
       ...(userConfig.database || {})
@@ -65,10 +99,7 @@ export const loadConfig = (): AppConfig => {
       ...defaultConfig.logging,
       ...(userConfig.logging || {})
     },
-    oauth: {
-      ...defaultConfig.oauth,
-      ...(userConfig.oauth || {})
-    }
+    oauth: mergedOAuthConfig
   } as const;
 
   try {

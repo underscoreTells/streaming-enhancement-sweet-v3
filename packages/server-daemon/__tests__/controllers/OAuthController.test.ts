@@ -10,11 +10,6 @@ import { loadConfig, type AppConfig } from '../../infrastructure/config/Config';
 import { createTwitchOAuth, createKickOAuth, createYouTubeOAuth } from '../../platforms';
 import { ZodError } from 'zod';
 import type { Request, Response, NextFunction } from 'express';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 vi.mock('../../platforms/Twitch/factory');
 vi.mock('../../platforms/Kick/factory');

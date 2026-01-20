@@ -1,7 +1,22 @@
-use super::error::KeystoreError;
+use super::error::{KeystoreError};
 use super::KeystoreEntry;
 use napi::Error;
 use napi_derive::napi;
+
+impl From<KeystoreError> for Error {
+    fn from(err: KeystoreError) -> Self {
+        let code = match err {
+            KeystoreError::PlatformNotSupported => "ERR_PLATFORM_NOT_SUPPORTED",
+            KeystoreError::KeyNotFound(_) => "ERR_KEY_NOT_FOUND",
+            KeystoreError::AccessDenied(_) => "ERR_ACCESS_DENIED",
+            KeystoreError::Io(_) => "ERR_IO",
+            KeystoreError::Serialization(_) => "ERR_SERIALIZATION",
+            KeystoreError::Platform(_) => "ERR_PLATFORM",
+        };
+
+        Error::new(napi::Status::GenericFailure, format!("{}: {}", code, err))
+    }
+}
 
 #[cfg(windows)]
 mod windows;
@@ -21,21 +36,6 @@ mod fallback;
 
 #[cfg(all(test, any(windows, target_os = "macos")))]
 mod fallback;
-
-impl From<KeystoreError> for Error {
-    fn from(err: KeystoreError) -> Self {
-        let code = match err {
-            KeystoreError::PlatformNotSupported => "ERR_PLATFORM_NOT_SUPPORTED",
-            KeystoreError::KeyNotFound(_) => "ERR_KEY_NOT_FOUND",
-            KeystoreError::AccessDenied(_) => "ERR_ACCESS_DENIED",
-            KeystoreError::Io(_) => "ERR_IO",
-            KeystoreError::Serialization(_) => "ERR_SERIALIZATION",
-            KeystoreError::Platform(_) => "ERR_PLATFORM",
-        };
-
-        Error::new(napi::Status::GenericFailure, format!("{}: {}", code, err))
-    }
-}
 
 pub trait KeystoreOperations {
     fn set_password(&self, entry: &KeystoreEntry) -> Result<(), KeystoreError>;

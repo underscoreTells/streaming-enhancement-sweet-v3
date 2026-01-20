@@ -8,6 +8,23 @@ const logger = winston.createLogger({
   transports: [new winston.transports.Console()]
 });
 
+/**
+ * Extracts the error code from a native keystore error.
+ * The error code may be in err.code, nested in err.error.code, or embedded in the message.
+ */
+const extractErrorCode = (err: Error & { code?: string; error?: Error & { code?: string } }): string | undefined => {
+  const nestedError = err.error;
+  return err.code || nestedError?.code || err.message?.split(':')[0];
+};
+
+/**
+ * Checks if the error indicates a key was not found.
+ */
+const isKeyNotFoundError = (err: Error & { code?: string; error?: Error & { code?: string } }): boolean => {
+  const errorCode = extractErrorCode(err);
+  return errorCode === 'ERR_KEY_NOT_FOUND' || err.message?.includes('ERR_KEY_NOT_FOUND') === true;
+};
+
 export class LinuxKeystoreStrategy implements KeystoreStrategy {
   private available: boolean | null = null;
   private keystore: NapiKeystore | null = null;
@@ -53,7 +70,7 @@ export class LinuxKeystoreStrategy implements KeystoreStrategy {
     try {
       this.keystore.setPassword(service, account, password);
     } catch (error) {
-      const err = error as Error;
+      const err = error as Error & { code?: string };
       throw createKeystoreError(
         `Failed to set password: ${err.message}`,
         KEYSTORE_ERROR_CODES.WRITE_FAILED,
@@ -73,8 +90,8 @@ export class LinuxKeystoreStrategy implements KeystoreStrategy {
       const password = this.keystore.getPassword(service, account);
       return password;
     } catch (error) {
-      const err = error as Error & { code?: string };
-      if (err.code === 'ERR_KEY_NOT_FOUND') {
+      const err = error as Error & { code?: string; error?: Error & { code?: string } };
+      if (isKeyNotFoundError(err)) {
         return null;
       }
       throw createKeystoreError(
@@ -96,8 +113,8 @@ export class LinuxKeystoreStrategy implements KeystoreStrategy {
       this.keystore.deletePassword(service, account);
       return true;
     } catch (error) {
-      const err = error as Error & { code?: string };
-      if (err.code === 'ERR_KEY_NOT_FOUND') {
+      const err = error as Error & { code?: string; error?: Error & { code?: string } };
+      if (isKeyNotFoundError(err)) {
         return false;
       }
       throw createKeystoreError(
