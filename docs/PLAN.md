@@ -5,21 +5,25 @@ Local analytics & integration tool for livestreamers (Twitch, Kick, YouTube). Pr
 
 ## Current Feature
 **Feature**: Daemon Server Core
-**Status**: In Progress - Phase 1 (Configuration & Schema Updates)
+**Status**: In Progress - Phase 4 of 10 (Shutdown Handler)
 
 **Full Implementation Plan**: @docs/feature-plans/daemon-server-core.md
 
+### Completed Phases
+- ✅ Phase 1: Configuration & Schema Updates
+- ✅ Phase 2: Logger Factory
+- ✅ Phase 3: Health Check Service
+
 ### Next Phase
-**Phase 1: Configuration & Schema Updates** - Update configuration schema, add server config, logging config, and restructure existing configs
+**Phase 4: Shutdown Handler** - Create graceful shutdown handler with SIGTERM/SIGINT signal handlers, ordered cleanup sequence (server → database → exit), and configurable timeout
 
 ### Overview
-Create executable daemon server with initialization orchestration, health checks, graceful shutdown, PID tracking, and CLI foundation for future administrative commands (similar to tailscaled). This feature provides the foundation for running the streaming enhancement service as a proper daemon process.
+Create executable daemon server with initialization orchestration, health checks, graceful shutdown, and CLI foundation for future administrative commands (similar to tailscaled). This feature provides the foundation for running the streaming enhancement service as a proper daemon process.
 
 ### Key Components
 - **CLI Command**: `streaming-daemon start [--port PORT] [--config PATH] [--log-level LEVEL]`
 - **Health Check**: GET /status (localhost only) with component-level status
 - **Graceful Shutdown**: SIGTERM/SIGINT handlers with configurable timeout (default 10s)
-- **PID File**: Track running daemon, prevent duplicate instances
 - **Logging**: Console + rotating file, same level for both
 - **Config Overrides**: CLI flags override config file values
 - **Exit Codes**: 0 (success), 1 (config error), 2 (init error), 3 (startup error)

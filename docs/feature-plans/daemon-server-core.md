@@ -244,26 +244,39 @@ This feature creates the daemon server infrastructure needed to run the streamin
 **Status**: ⏸️ Not started
 
 - [ ] Create `ShutdownHandler` class:
-  - Constructor takes: server, database, keystore, timeout
+  - Constructor takes: server, database, keystore, oauthStateManager, logger, timeout (default 10000)
   - `register()`: Register SIGTERM/SIGINT handlers
-  - `shutdown()`: Execute graceful shutdown
+  - `shutdown()`: Execute graceful shutdown sequence
   - `waitForInFlightRequests()`: Wait for in-flight requests with timeout
+  - `isShuttingDown`: boolean flag to prevent double-shutdown
 
-- [ ] Shutdown sequence:
-  1. Log "Shutting down..."
-  2. Stop accepting new requests (server.close())
-  3. Wait for in-flight requests (with timeout)
-  4. Stop OAuthStateManager
-  5. Close database connection
+- [ ] Shutdown sequence (in order):
+  1. Set `isShuttingDown = true`
+  2. Log "Shutting down..."
+  3. Stop accepting new requests (server.stop())
+  4. Wait for in-flight requests (waitForInFlightRequests())
+  5. Close database connection (database.close())
   6. Log "Shutdown complete"
-  7. Exit with code 0
+  7. Exit with code 0 (process.exit(0))
 
-- [ ] Write unit tests:
-  - Test shutdown sequence order
-  - Test timeout handling
-  - Test error handling during shutdown
+- [ ] Implementation details:
+  - `register()`: Set up listeners for SIGTERM and SIGINT signals
+  - Signal handlers call `shutdown()` only if `!isShuttingDown`
+  - `waitForInFlightRequests()`: Uses setTimeout to wait for configured timeout duration
+  - Error handling: Continue shutdown sequence even if one component fails (best-effort)
+  - OAuthStateManager: No explicit cleanup needed (in-memory Map)
+
+- [ ] Write unit tests (~15-20 tests):
+  - Test `register()` sets up signal handlers correctly
+  - Test shutdown sequence order (server.stop → waitForInFlightRequests → database.close → process.exit)
+  - Test double-shutdown prevention (isShuttingDown flag)
+  - Test timeout handling in waitForInFlightRequests()
+  - Test error handling during shutdown (continue on errors)
+  - Test process.exit is called with code 0
+  - Mock process.exit in tests to prevent actual process termination
 
 **Output**: ✅ Graceful shutdown handler with configurable timeout
+**Dependencies**: All dependencies already available (server.stop(), database.close(), process)
 
 ---
 

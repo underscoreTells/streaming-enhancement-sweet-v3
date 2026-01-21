@@ -118,3 +118,11 @@ This document describes the methodology for working with AI agents on this proje
 - Agent suggests updates → Human reviews → Agent applies
 - Commit after each feature completion
 - Archive completed modules with summary
+
+### Phase Completion Workflow
+- **After every phase implementation**: All plan files must be checked and updated as needed
+  - Update `docs/feature-plans/[feature-name].md` with phase status changes
+  - Update `docs/PLAN.md` with current phase and completed phases
+  - Add any new learnings, decisions, or architectural changes to relevant docs
+  - Commit documentation updates along with phase implementation
+- **Before starting next phase**: Verify all documentation is in sync with actual implementation

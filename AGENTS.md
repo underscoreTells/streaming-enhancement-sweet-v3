@@ -139,6 +139,14 @@ project-root/
 - **Exit Codes**: 0 (success), 1 (config error), 2 (init error), 3 (startup error)
 - **Dependencies**: commander, winston-daily-rotate-file
 
+## Documentation Workflow
+- **After every phase implementation**: Check and update all plan files
+  - Update feature plan with phase status (docs/feature-plans/*.md)
+  - Update PLAN.md with current phase and completed phases
+  - Document any architectural decisions or changes
+  - Commit documentation updates along with code changes
+- **Before starting next phase**: Verify documentation matches implementation
+
 ## Platform-Specific Requirements
 
 ### File Paths & Directories
