@@ -1,12 +1,14 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Database from 'better-sqlite3';
 import { DatabaseConnection } from '../../../infrastructure/database/Database';
+import { LoggerFactory } from '../../../infrastructure/config';
 import fs from 'fs';
 import path from 'path';
 
 describe('DatabaseConnection', () => {
   let db: DatabaseConnection;
   let testDbPath: string;
+  const logger = LoggerFactory.create({ level: 'error', maxFiles: 1, maxSize: '1m' }, 'test');
 
   beforeEach(() => {
     testDbPath = path.join(__dirname, 'test.db');
@@ -27,13 +29,13 @@ describe('DatabaseConnection', () => {
 
   describe('constructor', () => {
     it('creates database file', () => {
-      db = new DatabaseConnection(testDbPath, path.join(__dirname, '../../../infrastructure/database/migrations'));
+      db = new DatabaseConnection(testDbPath, path.join(__dirname, '../../../infrastructure/database/migrations'), logger);
       expect(fs.existsSync(testDbPath)).toBe(true);
     });
 
     it('creates directory if not exists', () => {
       const nestedPath = path.join(__dirname, 'nested/test.db');
-      db = new DatabaseConnection(nestedPath, path.join(__dirname, '../../../infrastructure/database/migrations'));
+      db = new DatabaseConnection(nestedPath, path.join(__dirname, '../../../infrastructure/database/migrations'), logger);
       expect(fs.existsSync(nestedPath)).toBe(true);
       db.close();
       fs.unlinkSync(nestedPath);
@@ -44,21 +46,21 @@ describe('DatabaseConnection', () => {
 
   describe('getDb', () => {
     it('returns better-sqlite3 database', () => {
-      db = new DatabaseConnection(testDbPath, path.join(__dirname, '../../../infrastructure/database/migrations'));
+      db = new DatabaseConnection(testDbPath, path.join(__dirname, '../../../infrastructure/database/migrations'), logger);
       expect(db.getDb()).toBeInstanceOf(Database);
     });
   });
 
   describe('getPath', () => {
     it('returns database path', () => {
-      db = new DatabaseConnection(testDbPath, path.join(__dirname, '../../../infrastructure/database/migrations'));
+      db = new DatabaseConnection(testDbPath, path.join(__dirname, '../../../infrastructure/database/migrations'), logger);
       expect(db.getPath()).toBe(testDbPath);
     });
   });
 
   describe('transaction', () => {
     it('executes transaction', () => {
-      db = new DatabaseConnection(testDbPath, path.join(__dirname, '../../../infrastructure/database/migrations'));
+      db = new DatabaseConnection(testDbPath, path.join(__dirname, '../../../infrastructure/database/migrations'), logger);
       const result = db.transaction(() => {
         return 'success';
       });
@@ -66,7 +68,7 @@ describe('DatabaseConnection', () => {
     });
 
     it('rolls back on error', () => {
-      db = new DatabaseConnection(testDbPath, path.join(__dirname, '../../../infrastructure/database/migrations'));
+      db = new DatabaseConnection(testDbPath, path.join(__dirname, '../../../infrastructure/database/migrations'), logger);
       expect(() => {
         db.transaction(() => {
           throw new Error('Test error');
@@ -75,7 +77,7 @@ describe('DatabaseConnection', () => {
     });
 
     it('rejects async transaction callbacks', () => {
-      db = new DatabaseConnection(testDbPath, path.join(__dirname, '../../../infrastructure/database/migrations'));
+      db = new DatabaseConnection(testDbPath, path.join(__dirname, '../../../infrastructure/database/migrations'), logger);
       expect(() => {
         return db.transaction(
           // @ts-expect-error - Test that async callbacks are rejected at runtime
@@ -89,7 +91,7 @@ describe('DatabaseConnection', () => {
 
   describe('close', () => {
     it('closes database connection', () => {
-      db = new DatabaseConnection(testDbPath, path.join(__dirname, '../../../infrastructure/database/migrations'));
+      db = new DatabaseConnection(testDbPath, path.join(__dirname, '../../../infrastructure/database/migrations'), logger);
       db.close();
       expect(() => db.getDb().prepare('SELECT 1').get()).toThrow();
     });

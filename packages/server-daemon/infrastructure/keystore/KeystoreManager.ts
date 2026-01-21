@@ -5,7 +5,7 @@ import { LinuxKeystoreStrategy } from './strategies/LinuxKeystoreStrategy';
 import { EncryptedFileStrategy } from './strategies/EncryptedFileStrategy';
 import winston from 'winston';
 
-const logger = winston.createLogger({
+const minimalLogger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
   format: winston.format.json(),
   transports: [new winston.transports.Console()]
@@ -21,8 +21,10 @@ export class KeystoreManager {
   private strategy: KeystoreStrategy;
   private strategyType: string;
   private isFallback: boolean;
+  private readonly logger: winston.Logger;
 
-  constructor(strategy?: KeystoreStrategy) {
+  constructor(strategy?: KeystoreStrategy, logger?: winston.Logger) {
+    this.logger = logger || minimalLogger;
     if (strategy) {
       this.strategy = strategy;
       this.strategyType = 'custom';
@@ -45,30 +47,30 @@ export class KeystoreManager {
     switch (platform) {
       case 'win32':
         try {
-          nativeStrategy = new WindowsKeystoreStrategy();
+          nativeStrategy = new WindowsKeystoreStrategy(this.logger);
           type = 'windows';
         } catch (error) {
-          logger.error('Failed to initialize Windows keystore strategy', error);
+          this.logger.error('Failed to initialize Windows keystore strategy', error);
         }
         break;
       case 'darwin':
         try {
-          nativeStrategy = new MacosKeystoreStrategy();
+          nativeStrategy = new MacosKeystoreStrategy(this.logger);
           type = 'macos';
         } catch (error) {
-          logger.error('Failed to initialize macOS keystore strategy', error);
+          this.logger.error('Failed to initialize macOS keystore strategy', error);
         }
         break;
       case 'linux':
         try {
-          nativeStrategy = new LinuxKeystoreStrategy();
+          nativeStrategy = new LinuxKeystoreStrategy(this.logger);
           type = 'linux';
         } catch (error) {
-          logger.error('Failed to initialize Linux keystore strategy', error);
+          this.logger.error('Failed to initialize Linux keystore strategy', error);
         }
         break;
       default:
-        logger.warn(`Unsupported platform: ${platform}, using encrypted file fallback`);
+        this.logger.warn(`Unsupported platform: ${platform}, using encrypted file fallback`);
         return {
           strategy: new EncryptedFileStrategy(),
           type: 'encrypted-file',
@@ -79,15 +81,15 @@ export class KeystoreManager {
     if (nativeStrategy) {
       try {
         if (nativeStrategy.isAvailable()) {
-          logger.info(`Using ${type} keystore strategy`);
+          this.logger.info(`Using ${type} keystore strategy`);
           return { strategy: nativeStrategy, type, isFallback: false };
         }
       } catch (error) {
-        logger.error(`Failed to check ${type} keystore availability`, error);
+        this.logger.error(`Failed to check ${type} keystore availability`, error);
       }
     }
 
-    logger.warn(`Native ${type} keystore unavailable, falling back to encrypted file`);
+    this.logger.warn(`Native ${type} keystore unavailable, falling back to encrypted file`);
     return {
       strategy: new EncryptedFileStrategy(),
       type: 'encrypted-file',
@@ -97,10 +99,10 @@ export class KeystoreManager {
 
   private logStrategyStatus(): void {
     const status = this.getStatus();
-    logger.info('KeystoreManager initialized', status);
-    
+    this.logger.info('KeystoreManager initialized', status);
+
     if (status.isFallback) {
-      logger.warn('WARNING: Using encrypted file fallback - less secure than native keystore');
+      this.logger.warn('WARNING: Using encrypted file fallback - less secure than native keystore');
     }
   }
 

@@ -58,7 +58,7 @@ describe('LoggerFactory', () => {
     expect(logger.level).toBe('error');
   });
 
-  it('should use ISO 8601 timestamp format', (done) => {
+  it('should use ISO 8601 timestamp format', async () => {
     const config = {
       level: 'info' as const,
       directory: tempDir,
@@ -72,21 +72,19 @@ describe('LoggerFactory', () => {
 
     logger.info(testMessage);
 
-    setTimeout(() => {
-      const logFiles = fs.readdirSync(tempDir);
-      const logFile = logFiles.find((f) => f.startsWith('SES-') && f.endsWith('.log'));
+    await new Promise(resolve => setTimeout(resolve, 100));
 
-      expect(logFile).toBeDefined();
+    const logFiles = fs.readdirSync(tempDir);
+    const logFile = logFiles.find((f) => f.startsWith('SES-') && f.endsWith('.log'));
 
-      if (logFile) {
-        const logContent = fs.readFileSync(path.join(tempDir, logFile), 'utf-8');
-        const iso8601Regex = /^\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z\]/;
+    expect(logFile).toBeDefined();
 
-        expect(logContent).toMatch(iso8601Regex);
-      }
+    if (logFile) {
+      const logContent = fs.readFileSync(path.join(tempDir, logFile), 'utf-8');
+      const iso8601Regex = /^\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z\]/;
 
-      done();
-    }, 100);
+      expect(logContent).toMatch(iso8601Regex);
+    }
   });
 
   it('should include error stack traces at debug level', () => {

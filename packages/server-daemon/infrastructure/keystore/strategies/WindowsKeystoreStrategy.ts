@@ -2,7 +2,7 @@ import { KeystoreStrategy, createKeystoreError, KEYSTORE_ERROR_CODES } from './K
 import winston from 'winston';
 import { NapiKeystore } from '@streaming-enhancement/keystore-native';
 
-const logger = winston.createLogger({
+const minimalLogger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
   format: winston.format.json(),
   transports: [new winston.transports.Console()]
@@ -11,12 +11,14 @@ const logger = winston.createLogger({
 export class WindowsKeystoreStrategy implements KeystoreStrategy {
   private available: boolean | null = null;
   private keystore: NapiKeystore | null = null;
+  private readonly logger: winston.Logger;
 
-  constructor() {
+  constructor(logger?: winston.Logger) {
+    this.logger = logger || minimalLogger;
     try {
       this.keystore = new NapiKeystore();
     } catch (error) {
-      logger.error('Failed to initialize NapiKeystore', error);
+      this.logger.error('Failed to initialize NapiKeystore', error);
       this.available = false;
       return;
     }
@@ -31,10 +33,10 @@ export class WindowsKeystoreStrategy implements KeystoreStrategy {
       }
       this.available = this.keystore.isAvailable();
       if (!this.available) {
-        logger.warn('Windows Credential Manager not available');
+        this.logger.warn('Windows Credential Manager not available');
       }
     } catch (error) {
-      logger.error('Failed to check Windows Credential Manager availability', error);
+      this.logger.error('Failed to check Windows Credential Manager availability', error);
       this.available = false;
     }
   }

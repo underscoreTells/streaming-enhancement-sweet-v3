@@ -4,14 +4,14 @@ import { PlatformEnum } from '../config/schemas';
 import { OAuthCredential } from './schema';
 import winston from 'winston';
 
-const logger = winston.createLogger({
+const minimalLogger = winston.createLogger({
   level: 'info',
   format: winston.format.json(),
   transports: [new winston.transports.Console()]
 });
 
 export class OAuthCredentialsRepository {
-  constructor(private db: DatabaseConnection) {
+  constructor(private db: DatabaseConnection, private logger: winston.Logger = minimalLogger) {
     this.nativeDb = db.getNativeDb();
   }
 
@@ -67,7 +67,7 @@ export class OAuthCredentialsRepository {
 
     try {
       stmt.run(platformResult.data, clientId, clientSecret, this.serializeScopes(scopes));
-      logger.info(`OAuth credential added for platform: ${platform}`);
+      this.logger.info(`OAuth credential added for platform: ${platform}`);
     } catch (error: any) {
       if (error.code === 'SQLITE_CONSTRAINT_PRIMARYKEY') {
         throw new Error(`Credential for platform ${platform} already exists. Use updateCredential instead.`);
@@ -125,7 +125,7 @@ export class OAuthCredentialsRepository {
       throw new Error(`Credential for platform ${platform} not found`);
     }
 
-    logger.info(`OAuth credential updated for platform: ${platform}`);
+    this.logger.info(`OAuth credential updated for platform: ${platform}`);
   }
 
   deleteCredential(platform: string): boolean {
@@ -142,7 +142,7 @@ export class OAuthCredentialsRepository {
     const deleted = result.changes > 0;
 
     if (deleted) {
-      logger.info(`OAuth credential deleted for platform: ${platform}`);
+      this.logger.info(`OAuth credential deleted for platform: ${platform}`);
     }
 
     return deleted;

@@ -2,15 +2,17 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Database from 'better-sqlite3';
 import { MigrationRunner } from '../../../infrastructure/database/migrations/MigrationRunner';
 import { Migration } from '../../../infrastructure/database/migrations/Migration';
+import { LoggerFactory } from '../../../infrastructure/config';
 import path from 'path';
 
 describe('MigrationRunner', () => {
   let db: Database.Database;
   let runner: MigrationRunner;
+  const logger = LoggerFactory.create({ level: 'error', maxFiles: 1, maxSize: '1m' }, 'test');
 
   beforeEach(() => {
     db = new Database(':memory:');
-    runner = new MigrationRunner(db, path.join(__dirname, 'mock-migrations'));
+    runner = new MigrationRunner(db, path.join(__dirname, 'mock-migrations'), logger);
   });
 
   afterEach(() => {

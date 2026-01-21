@@ -1,10 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import Database from 'better-sqlite3';
 import { OAuthCredentialsRepository } from '../../../infrastructure/database/OAuthCredentialsRepository';
+import { LoggerFactory } from '../../../infrastructure/config';
 
 describe('OAuthCredentialsRepository', () => {
   let nativeDb: Database.Database;
   let repo: OAuthCredentialsRepository;
+  const logger = LoggerFactory.create({ level: 'error', maxFiles: 1, maxSize: '1m' }, 'test');
 
   beforeEach(() => {
     nativeDb = new Database(':memory:');
@@ -20,7 +22,7 @@ describe('OAuthCredentialsRepository', () => {
 
     repo = new OAuthCredentialsRepository({
       getNativeDb: () => nativeDb
-    } as any);
+    } as any, logger);
   });
 
   describe('validateScopes', () => {

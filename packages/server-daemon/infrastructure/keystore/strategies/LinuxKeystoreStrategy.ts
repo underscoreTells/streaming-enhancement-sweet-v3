@@ -2,16 +2,12 @@ import { KeystoreStrategy, createKeystoreError, KEYSTORE_ERROR_CODES } from './K
 import winston from 'winston';
 import { NapiKeystore } from '@streaming-enhancement/keystore-native';
 
-const logger = winston.createLogger({
+const minimalLogger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
   format: winston.format.json(),
   transports: [new winston.transports.Console()]
 });
 
-/**
- * Extracts the error code from a native keystore error.
- * The error code may be in err.code, nested in err.error.code, or embedded in the message.
- */
 const extractErrorCode = (err: Error & { code?: string; error?: Error & { code?: string } }): string | undefined => {
   const nestedError = err.error;
   return err.code || nestedError?.code || err.message?.split(':')[0];
@@ -28,12 +24,14 @@ const isKeyNotFoundError = (err: Error & { code?: string; error?: Error & { code
 export class LinuxKeystoreStrategy implements KeystoreStrategy {
   private available: boolean | null = null;
   private keystore: NapiKeystore | null = null;
+  private readonly logger: winston.Logger;
 
-  constructor() {
+  constructor(logger?: winston.Logger) {
+    this.logger = logger || minimalLogger;
     try {
       this.keystore = new NapiKeystore();
     } catch (error) {
-      logger.error('Failed to initialize NapiKeystore', error);
+      this.logger.error('Failed to initialize NapiKeystore', error);
       this.available = false;
       return;
     }
@@ -48,10 +46,10 @@ export class LinuxKeystoreStrategy implements KeystoreStrategy {
       }
       this.available = this.keystore.isAvailable();
       if (!this.available) {
-        logger.warn('Linux Secret Service not available');
+        this.logger.warn('Linux Secret Service not available');
       }
     } catch (error) {
-      logger.error('Failed to check Linux Secret Service availability', error);
+      this.logger.error('Failed to check Linux Secret Service availability', error);
       this.available = false;
     }
   }
