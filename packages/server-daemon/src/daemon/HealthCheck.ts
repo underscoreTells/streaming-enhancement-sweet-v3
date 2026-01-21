@@ -57,6 +57,11 @@ export class HealthCheck {
     this.cacheDurationMs = cacheDurationMs;
   }
 
+  /**
+   * Gets the current health status of all components.
+   * Results are cached for `cacheDurationMs` (default 5 seconds) to reduce overhead.
+   * Note: Cached status may be stale if component health changes within the cache window.
+   */
   public getStatus(): HealthStatus {
     const now = Date.now();
 
@@ -87,6 +92,11 @@ export class HealthCheck {
     return this.cachedStatus;
   }
 
+  /**
+   * Checks server health.
+   * Note: Always returns 'healthy' because HealthCheck is only instantiated after the server starts.
+   * If this is called before server.start() or after server.stop(), the status may be misleading.
+   */
   private checkServer(): ServerHealth {
     const uptime = this.server.getUptime();
     return {

@@ -16,7 +16,7 @@ export class DaemonServer {
     this.logger = logger;
     this.config = config;
     this.port = config.server.port;
-    this.startTime = Date.now();
+    this.startTime = 0;
     this.app = express();
     this.middleware();
   }
@@ -47,6 +47,7 @@ export class DaemonServer {
       this.server = this.app.listen(
         this.port,
         () => {
+          this.startTime = Date.now();
           this.logger.info(
             `Daemon server listening on port ${this.port}`
           );
