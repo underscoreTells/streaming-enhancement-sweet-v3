@@ -118,5 +118,6 @@ export const loadConfig = (configPath?: string): AppConfig => {
   }
 };
 
+export { getDefaultLogDirectory };
 export type { AppConfig };
 export type { OAuthConfig } from './schemas';

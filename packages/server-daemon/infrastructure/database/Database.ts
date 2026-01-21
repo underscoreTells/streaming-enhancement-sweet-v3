@@ -6,7 +6,7 @@ import winston from 'winston';
 
 type NonPromise<T> = T extends Promise<any> ? never : T;
 
-const logger = winston.createLogger({
+const minimalLogger = winston.createLogger({
   level: 'info',
   format: winston.format.json(),
   transports: [new winston.transports.Console()]
@@ -16,8 +16,10 @@ export class DatabaseConnection {
   private db: Database.Database;
   private migrationRunner: MigrationRunner;
   private readonly dbPath: string;
+  private readonly logger: winston.Logger;
 
-  constructor(dbPath: string, migrationsPath: string) {
+  constructor(dbPath: string, migrationsPath: string, logger?: winston.Logger) {
+    this.logger = logger || minimalLogger;
     this.dbPath = dbPath;
 
     const dbDir = path.dirname(dbPath);
@@ -29,7 +31,7 @@ export class DatabaseConnection {
       fileMustExist: false,
       timeout: 5000,
       verbose: process.env.NODE_ENV === 'development'
-        ? (message: unknown) => { if (typeof message === 'string') logger.debug(message); }
+        ? (message: unknown) => { if (typeof message === 'string') this.logger.debug(message); }
         : undefined
     });
 
@@ -38,21 +40,21 @@ export class DatabaseConnection {
         fs.chmodSync(this.dbPath, 0o600);
       }
     } catch (error) {
-      logger.warn(`Failed to set file permissions on database: ${error}`);
+      this.logger.warn(`Failed to set file permissions on database: ${error}`);
     }
 
     this.db.pragma('journal_mode = WAL');
     this.db.pragma('busy_timeout = 5000');
 
-    this.migrationRunner = new MigrationRunner(this.db, migrationsPath);
+    this.migrationRunner = new MigrationRunner(this.db, migrationsPath, this.logger);
   }
 
   async initialize(): Promise<void> {
     try {
       await this.migrationRunner.runPendingMigrations();
-      logger.info(`Database initialized at ${this.dbPath}`);
+      this.logger.info(`Database initialized at ${this.dbPath}`);
     } catch (error) {
-      logger.error('Failed to initialize database', error);
+      this.logger.error('Failed to initialize database', error);
       throw error;
     }
   }
@@ -71,7 +73,7 @@ export class DatabaseConnection {
 
   close(): void {
     this.db.close();
-    logger.info('Database connection closed');
+    this.logger.info('Database connection closed');
   }
 
   raw(sql: string, params: any[] = []): any {

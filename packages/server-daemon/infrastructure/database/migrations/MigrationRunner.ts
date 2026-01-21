@@ -4,14 +4,14 @@ import path from 'path';
 import { Migration } from './Migration';
 import winston from 'winston';
 
-const logger = winston.createLogger({
+const minimalLogger = winston.createLogger({
   level: 'info',
   format: winston.format.json(),
   transports: [new winston.transports.Console()]
 });
 
 export class MigrationRunner {
-  constructor(private db: Database.Database, private migrationsPath: string) {}
+  constructor(private db: Database.Database, private migrationsPath: string, private logger: winston.Logger = minimalLogger) {}
 
   private ensureMigrationsTable(): void {
     this.db.exec(`
@@ -53,7 +53,7 @@ export class MigrationRunner {
         continue;
       }
 
-      logger.info(`Running migration: ${migration.version}`);
+      this.logger.info(`Running migration: ${migration.version}`);
 
       const runMigration = this.db.transaction(() => {
         migration.up(this.db);
@@ -62,10 +62,10 @@ export class MigrationRunner {
 
       runMigration();
 
-      logger.info(`Migration completed: ${migration.version}`);
+      this.logger.info(`Migration completed: ${migration.version}`);
     }
 
-    logger.info(`All migrations up to date`);
+    this.logger.info(`All migrations up to date`);
   }
 
   async rollbackTo(targetVersion: string): Promise<void> {
@@ -80,12 +80,12 @@ export class MigrationRunner {
       }
 
       if (migration.down) {
-        logger.info(`Rolling back migration: ${migration.version}`);
+        this.logger.info(`Rolling back migration: ${migration.version}`);
         migration.down(this.db);
         this.db.prepare('DELETE FROM _migrations WHERE version = ?').run(migration.version);
-        logger.info(`Rollback completed: ${migration.version}`);
+        this.logger.info(`Rollback completed: ${migration.version}`);
       } else {
-        logger.warn(`Cannot rollback migration ${migration.version}: no down() method`);
+        this.logger.warn(`Cannot rollback migration ${migration.version}: no down() method`);
       }
     }
   }

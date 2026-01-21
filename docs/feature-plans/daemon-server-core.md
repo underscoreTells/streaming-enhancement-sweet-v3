@@ -110,7 +110,7 @@ packages/server-daemon/
 ## Implementation Phases
 
 ### Summary
-**Status**: In Progress
+**Status**: In Progress (2 of 11 phases complete)
 
 This feature creates the daemon server infrastructure needed to run the streaming enhancement service as a proper daemon process with initialization orchestration, health checks, and graceful shutdown.
 
@@ -177,32 +177,45 @@ This feature creates the daemon server infrastructure needed to run the streamin
 
 ### Phase 2: Logger Factory
 **Location**: `packages/server-daemon/infrastructure/config/LoggerFactory.ts`
-**Status**: In Progress - **Phase Plan**: @docs/phase-plans/phase-2-logger-factory.md
+**Status**: ✅ Complete
 
-- [ ] Create `LoggerFactory` class:
-  - `createLogger(config: LoggingConfig): winston.Logger`
+- [x] Create `LoggerFactory` class:
+  - `createLogger(config: LoggingConfig, context?: string): winston.Logger`
   - Console transport (using winston console format, no emojis)
   - Rotating file transport (winston-daily-rotate-file)
   - Same log level for both transports
 
-- [ ] Log format:
-  - Use winston's default format (no emojis)
-  - Timestamp: ISO 8601
+- [x] Log format:
+  - Human-readable: `[timestamp] [level] message metadata`
+  - Timestamp: ISO 8601 with milliseconds and UTC timezone (e.g., `2026-01-20T20:44:57.123Z`)
   - Level: error, warn, info, debug
+  - Service name: SES (Streaming Enhancement Sweet)
   - Error stack traces for error level
 
-- [ ] File rotation:
+- [x] File rotation:
   - Daily rotation (datePattern: 'YYYY-MM-DD')
   - Keep last `maxFiles` days (default 7)
   - Max file size per day: `maxSize` (default 20m)
-  - File naming: `{serviceName}-YYYY-MM-DD.log`
+  - File naming: `SES-YYYY-MM-DD.log`
+  - Symlink: `SES-current.log` → latest daily log
+  - Fallback chain: Configured directory → Install directory → Working directory → Console-only
 
-- [ ] Write unit tests:
+- [x] Write unit tests:
   - Test logger creation with different configs
   - Test log level filtering
   - Test file rotation configuration
+  - Test ISO 8601 format
+  - Test fallback chain
+  - Test directory creation
 
-**Output**: ✅ Logger factory with console + rotating file support
+- [x] Update hardcoded loggers across codebase:
+  - Database components (Database.ts, OAuthCredentialsRepository.ts, MigrationRunner.ts)
+  - Keystore components (KeystoreManager.ts, 3 strategy files)
+  - OAuth/Platform components (OAuthFlow.ts, TwitchOAuth.ts, KickOAuth.ts, YouTubeOAuth.ts)
+  - Orchestration layer (OAuthController.ts, src/index.ts)
+  - Config.ts keeps minimal console logger for config loading
+
+**Output**: ✅ Logger factory with console + rotating file support, all hardcoded loggers updated
 **Dependencies**: winston, winston-daily-rotate-file
 
 ---
@@ -524,7 +537,7 @@ This feature creates the daemon server infrastructure needed to run the streamin
 
 ## Progress
 - ✅ Phase 1: Configuration & Schema Updates - Complete
-- ⏸️ Phase 2: Logger Factory - Not started
+- ✅ Phase 2: Logger Factory - Complete
 - ⏸️ Phase 3: PID Manager - Not started
 - ⏸️ Phase 4: Health Check Service - Not started
 - ⏸️ Phase 5: Shutdown Handler - Not started

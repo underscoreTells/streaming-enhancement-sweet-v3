@@ -46,7 +46,7 @@ describe('OAuthController', () => {
     vi.mocked(createYouTubeOAuth).mockReturnValue(mockYouTubeOAuth as any);
 
     const config = loadConfig();
-    db = new DatabaseConnection(':memory:', '');
+    db = new DatabaseConnection(':memory:', '', logger);
     const nativeDb = db.getNativeDb();
     nativeDb.exec(`
       CREATE TABLE oauth_credentials (
@@ -57,8 +57,8 @@ describe('OAuthController', () => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    keystore = new KeystoreManager(undefined);
-    credentialRepo = new OAuthCredentialsRepository(db);
+    keystore = new KeystoreManager(undefined, logger);
+    credentialRepo = new OAuthCredentialsRepository(db, logger);
     oauthConfig = config.oauth;
 
     const controller = new OAuthController(logger, keystore, credentialRepo, oauthConfig);
