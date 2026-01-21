@@ -66,6 +66,27 @@ This document describes the methodology for working with AI agents on this proje
 3. Human reviews and approves
 4. Agent archives file, updates PLAN.md with next module
 
+## Phase Planning
+
+### Phase Plan Files
+- **Location**: `docs/phase-plans/[phase-name].md`
+- **Purpose**: Detailed task breakdown for individual phases within a feature
+- **Content**:
+  - Phase-specific architecture decisions
+  - Detailed task list with checkboxes
+  - Implementation order
+  - Files to create/modify
+  - Dependencies between tasks
+- **Lifecycle**: Created before phase implementation, deleted when phase complete
+- **Commit**: Commit deletion along with phase implementation
+
+### Feature Phase Tracking
+- Each feature plan should include "Current Phase" section with:
+  - Link to active phase plan file: `@docs/phase-plans/[phase-name].md`
+  - Phase status (pending, in_progress, completed)
+- Update phase status as work progresses
+- Remove phase link after completion
+
 ## File References
 
 - `@AGENTS.md` - Project context, tech stack, conventions

@@ -177,7 +177,7 @@ This feature creates the daemon server infrastructure needed to run the streamin
 
 ### Phase 2: Logger Factory
 **Location**: `packages/server-daemon/infrastructure/config/LoggerFactory.ts`
-**Status**: ⏸️ Not started
+**Status**: In Progress - **Phase Plan**: @docs/phase-plans/phase-2-logger-factory.md
 
 - [ ] Create `LoggerFactory` class:
   - `createLogger(config: LoggingConfig): winston.Logger`
