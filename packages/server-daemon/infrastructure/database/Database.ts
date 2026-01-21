@@ -21,7 +21,6 @@ export class DatabaseConnection {
   constructor(dbPath: string, migrationsPath: string, logger?: winston.Logger) {
     this.logger = logger || minimalLogger;
     this.dbPath = dbPath;
-    this.dbPath = dbPath;
 
     const dbDir = path.dirname(dbPath);
     if (!fs.existsSync(dbDir)) {

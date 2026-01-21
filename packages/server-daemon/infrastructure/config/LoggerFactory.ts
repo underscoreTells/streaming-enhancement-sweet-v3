@@ -83,7 +83,7 @@ export class LoggerFactory {
   private static createFormat(): winston.Logform.Format {
     return winston.format.combine(
       winston.format.timestamp({
-        format: 'isoDateTime',
+        format: () => new Date().toISOString(),
       }),
       winston.format.errors({ stack: true }),
       winston.format.printf(({ level, message, timestamp, context, ...metadata }) => {

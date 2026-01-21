@@ -7,16 +7,43 @@ import { LoggerFactory } from '../../../infrastructure/config/LoggerFactory';
 
 describe('LoggerFactory', () => {
   let tempDir: string;
+  let createdLoggers: winston.Logger[] = [];
 
   beforeEach(() => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'logger-test-'));
+    createdLoggers = [];
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    // Close all logger transports to prevent ENOENT errors from async writes
+    for (const logger of createdLoggers) {
+      await new Promise<void>((resolve) => {
+        let remaining = logger.transports.length;
+        if (remaining === 0) {
+          resolve();
+          return;
+        }
+        for (const transport of logger.transports) {
+          transport.on('finish', () => {
+            remaining--;
+            if (remaining === 0) resolve();
+          });
+          transport.end();
+        }
+      });
+    }
+
     if (fs.existsSync(tempDir)) {
       fs.rmSync(tempDir, { recursive: true, force: true });
     }
   });
+
+  // Helper to track created loggers for cleanup
+  const createAndTrackLogger = (config: Parameters<typeof LoggerFactory.create>[0], context?: string): winston.Logger => {
+    const logger = LoggerFactory.create(config, context);
+    createdLoggers.push(logger);
+    return logger;
+  };
 
   it('should create a logger with full config (console + file)', () => {
     const config = {
@@ -26,7 +53,7 @@ describe('LoggerFactory', () => {
       maxSize: '20m' as const,
     };
 
-    const logger = LoggerFactory.create(config, 'test-context');
+    const logger = createAndTrackLogger(config, 'test-context');
 
     expect(logger).toBeInstanceOf(winston.Logger);
     expect(logger.level).toBe('info');
@@ -39,7 +66,7 @@ describe('LoggerFactory', () => {
       maxSize: '20m' as const,
     };
 
-    const logger = LoggerFactory.create(config);
+    const logger = createAndTrackLogger(config);
 
     expect(logger).toBeInstanceOf(winston.Logger);
     expect(logger.level).toBe('warn');
@@ -53,7 +80,7 @@ describe('LoggerFactory', () => {
       maxSize: '20m' as const,
     };
 
-    const logger = LoggerFactory.create(config);
+    const logger = createAndTrackLogger(config);
 
     expect(logger.level).toBe('error');
   });
@@ -66,7 +93,7 @@ describe('LoggerFactory', () => {
       maxSize: '20m' as const,
     };
 
-    const logger = LoggerFactory.create(config);
+    const logger = createAndTrackLogger(config);
 
     const testMessage = 'Test message';
 
@@ -95,7 +122,7 @@ describe('LoggerFactory', () => {
       maxSize: '20m' as const,
     };
 
-    const logger = LoggerFactory.create(config);
+    const logger = createAndTrackLogger(config);
 
     const error = new Error('Test error');
     logger.debug('Error occurred', { error });
@@ -116,7 +143,7 @@ describe('LoggerFactory', () => {
       maxSize: '20m' as const,
     };
 
-    const logger = LoggerFactory.create(config);
+    const logger = createAndTrackLogger(config);
 
     expect(logger).toBeInstanceOf(winston.Logger);
     expect(fs.existsSync(newDir)).toBe(true);
@@ -132,7 +159,7 @@ describe('LoggerFactory', () => {
       maxSize: '20m' as const,
     };
 
-    const logger = LoggerFactory.create(config);
+    const logger = createAndTrackLogger(config);
 
     expect(logger).toBeInstanceOf(winston.Logger);
     expect(logger.transports.length).toBeGreaterThan(0);
@@ -147,7 +174,7 @@ describe('LoggerFactory', () => {
     };
 
     const context = 'test-context';
-    const logger = LoggerFactory.create(config, context);
+    const logger = createAndTrackLogger(config, context);
 
     expect(logger).toBeInstanceOf(winston.Logger);
   });
