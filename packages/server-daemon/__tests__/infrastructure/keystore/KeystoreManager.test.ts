@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { KeystoreManager } from '../../../infrastructure/keystore/KeystoreManager';
 import { KeystoreStrategy } from '../../../infrastructure/keystore/strategies/KeystoreStrategy';
 import { LoggerFactory } from '../../../infrastructure/config';
@@ -21,6 +21,23 @@ class MockStrategy implements KeystoreStrategy {
 const logger = LoggerFactory.create({ level: 'error', maxFiles: 1, maxSize: '1m' }, 'test');
 
 describe('KeystoreManager', () => {
+  afterEach(async () => {
+    await new Promise<void>((resolve) => {
+      let remaining = logger.transports.length;
+      if (remaining === 0) {
+        resolve();
+        return;
+      }
+      for (const transport of logger.transports) {
+        transport.on('finish', () => {
+          remaining--;
+          if (remaining === 0) resolve();
+        });
+        transport.end();
+      }
+    });
+  });
+
   it('should use custom strategy if provided', () => {
     const mockStrategy = new MockStrategy(logger);
     const manager = new KeystoreManager(mockStrategy, logger);

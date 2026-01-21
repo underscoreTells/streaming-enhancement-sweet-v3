@@ -185,12 +185,12 @@ This feature creates the daemon server infrastructure needed to run the streamin
   - Rotating file transport (winston-daily-rotate-file)
   - Same log level for both transports
 
- - [x] Log format:
-   - Human-readable: `[timestamp] [level] message metadata`
-   - Timestamp: ISO 8601 with milliseconds and UTC timezone (e.g., `2026-01-20T20:44:57.123Z`)
-   - Level: error, warn, info, debug
-   - Service name: SES (Streaming Enhancement Sweet)
-   - Error stack traces for error level
+- [x] Log format:
+  - Human-readable: `[timestamp] [level] message metadata`
+  - Timestamp: ISO 8601 with milliseconds and UTC timezone (e.g., `2026-01-20T20:44:57.123Z`)
+  - Level: error, warn, info, debug
+  - Service name: SES (Streaming Enhancement Sweet)
+  - Error stack traces for error level
 
 - [x] File rotation:
   - Daily rotation (datePattern: 'YYYY-MM-DD')

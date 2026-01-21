@@ -89,7 +89,15 @@ export class LoggerFactory {
       winston.format.printf(({ level, message, timestamp, context, ...metadata }) => {
         let metaStr = '';
         if (Object.keys(metadata).length > 0) {
-          metaStr = JSON.stringify(metadata);
+          metaStr = JSON.stringify(metadata, (key, value) => {
+            if (value instanceof Error) {
+              return {
+                message: value.message,
+                stack: value.stack,
+              };
+            }
+            return value;
+          });
         }
 
         const contextStr = context ? `[${context}] ` : '';

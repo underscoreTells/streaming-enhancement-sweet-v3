@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import winston from 'winston';
 import fs from 'fs';
 import path from 'path';
@@ -114,7 +114,7 @@ describe('LoggerFactory', () => {
     }
   });
 
-  it('should include error stack traces at debug level', () => {
+  it('should include error stack traces at debug level', async () => {
     const config = {
       level: 'debug' as const,
       directory: tempDir,
@@ -127,8 +127,31 @@ describe('LoggerFactory', () => {
     const error = new Error('Test error');
     logger.debug('Error occurred', { error });
 
-    const transports = logger.transports;
-    expect(transports.length).toBeGreaterThan(0);
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    await new Promise<void>((resolve) => {
+      let remaining = logger.transports.length;
+      if (remaining === 0) {
+        resolve();
+        return;
+      }
+      for (const transport of logger.transports) {
+        transport.on('finish', () => {
+          remaining--;
+          if (remaining === 0) resolve();
+        });
+        transport.end();
+      }
+    });
+
+    const logFiles = fs.readdirSync(tempDir).filter((f) => f.startsWith('SES-') && f.endsWith('.log'));
+    expect(logFiles.length).toBeGreaterThan(0);
+
+    const logFilePath = path.join(tempDir, logFiles[0]);
+    const logContent = fs.readFileSync(logFilePath, 'utf-8');
+
+    expect(logContent).toContain('Error: Test error');
+    expect(logContent).toMatch(/Error: Test error[\s\S]*at /);
   });
 
   it('should create log directory if missing', () => {
@@ -149,7 +172,7 @@ describe('LoggerFactory', () => {
     expect(fs.existsSync(newDir)).toBe(true);
   });
 
-  it('should fall back through directory chain when configured fails', () => {
+  it('should fall back through directory chain when configured fails', async () => {
     const invalidDir = path.join(tempDir, 'invalid-path-that-does-not-exist');
 
     const config = {
@@ -159,10 +182,21 @@ describe('LoggerFactory', () => {
       maxSize: '20m' as const,
     };
 
+    const mkdirSpy = vi.spyOn(fs, 'mkdirSync').mockImplementation((dir, options) => {
+      if (String(dir).includes('invalid-path-that-does-not-exist')) {
+        const error = new Error('EACCES: permission denied');
+        (error as any).code = 'EACCES';
+        throw error;
+      }
+      return fs.mkdirSync(dir, options);
+    });
+
     const logger = createAndTrackLogger(config);
 
     expect(logger).toBeInstanceOf(winston.Logger);
     expect(logger.transports.length).toBeGreaterThan(0);
+
+    mkdirSpy.mockRestore();
   });
 
   it('should include context in log metadata', () => {
