@@ -10,11 +10,13 @@ export class DaemonServer {
   private logger: Logger;
   private config: AppConfig;
   private port: number;
+  private startTime: number;
 
   constructor(logger: Logger, config: AppConfig) {
     this.logger = logger;
     this.config = config;
     this.port = config.server.port;
+    this.startTime = 0;
     this.app = express();
     this.middleware();
   }
@@ -45,6 +47,7 @@ export class DaemonServer {
       this.server = this.app.listen(
         this.port,
         () => {
+          this.startTime = Date.now();
           this.logger.info(
             `Daemon server listening on port ${this.port}`
           );
@@ -70,5 +73,17 @@ export class DaemonServer {
         resolve();
       }
     });
+  }
+
+  public getStartTime(): number {
+    return this.startTime;
+  }
+
+  public getUptime(): number {
+    return Date.now() - this.startTime;
+  }
+
+  public getPort(): number {
+    return this.port;
   }
 }
