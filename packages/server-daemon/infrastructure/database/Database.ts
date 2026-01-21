@@ -71,6 +71,10 @@ export class DatabaseConnection {
     return this.dbPath;
   }
 
+  isOpen(): boolean {
+    return this.db.open;
+  }
+
   close(): void {
     this.db.close();
     this.logger.info('Database connection closed');
