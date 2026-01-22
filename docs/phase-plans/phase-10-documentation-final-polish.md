@@ -18,12 +18,12 @@ Complete all documentation for the Daemon Server Core feature, including API doc
 ## Architecture Decisions
 
 ### Documentation Structure
-```
+```text
 docs/
 ├── api/
 │   ├── health-check.md              # GET /status endpoint
 │   ├── oauth-endpoints.md          # All OAuth routes (already exists)
-└── daemon-api.md                   # Overview of daemon HTTP API
+│   └── daemon-api.md                   # Overview of daemon HTTP API
 ├── guides/
 │   ├── cli-reference.md            # All CLI commands and flags
 │   ├── configuration.md             # Config options and defaults

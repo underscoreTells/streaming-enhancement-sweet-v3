@@ -52,7 +52,7 @@ The daemon looks for a config file at platform-specific locations:
 
 **Default Database Paths:**
 - Windows: `%LOCALAPPDATA%\streaming-enhancement\database.db`
-- macOS: `~/Library/Application Support/streaming-enhancement/database.db`
+- macOS: `~/.local/share/streaming-enhancement/database.db`
 - Linux: `~/.local/share/streaming-enhancement/database.db`
 
 ### Logging Configuration

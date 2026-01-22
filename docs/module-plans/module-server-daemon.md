@@ -57,12 +57,12 @@ Each platform provides a unified facade that handles API calls, OAuth, WebSocket
 - [x] Feature: Daemon Server Core (Complete ✅)
    - **Implementation**: @docs/archive/feature-plans/daemon-server-core.md
    - **Status**: All 10 phases implemented. Core daemon infrastructure complete.
-   - **Components**:
-     - CLI: StartCommand with proper exit codes
-     - Orchestrator: DaemonApp for server lifecycle
-     - Health Check: Component-level health monitoring
-     - Shutdown Handler: Graceful SIGTERM/SIGINT handling
-    - **Tests**: 313 total unit tests passing (including 252 existing OAuth tests)
+    - **Components**:
+      - CLI: StartCommand with proper exit codes
+      - Orchestrator: DaemonApp for server lifecycle
+      - Health Check: Component-level health monitoring
+      - Shutdown Handler: Graceful SIGTERM/SIGINT handling
+      - **Tests**: 313 total unit tests passing (including 252 existing OAuth tests)
    - **Documentation**: Complete API docs, CLI reference, configuration guide, troubleshooting guide
    - **Completion Date**: 2026-01-22
 - [x] Feature: SQLite persistence layer (schema, migrations, operations)

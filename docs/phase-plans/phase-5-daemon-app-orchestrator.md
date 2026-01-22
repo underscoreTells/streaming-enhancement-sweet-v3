@@ -62,7 +62,7 @@ class DaemonApp {
 
 ### Health Check Registration (addHealthCheckRoute())
 1. Create HealthCheck instance
-2. Register GET /status route (localhost only)
+2. Register GET /status route on server (can be called before or after start())
 3. Return (enables calling before or after start())
 
 ## Dependencies Flow
@@ -105,13 +105,13 @@ CLI (StartCommand)
 - Note: Do NOT close database or call process.exit (ShutdownHandler handles this)
 
 **Task 4**: Implement `addHealthCheckRoute()` method
-- Check if server exists, throw if not started
 - Create HealthCheck instance (server, database, keystore, logger)
 - Register GET /status route on server (localhost only)
   - Check req.ip is '127.0.0.1' or '::1' (IPv6 localhost)
   - Return 403 if not localhost
   - Return `healthCheck.getStatus()` JSON if localhost
 - Set `this.healthCheck`
+- Note: Can be called before or after start(), will register route safely
 
 **Task 5**: Add helper methods
 - `getServer()`: Return `this.server` (for testing)
