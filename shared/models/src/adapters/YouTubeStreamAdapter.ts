@@ -22,11 +22,10 @@ export class YouTubeStreamAdapter implements StreamAdapter {
   }
 
   async getCategory(): Promise<string> {
+    if (!this.data.categoryId) {
+      return 'No Category';
+    }
     try {
-      const categoryId = parseInt(this.data.categoryId, 10);
-      if (categoryId === 0 || !this.data.categoryId) {
-        return 'No Category';
-      }
       return await this.categoryCache.getCategory(this.data.categoryId, 'youtube');
     } catch {
       return 'No Category';

@@ -35,10 +35,11 @@ export interface YouTubeUser {
 export type PlatformUser = TwitchUser | KickUser | YouTubeUser;
 
 import type { UserAdapter } from './adapters/UserAdapter';
+import type { Platform } from './Platform';
 
 export interface User {
   commonId: string;
   userId: string;
   username: string;
-  platforms: Map<string, UserAdapter>;
+  platforms: Map<Platform, UserAdapter>;
 }

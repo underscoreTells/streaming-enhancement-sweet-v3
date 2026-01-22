@@ -1,6 +1,7 @@
 export type { StreamAdapter } from './StreamAdapter';
 export type { UserAdapter } from './UserAdapter';
-export type { ChatMessageAdapter, Badge, BadgeType, Emote, EmoteType, ReplyParent, SuperChatDetails } from './ChatMessageAdapter';
+export { BadgeType, EmoteType } from './ChatMessageAdapter';
+export type { ChatMessageAdapter, Badge, Emote, ReplyParent, SuperChatDetails } from './ChatMessageAdapter';
 export type { EventAdapter, EventType, EventData } from './EventAdapter';
 
 export { TwitchStreamAdapter } from './TwitchStreamAdapter';

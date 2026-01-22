@@ -900,6 +900,10 @@ CREATE INDEX idx_stream_stats_timestamp ON stream_stats(timestamp DESC);
 | 13 | Documentation | 4-6 |
 | **Total** | | **85-105 hours** |
 
+### Phase 7: Translator Layer - Important Notes
+
+**Badge and Emote Normalization**: The platform-specific chat message types (TwitchChatMessage, KickChatMessage, YouTubeChatMessage) use `any[]` for badges and emotes. This is intentional - they represent raw platform-specific data. Phase 7 translator implementations must handle the conversion from these raw `any[]` arrays to the normalized `Badge[]` and `Emote[]` types defined in ChatMessageAdapter.
+
 ---
 
 ## Success Criteria

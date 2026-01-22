@@ -37,11 +37,10 @@ interface KickUserApiResponse {
 
 export class KickConverter {
   static convertStream(data: unknown): KickStream {
-    const stream = data as KickStreamApiResponse;
-
-    if (!stream) {
-      throw new Error('Invalid Kick stream API response: empty response');
+    if (!data || typeof data !== 'object') {
+      throw new Error('Invalid Kick stream API response: not an object');
     }
+    const stream = data as KickStreamApiResponse;
 
     if (!stream.id) {
       throw new Error('Invalid Kick stream API response: missing stream id');

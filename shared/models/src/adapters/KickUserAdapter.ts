@@ -39,7 +39,7 @@ export class KickUserAdapter implements UserAdapter {
 
   getFeature(feature: string): FeatureData | null {
     if (feature === 'isVerified') {
-      return { isVerified: this.data.isVerified };
+      return { current: this.data.isVerified ? 1 : 0 };
     }
     return null;
   }
