@@ -382,7 +382,7 @@ export enum TwitchEventType {
   Subscribe = 'channel.subscribe',
   Resubscribe = 'channel.subscription.message',
   SubscriptionGift = 'channel.subscription.gift',
-  Cheer = 'channel.cheer',
+  Cheer = 'channel.bits.use',
   Raid = 'channel.raid',
   PointRedemption = 'channel.channel_points_custom_reward_redemption.add',
 }
@@ -414,7 +414,7 @@ export enum KickEventType {
 export enum YouTubeEventType {
   SuperChat = 'superChatEvent',
   SuperSticker = 'superStickerEvent',
-  Membership = 'membershipGifting',
+  Membership = 'membershipGiftingEvent',
 }
 ```
 
@@ -1178,7 +1178,7 @@ export class TwitchEventAdapter implements EventAdapter {
       'channel.subscribe': 'subscription',
       'channel.subscription.message': 'resubscribe',
       'channel.subscription.gift': 'subscription_gift',
-      'channel.cheer': 'cheer',
+      'channel.bits.use': 'cheer',
       'channel.raid': 'raid',
       'channel.channel_points_custom_reward_redemption.add': 'point_redemption',
     };

@@ -60,7 +60,7 @@ This document provides extremely comprehensive research on all Twitch WebSocket 
 - **Current Status:** Use EventSub WebSocket instead
 
 ### Migration Resources:
-- Official Migration Guide: https://dev.twitch.tv/docs/pubsub/
+- [Official Migration Guide](https://dev.twitch.tv/docs/pubsub/)
 - Topic Equivalence Table: See [PubSub to EventSub Migration Guide](#pubsub-to-eventsub-migration-guide)
 
 **Why included in this document?** For historical reference and to understand what PubSub provided when migrating to EventSub.
@@ -70,7 +70,7 @@ This document provides extremely comprehensive research on all Twitch WebSocket 
 ## PubSub Connection Protocol
 
 ### WebSocket Endpoint
-```
+```text
 wss://pubsub-edge.twitch.tv
 ```
 
@@ -1520,4 +1520,5 @@ This document provides comprehensive coverage of:
 
 ---
 
-**END OF DOCUMENT**
+**## END OF DOCUMENT
+**

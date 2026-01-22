@@ -21,7 +21,7 @@ Local analytics & integration tool for livestreamers (Twitch, Kick, YouTube). Pr
 - Separated static vs live data (Stream vs StreamStats)
 - Unified Stream & User wrappers for cross-platform scenarios
 - OBS-driven stream lifecycle via WebSocket integration
- - Stream matching for late data reconstruction (+/- 10 min window)
+- Stream matching for late data reconstruction (+/- 10 min window)
 
 ### Overview
 Create unified, platform-agnostic data types for streaming data across Twitch (EventSub + IRC WebSocket), Kick (REST + Webhooks), and YouTube (REST + Server-Stream chat). This is a foundational feature for all platform strategies.

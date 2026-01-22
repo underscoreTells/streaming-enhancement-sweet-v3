@@ -493,14 +493,19 @@ async function connectToOBS(url: string = 'ws://localhost:4455', password?: stri
 async function generateAuthString(password: string, salt: string, challenge: string): Promise<string> {
   const crypto = await import('crypto');
 
-  // password + salt
-  const secret = crypto.createHash('sha256')
+  // SHA256(password + salt) and base64 encode
+  const secretHash = crypto.createHash('sha256')
     .update(password + salt)
     .digest();
 
-  // base64_secret + challenge
+  const base64Secret = secretHash.toString('base64');
+
+  // Concatenate base64_secret with challenge string directly
+  const authInput = base64Secret + challenge;
+
+  // SHA256(base64_secret + challenge) and base64 encode
   const authResponse = crypto.createHash('sha256')
-    .update(Buffer.concat([secret, Buffer.from(challenge, 'base64')]))
+    .update(authInput)
     .digest();
 
   return authResponse.toString('base64');

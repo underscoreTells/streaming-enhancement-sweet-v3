@@ -9,10 +9,10 @@ This document provides extremely comprehensive research on the data structures r
 ## TABLE OF CONTENTS
 
 1. [Twitch API](#twitch-api)
-   - [Stream/Channel Data](#twitch-streamchannel-data)
-   - [User/Channel Profile Data](#twitch-userchannel-profile-data)
-   - [Chat Message Data](#twitch-chat-message-data)
-   - [Event Types](#twitch-event-types)
+    - [Stream/Channel Data](#twitch-streamchannel-data)
+    - [User/Channel Profile Data](#twitch-userchannel-profile-data)
+    - [Chat Message Data](#twitch-chat-message-data)
+    - [Event Types](#twitch-event-types-eventsub)
 2. [Kick API](#kick-api)
     - [Stream/Channel Data](#kick-streamchannel-data)
     - [Chat Message Data](#kick-chat-message-data)
@@ -316,7 +316,7 @@ Example: `25:0-4,12-16/1902:6-10`
 - Emote ID 1902 appears at position 6-10
 
 **Full IRC Message Format:**
-```
+```text
 @badge-info=;badges=broadcaster/1;color=#0000FF;display-name=Ninja;emotes=25:0-4;id=abc123;mod=0;room-id=123456;subscriber=0;tmi-sent-ts=1642696567751;turbo=0;user-id=123456;user-type= :ninja!ninja@ninja.tmi.twitch.tv PRIVMSG #channel :Kappa Keepo Kappa
 ```
 
@@ -1370,7 +1370,7 @@ YouTube Live Chat events are delivered via `liveChat.messages.list` polling, not
 
 | Field | Twitch | Kick | YouTube | Notes |
 |-------|--------|------|---------|-------|
-| **Stream Metadata** |
+| **Stream Metadata** | | | | |
 | streamId / id | ✓ (id) | ✓ (id) | ✓ (id) | Unique stream identifier |
 | channelId / broadcaster_id | ✓ (broadcaster_id) | ✓ (channel_id) | ✓ (channelId) | Channel where stream exists |
 | userId / user_id | ✓ (user_id) | ✓ (user_id) | ✓ (via channel info) | Streamer's user ID |
@@ -1387,7 +1387,7 @@ YouTube Live Chat events are delivered via `liveChat.messages.list` polling, not
 | tags | ✓ (tags) | ✓ (tags) | Not available | Stream tags |
 | isMature | ✓ (is_mature) | Not available | Not available | Mature content flag |
 | streamDelay | ✓ (delay) | Not available | Not available | Stream delay (seconds) |
-| **User Metadata** |
+| **User Metadata** | | | | |
 | userId / id | ✓ (id) | ✓ (id) | ✓ (id) | User ID |
 | username / login | ✓ (login) | ✓ (username) | Not direct (via snippet.customUrl) | Username |
 | displayName / display_name | ✓ (display_name) | ✓ (display_name) | ✓ (snippet.title) | Display name |
@@ -1400,7 +1400,7 @@ YouTube Live Chat events are delivered via `liveChat.messages.list` polling, not
 | accountType | ✓ (type) | ✓ (is_verified) | Not available | Account type/status |
 | broadcasterType | ✓ (broadcaster_type) | Not available | Not available | Partner/affiliate status |
 | createdAt | ✓ (created_at) | ✓ (created_at) | ✓ (snippet.publishedAt) | Account creation date |
-| **Chat Message** |
+| **Chat Message** | | | | |
 | messageId / id | ✓ (id tag) | ✓ (id) | ✓ (id) | Unique message ID |
 | userId / user_id | ✓ (user_id tag) | ✓ (sender.id) | ✓ (authorDetails.channelId) | Sender user ID |
 | username / login | ✓ (from IRC source) | ✓ (sender.username) | Not direct | Sender username |
