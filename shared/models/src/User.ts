@@ -33,3 +33,12 @@ export interface YouTubeUser {
 }
 
 export type PlatformUser = TwitchUser | KickUser | YouTubeUser;
+
+import type { UserAdapter } from './adapters/UserAdapter';
+
+export interface User {
+  commonId: string;
+  userId: string;
+  username: string;
+  platforms: Map<string, UserAdapter>;
+}

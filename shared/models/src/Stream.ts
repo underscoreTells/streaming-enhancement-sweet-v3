@@ -37,3 +37,12 @@ export interface YouTubeStream {
 }
 
 export type PlatformStream = TwitchStream | KickStream | YouTubeStream;
+
+import type { StreamAdapter } from './adapters/StreamAdapter';
+
+export interface Stream {
+  commonId: string;
+  obsStartTime: Date;
+  obsEndTime: Date | null;
+  streams: Map<string, StreamAdapter>;
+}
