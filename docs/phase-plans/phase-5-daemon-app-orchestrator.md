@@ -66,7 +66,7 @@ class DaemonApp {
 3. Return (enables calling before or after start())
 
 ## Dependencies Flow
-```
+```text
 CLI (StartCommand)
     └─> DaemonApp
         ├─> DaemonServer

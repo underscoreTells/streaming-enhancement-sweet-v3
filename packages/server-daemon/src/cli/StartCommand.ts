@@ -48,10 +48,24 @@ export class StartCommand {
       const config = loadConfig(this.configPath);
 
       if (this.port) {
-        config.server.port = parseInt(this.port, 10);
+        const parsedPort = parseInt(this.port, 10);
+        if (!Number.isInteger(parsedPort) || parsedPort < 1 || parsedPort > 65535) {
+          throw new DaemonError(
+            `Port must be an integer between 1 and 65535, received: ${this.port}`,
+            DaemonErrorCode.CONFIG_ERROR
+          );
+        }
+        config.server.port = parsedPort;
       }
 
       if (this.logLevel) {
+        const validLevels = ['error', 'warn', 'info', 'debug'] as const;
+        if (!validLevels.includes(this.logLevel as any)) {
+          throw new DaemonError(
+            `Log level must be one of: ${validLevels.join(', ')}, received: ${this.logLevel}`,
+            DaemonErrorCode.CONFIG_ERROR
+          );
+        }
         config.logging.level = this.logLevel as 'error' | 'warn' | 'info' | 'debug';
       }
 
@@ -129,7 +143,11 @@ export class StartCommand {
       .option('--config <path>', 'Path to config file')
       .option('--log-level <level>', 'Log level (error, warn, info, debug)', 'info')
       .action(async (options) => {
-        const startCommand = new StartCommand(options);
+        const startCommand = new StartCommand({
+          configPath: options.config,
+          port: options.port,
+          logLevel: options.logLevel
+        });
         await startCommand.execute();
       });
 

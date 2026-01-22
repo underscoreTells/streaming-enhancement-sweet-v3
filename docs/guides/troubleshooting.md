@@ -6,7 +6,7 @@ Common issues and solutions for the streaming daemon.
 
 ### Symptoms
 
-```
+```text
 Error: listen EADDRINUSE: address already in use :::3000
 ```
 
@@ -52,7 +52,7 @@ streaming-daemon start --port 4000
 
 ### Symptoms
 
-```
+```text
 Error: Database is locked
 Error: SQLITE_BUSY: database is locked
 ```
@@ -94,13 +94,13 @@ rm ~/.local/share/streaming-enhancement/database.db-shm
 
 ### Symptoms
 
-```
+```text
 WARNING: Keystore unavailable, using encrypted-file fallback
 ```
 
 ### Solutions
 
-**Linux: Install libsecret**
+#### Linux: Install libsecret
 
 ```bash
 # Ubuntu/Debian
@@ -404,7 +404,7 @@ npm --version
 ### Report Issues
 
 Report issues at:
-- GitHub Issues: https://github.com/your-org/streaming-enhancement-sweet/issues
+- GitHub Issues: [https://github.com/your-org/streaming-enhancement-sweet/issues](https://github.com/your-org/streaming-enhancement-sweet/issues)
 
 Include:
 - Daemon version

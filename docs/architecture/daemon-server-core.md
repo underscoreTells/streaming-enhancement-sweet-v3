@@ -6,21 +6,21 @@ The Daemon Server Core is the central orchestrator for the streaming enhancement
 
 ## Component Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                        CLI Layer                          │
 │  (streaming-daemon start --port 3000)                  │
 └─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼
+                       │
+                       ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                   StartCommand                            │
 │  - Config loading and CLI parsing                        │
 │  - Component initialization                              │
 │  - Error handling and exit codes                          │
 └─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼
+                       │
+                       ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                   DaemonApp                               │
 │  - Server orchestration                                 │
@@ -178,7 +178,7 @@ The Daemon Server Core is the central orchestrator for the streaming enhancement
 
 ## Startup Sequence
 
-```
+```text
 1. Config loaded (loadConfig)
 2. CLI overrides applied (port, log-level, config path)
 3. Logger created (LoggerFactory)
@@ -198,7 +198,7 @@ The Daemon Server Core is the central orchestrator for the streaming enhancement
 
 ## Shutdown Sequence
 
-```
+```text
 1. Signal received (SIGTERM or SIGINT)
 2. Double-shutdown check (return if already shutting down)
 3. Log "Received {signal}, shutting down..."
@@ -213,7 +213,7 @@ The Daemon Server Core is the central orchestrator for the streaming enhancement
 
 ### Localhost-Only Access
 
-Default binding: `127.0.0.1` (IPv4) and `::1` (IPv6)
+Default binding: `127.0.0.1` (IPv4). To use IPv6, explicitly set the host to `::1` in the configuration.
 
 **Benefits**:
 - No authentication required (network-level security)
@@ -257,7 +257,7 @@ Access tokens stored in OS-native keystores:
 
 ### Error Propagation
 
-```
+```text
 Config Error (ZodError, file not found)
   └─> StartCommand.handleError()
       └─> Log + Exit Code 1

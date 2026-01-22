@@ -6,7 +6,7 @@ The health check endpoint provides component-level health status for monitoring 
 
 ## Endpoint
 
-```
+```http
 GET /status
 ```
 

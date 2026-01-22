@@ -1,11 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { Server } from 'http';
 import { DaemonServer } from '../../infrastructure/server/DaemonServer';
 import { Logger } from 'winston';
 
 describe('Health Check Integration', () => {
   let mockLogger: Logger;
-  let serverInstance: Server;
+  let serverInstance: DaemonServer | null = null;
 
   beforeEach(() => {
     mockLogger = {
@@ -21,9 +20,10 @@ describe('Health Check Integration', () => {
     });
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     if (serverInstance) {
-      serverInstance.close();
+      await serverInstance.stop();
+      serverInstance = null;
     }
     vi.restoreAllMocks();
     vi.clearAllMocks();
@@ -79,13 +79,12 @@ describe('Health Check Integration', () => {
     } as any;
 
     const server = new DaemonServer(mockLogger, mockConfig);
+    serverInstance = server;
     await server.start();
 
     expect(mockLogger.info).toHaveBeenCalledWith(
       expect.stringContaining('Daemon server listening on 127.0.0.1:')
     );
-
-    await server.stop();
   });
 
   it('should warn when binding to all interfaces', async () => {
@@ -111,12 +110,11 @@ describe('Health Check Integration', () => {
     } as any;
 
     const server = new DaemonServer(mockLogger, mockConfig);
+    serverInstance = server;
     await server.start();
 
     expect(mockLogger.warn).toHaveBeenCalledWith(
       'Server is accessible from any network interface'
     );
-
-    await server.stop();
   });
 });

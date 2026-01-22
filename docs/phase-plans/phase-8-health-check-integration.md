@@ -81,7 +81,7 @@ server.getApp().get(config.server.healthCheckPath, (req, res) => {
 
 **Task 3**: Update logging with host info
 - Update startup log to include host: `Daemon server listening on {host}:{port}`
-- If host is `127.0.0.1`, log warning about remote access
+- If host is `0.0.0.0`, log warning about remote access
 
 ### Phase 2: Health Check Route Implementation (Tasks 4-7)
 

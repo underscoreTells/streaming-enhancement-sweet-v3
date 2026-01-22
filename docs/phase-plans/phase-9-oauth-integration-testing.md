@@ -52,7 +52,7 @@ describe('OAuth Integration Tests', () => {
 
 **Task 1**: Create integration test file
 - File: `packages/server-daemon/__tests__/integration/oauth-integration.test.ts`
-- Set up test framework (Jest)
+- Set up test framework (Vitest)
 - Import dependencies (StartCommand, express, supertest)
 - Set up test database (in-memory SQLite)
 - Set up mock keystore

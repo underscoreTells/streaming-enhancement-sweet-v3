@@ -4,7 +4,7 @@ The daemon server provides an HTTP API for managing OAuth flows, checking health
 
 ## Base URL
 
-```
+```text
 http://localhost:3000
 ```
 
@@ -126,10 +126,12 @@ Currently, there are **no rate limits** on daemon API endpoints. Rate limiting m
 
 ## CORS
 
-The daemon server enables CORS for `http://localhost:3000` by default to support web UI development:
+The daemon server enables CORS for the configured port by default to support web UI development. The origin is dynamically constructed from the `config.server.port` value:
 
 ```typescript
-app.use(cors({ origin: 'http://localhost:3000' }));
+const port = config.server.port || 3000;
+const origin = `http://localhost:${port}`;
+app.use(cors({ origin }));
 ```
 
-For production, configure CORS origin appropriately in your config or modify the daemon source code.
+**Fallback behavior**: If `config.server.port` is not set or invalid, it defaults to `3000` for local development. For production, configure CORS origin appropriately in your config or modify the daemon source code.

@@ -98,7 +98,7 @@ docs/
 - Development installation: Clone and `npm run build`
 - First-time setup: Create config, initialize database
 - Running the daemon: `streaming-daemon start`
-- Verifying installation: `curl http://localhost:3000/status`
+- Verifying installation: `curl [http://localhost:3000/status](http://localhost:3000/status)`
 
 ### Phase 3: Project Documentation Updates (Tasks 7-10)
 
@@ -152,7 +152,7 @@ docs/
 - `./dist/index.js --help` - Shows CLI help
 - `./dist/index.js start --help` - Shows start command options
 - `./dist/index.js start` - Daemon starts successfully
-- `curl http://localhost:3000/status` - Health check works
+- `curl [http://localhost:3000/status](http://localhost:3000/status)` - Health check works
 - `./dist/index.js start --port 4000` - Custom port works
 - `pkill -TERM node` - Graceful shutdown works
 - Check logs: Health check logging, startup logging, shutdown logging

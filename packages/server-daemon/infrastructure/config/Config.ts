@@ -82,8 +82,9 @@ export const loadConfig = (configPath?: string): AppConfig => {
   };
 
   const userOAuthConfig = (userConfig.oauth as any) || {};
+  const redirectHost = mergedServerConfig.host === '0.0.0.0' ? 'localhost' : mergedServerConfig.host;
   const mergedOAuthConfig = {
-    redirect_uri: userOAuthConfig.redirect_uri || `http://localhost:${mergedServerConfig.port}/callback`
+    redirect_uri: userOAuthConfig.redirect_uri || `http://${redirectHost}:${mergedServerConfig.port}/callback`
   };
 
   const mergedConfig = {

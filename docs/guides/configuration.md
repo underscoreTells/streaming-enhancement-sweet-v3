@@ -92,9 +92,9 @@ The daemon looks for a config file at platform-specific locations:
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| redirect_uri | string | "http://localhost:3000/callback" | OAuth callback URL |
+| redirect_uri | string | `http://localhost:3000/callback` | OAuth callback URL |
 
-**Note**: Register this redirect URI in your Twitch/Kick/YouTube developer console.
+**Note**: Register this redirect URI (`http://localhost:3000/callback`) in your Twitch/Kick/YouTube developer console.
 
 ### Keystore Configuration
 
