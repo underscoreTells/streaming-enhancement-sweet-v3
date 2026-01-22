@@ -10,12 +10,14 @@ export class DaemonServer {
   private logger: Logger;
   private config: AppConfig;
   private port: number;
+  private host: string;
   private startTime: number;
 
   constructor(logger: Logger, config: AppConfig) {
     this.logger = logger;
     this.config = config;
     this.port = config.server.port;
+    this.host = config.server.host;
     this.startTime = 0;
     this.app = express();
     this.middleware();
@@ -46,11 +48,15 @@ export class DaemonServer {
     return new Promise((resolve, reject) => {
       this.server = this.app.listen(
         this.port,
+        this.host,
         () => {
           this.startTime = Date.now();
           this.logger.info(
-            `Daemon server listening on port ${this.port}`
+            `Daemon server listening on ${this.host}:${this.port}`
           );
+          if (this.host === '0.0.0.0') {
+            this.logger.warn('Server is accessible from any network interface');
+          }
           resolve();
         }
       );
@@ -85,6 +91,10 @@ export class DaemonServer {
 
   public getPort(): number {
     return this.port;
+  }
+
+  public getHost(): string {
+    return this.host;
   }
 
   public getApp(): Express {

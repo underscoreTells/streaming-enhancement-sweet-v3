@@ -43,6 +43,7 @@ const getDefaultConfig = (): AppConfig => {
   return {
     server: {
       port: defaultPort,
+      host: '127.0.0.1',
       shutdownTimeout: 10000,
       healthCheckPath: '/status',
     },
