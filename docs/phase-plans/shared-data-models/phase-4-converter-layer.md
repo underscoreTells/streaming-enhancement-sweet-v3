@@ -579,7 +579,7 @@ export class TwitchConverter {
 }
 ```
 
-### Example: shared/models/__tests__/converters/TwitchConverter.test.ts
+### Example: `shared/models/__tests__/converters/TwitchConverter.test.ts`
 
 ```typescript
 import { describe, it, expect } from 'vitest';
@@ -1031,7 +1031,7 @@ Once Phase 4 is complete:
 
 ## Status
 
-**Ready for implementation**
+### Ready for implementation
 
 **Estimated Effort:** 8-12 hours
 **Dependencies:** Phase 2 complete, Phase 3 complete

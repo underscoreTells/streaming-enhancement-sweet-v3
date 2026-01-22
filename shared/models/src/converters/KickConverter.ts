@@ -46,18 +46,20 @@ export class KickConverter {
       throw new Error('Invalid Kick stream API response: missing stream id');
     }
 
-    if (!stream.username && !stream.channel_id) {
-      throw new Error('Invalid Kick stream API response: missing channel identifier');
+    if (!stream.username && !(data as any).user?.username) {
+      throw new Error('Invalid Kick stream API response: missing username');
     }
 
     if (!stream.title) {
       throw new Error('Invalid Kick stream API response: missing title');
     }
 
+    const username = stream.username || (data as any).user.username;
+
     return {
       platform: 'kick',
       kickId: stream.id,
-      username: stream.username || (data as any).user?.username || 'unknown',
+      username: username,
       title: stream.title,
       categorySlug: stream.category_id || '',
       tags: stream.tags || [],

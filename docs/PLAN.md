@@ -5,7 +5,7 @@ Local analytics & integration tool for livestreamers (Twitch, Kick, YouTube). Pr
 
 ## Current Feature
 **Feature**: Shared Data Models
-**Status**: In Progress - Phases 1-6 Complete, 7 of 13 phases complete (54%)
+**Status**: In Progress - Phases 1-6 Complete, 6 of 13 phases complete (46%)
 **Estimated Effort**: 85-105 hours
 
 **Full Implementation Plan**: @docs/feature-plans/shared-data-models.md
@@ -21,7 +21,7 @@ Local analytics & integration tool for livestreamers (Twitch, Kick, YouTube). Pr
 - Separated static vs live data (Stream vs StreamStats)
 - Unified Stream & User wrappers for cross-platform scenarios
 - OBS-driven stream lifecycle via WebSocket integration
-- Stream matching for late data reconstruction (+/- 10min window)
+ - Stream matching for late data reconstruction (+/- 10 min window)
 
 ### Overview
 Create unified, platform-agnostic data types for streaming data across Twitch (EventSub + IRC WebSocket), Kick (REST + Webhooks), and YouTube (REST + Server-Stream chat). This is a foundational feature for all platform strategies.

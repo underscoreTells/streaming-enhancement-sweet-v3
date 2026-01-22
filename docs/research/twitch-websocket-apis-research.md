@@ -39,12 +39,12 @@ This document provides extremely comprehensive research on all Twitch WebSocket 
 4. [API Comparison Matrix](#4-api-comparison-matrix)
 5. [Event Type Mapping](#5-event-type-mapping)
 6. [Code Examples](#6-code-examples)
-   - [EventSub WebSocket TypeScript Examples]((#eventsub-websocket-typescript-examples)
-   - [Twitch IRC TypeScript Examples]((#twitch-irc-typescript-examples))
-   - [Using Existing Libraries]((#using-existing-libraries)
+    - [EventSub WebSocket TypeScript Examples](#eventsub-websocket-typescript-examples)
+    - [Twitch IRC TypeScript Examples](#twitch-irc-typescript-examples)
+    - [Using Existing Libraries](#using-existing-libraries)
 7. [Best Practices](#7-best-practices)
-8. [Data Structure Comparison]((#8-data-structure-comparison)
-9. [Rate Limits and Quotas]((#9-rate-limits-and-quotas)
+8. [Data Structure Comparison](#8-data-structure-comparison)
+9. [Rate Limits and Quotas](#9-rate-limits-and-quotas)
 
 ---
 
@@ -1204,161 +1204,6 @@ If `source-room-id` equals `room-id`, this is the source channel (original room)
 
 ---
 
-    } else {
-      // Other close codes - attempt backoff reconnect
-      this.reconnectWithBackoff();
-    }
-  }
-
-  private backoffDelay = 1000;
-  private maxBackoff = 60000;
-  
-  private reconnectWithBackoff() {
-    const delay = Math.min(this.backoffDelay * 2, this.maxBackoff);
-    console.log(`[EventSub] Reconnecting in ${delay}ms...`);
-    
-    setTimeout(() => {
-      this.connect();
-    }, delay);
-  }
-
-  private async createSubscriptions() {
-    if (!this.sessionId) return;
-
-    // Create subscriptions using Helix API
-    // Example: Create channel.follow subscription
-    // Requires user access token with moderator:read:followers scope
-    const token = 'your_user_access_token';
-    const clientId = 'your_client_id';
-    const broadcasterUserId = '123456'; // Example channel ID
-
-    // channel.follow subscription
-    await this.createSubscription({
-      type: 'channel.follow',
-      version: '2',
-      condition: {
-        broadcaster_user_id: broadcasterUserId,
-        moderator_user_id: 'moderator_user_id_here', // Must match token user
-      },
-      transport: {
-        method: 'websocket',
-        session_id: this.sessionId,
-      },
-    }, token, clientId);
-
-    // Add more subscriptions as needed...
-  }
-
-  private async createSubscription(subscription: any, token: string, clientId: string) {
-    try {
-      const response = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Client-Id': clientId,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(subscription),
-      });
-
-      if (!response.ok) {
-        const error = await response.text();
-        console.error('[EventSub] Failed to create subscription:', error);
-        return;
-      }
-
-      const data = await response.json();
-      console.log('[EventSub] Subscription created:', data);
-      
-      // Track subscription
-      this.subscriptions.set(data.data[0].id, data.data[0]);
-    } catch (error) {
-      console.error('[EventSub] Error creating subscription:', error);
-    }
-  }
-
-  // Event Handlers
-  private onStreamOnline(event: any) {
-    console.log('Stream online:', event.broadcaster_user_name);
-    // Your application logic here
-  }
-
-  private onStreamOffline(event: any) {
-    console.log('Stream offline:', event.broadcaster_user_name);
-    // Your application logic here
-  }
-
-  private onChannelFollow(event: any) {
-    console.log(`${event.user_name} followed ${event.broadcaster_user_name}`);
-    // Your application logic here
-  }
-
-  private onChannelSubscribe(event: any) {
-    console.log(`${event.user_name} subscribed to ${event.broadcaster_user_name} (${event.tier})`);
-    // Your application logic here
-  }
-
-  private onChannelResubscribe(event: any) {
-    console.log(`${event.user_name} resubscribed to ${event.broadcaster_user_name} for ${event.cumulative_months} months`);
-    console.log(`Message: ${event.message.text}`);
-    // Your application logic here
-  }
-
-  private onChannelGiftSubscription(event: any) {
-    console.log(`${event.user_name} gifted ${event.total} subs to ${event.broadcaster_user_name}`);
-    // Your application logic here
-  }
-
-  private onChannelCheer(event: any) {
-    console.log(`${event.user_name || 'Anonymous'} cheered ${event.bits} bits`);
-    console.log(`Message: ${event.message}`);
-    // Your application logic here
-  }
-
-  private onChatMessage(event: any) {
-    console.log(`[${event.broadcaster_user_name}#${event.user_name}]: ${event.message.text}`);
-    // Your application logic here
-  }
-
-  private onChannelPointsRedemption(event: any) {
-    console.log(`${event.user_name} redeemed ${event.reward.title} (${event.reward.cost} points)`);
-    console.log(`User input: ${event.user_input || 'none'}`);
-    // Your application logic here
-  }
-
-  private onChannelBan(event: any) {
-    console.log(`${event.user_name} was banned from ${event.broadcaster_user_name}`);
-    console.log(`Reason: ${event.reason}`);
-    // Your application logic here
-  }
-
-  private onChannelModerate(event: any) {
-    console.log(`Moderation action: ${event.moderation_action_type} by ${event.moderator_user_name}`);
-    // Your application logic here
-  }
-
-  private onAutomodMessageHold(event: any) {
-    console.log(`AutoMod held message from ${event.user_name}: ${event.message.text}`);
-    console.log(`Category: ${event.automod?.category || event.blocked_term}`);
-    // Your application logic here
-  }
-
-  private onWhisperMessage(event: any) {
-    console.log(`${event.from_user_name} whispered: ${event.whisper.content}`);
-    // Your application logic here
-  }
-
-  private reconnect() {
-    this.connect();
-  }
-}
-
-// Usage
-const client = new EventSubClient();
-```
-
-RESEARCHEOF
-echo "Part 7 appended - EventSub code examples"
 ## Using Existing Libraries
 
 ### Recommended Libraries

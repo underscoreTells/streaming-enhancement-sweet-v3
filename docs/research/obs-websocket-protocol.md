@@ -37,7 +37,7 @@ When auth is required, the `Hello` message contains:
 ```
 
 To generate the auth string:
-```
+```text
 1. Concatenate: password + salt
 2. SHA256 hash and base64 encode → base64_secret
 3. Concatenate: base64_secret + challenge
@@ -133,7 +133,7 @@ A stream is considered "offline" when:
 
 **Example Event Timeline:**
 
-```
+```text
 1. User clicks "Start Streaming" in OBS
    → StreamStateChanged: { outputActive: false, outputState: "OBS_WEBSOCKET_OUTPUT_STARTING" }
 
@@ -229,7 +229,7 @@ const getStreamHealth = (status: GetStreamStatusResponse) => ({
 });
 
 // Example: Alert if drop rate exceeds 5%
-ifhealth = getStreamHealth(streamStatus);
+const health = getStreamHealth(streamStatus);
 if (health.droppedFrameRate > 0.05) {
   console.warn(`High frame drop rate: ${(health.droppedFrameRate * 100).toFixed(2)}%`);
 }
@@ -855,7 +855,7 @@ function handleRequestError(status: {
 
 ## Reference: Message Flow Diagram
 
-```
+```text
 Client                    OBS WebSocket Server
   |                            |
   |------ CONNECT ------------>|  WebSocket connection established

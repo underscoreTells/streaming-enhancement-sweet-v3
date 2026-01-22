@@ -26,7 +26,8 @@ export interface YouTubeUser {
   customUrl: string | null;
   thumbnailUrl: string | null;
   description: string | null;
-  subscriberCount: number;
+  subscriberCount: number | null;
+  hiddenSubscriberCount: boolean;
   videoCount: number;
   viewCount: number;
   createdAt: Date | null;
