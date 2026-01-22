@@ -39,7 +39,7 @@ export class ShutdownHandler {
       this.deps.logger.error('Error stopping server:', error);
     }
 
-    await this.waitForInFlightRequests();
+    await this.drainTimeout();
 
     try {
       this.deps.database.close();
@@ -51,7 +51,12 @@ export class ShutdownHandler {
     process.exit(0);
   }
 
-  private waitForInFlightRequests(): Promise<void> {
+  /**
+   * Waits for a configurable drain period to allow in-flight requests to complete.
+   * Note: This is a fixed timeout, not active request tracking. The HTTP server's
+   * close() already waits for connections, but this provides additional drain time.
+   */
+  private drainTimeout(): Promise<void> {
     return new Promise((resolve) => {
       setTimeout(resolve, this.timeout);
     });

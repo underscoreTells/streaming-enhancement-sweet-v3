@@ -13,5 +13,3 @@ program
 program.addCommand(new StartCommand().getCommand());
 
 program.parse(process.argv);
-
-program.parse(process.argv);

@@ -24,7 +24,7 @@ export class DaemonServer {
   }
 
   private middleware(): void {
-    this.app.use(cors({ origin: 'http://localhost:3000' }));
+    this.app.use(cors({ origin: `http://localhost:${this.port}` }));
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
   }

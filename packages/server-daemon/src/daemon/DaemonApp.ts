@@ -1,6 +1,7 @@
 import { DaemonServer } from '../../infrastructure/server/DaemonServer';
 import { DatabaseConnection } from '../../infrastructure/database/Database';
 import { KeystoreManager } from '../../infrastructure/keystore/KeystoreManager';
+import { OAuthCredentialsRepository } from '../../infrastructure/database/OAuthCredentialsRepository';
 import { OAuthController } from '../../controllers/OAuthController';
 import { HealthCheck } from './HealthCheck';
 import { AppConfig } from '../../infrastructure/config/Config';
@@ -11,7 +12,7 @@ export interface DaemonAppDeps {
   logger: Logger;
   database: DatabaseConnection;
   keystore: KeystoreManager;
-  oauthCredentialRepo: import('../../infrastructure/database/OAuthCredentialsRepository').OAuthCredentialsRepository;
+  oauthCredentialRepo: OAuthCredentialsRepository;
 }
 
 export class DaemonApp {
@@ -19,7 +20,7 @@ export class DaemonApp {
   private readonly logger: Logger;
   private readonly database: DatabaseConnection;
   private readonly keystore: KeystoreManager;
-  private readonly oauthCredentialRepo: any;
+  private readonly oauthCredentialRepo: OAuthCredentialsRepository;
   private server: DaemonServer | null = null;
   private oauthController: OAuthController | null = null;
   private healthCheck: HealthCheck | null = null;
@@ -85,7 +86,8 @@ export class DaemonApp {
 
     this.server.getApp().get('/status', (req, res) => {
       const ip = req.ip || req.socket.remoteAddress || '';
-      if (ip !== '127.0.0.1' && ip !== '::1') {
+      const isLocalhost = ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1';
+      if (!isLocalhost) {
         res.status(403).json({ error: 'Forbidden - localhost only' });
         return;
       }

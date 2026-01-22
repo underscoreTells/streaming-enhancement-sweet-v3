@@ -1,10 +1,26 @@
 import { Command } from 'commander';
+import { Logger } from 'winston';
 import { loadConfig, LoggerFactory } from '../../infrastructure/config';
 import { DatabaseConnection } from '../../infrastructure/database/Database';
 import { KeystoreManager } from '../../infrastructure/keystore/KeystoreManager';
 import { OAuthCredentialsRepository } from '../../infrastructure/database/OAuthCredentialsRepository';
 import { DaemonApp } from '../daemon/DaemonApp';
 import { ShutdownHandler } from '../daemon/ShutdownHandler';
+
+/** Error codes for daemon startup failures */
+export enum DaemonErrorCode {
+  CONFIG_ERROR = 1,
+  INIT_ERROR = 2,
+  STARTUP_ERROR = 3
+}
+
+/** Custom error class for typed error handling */
+export class DaemonError extends Error {
+  constructor(message: string, public readonly code: DaemonErrorCode) {
+    super(message);
+    this.name = 'DaemonError';
+  }
+}
 
 export interface StartCommandOptions {
   configPath?: string;
@@ -17,7 +33,9 @@ export class StartCommand {
   private port?: string;
   private logLevel?: string;
   private database?: DatabaseConnection;
-  private logger: any;
+  private keystore?: KeystoreManager;
+  private credentialRepo?: OAuthCredentialsRepository;
+  private logger?: Logger;
 
   constructor(options: StartCommandOptions = {}) {
     this.configPath = options.configPath;
@@ -78,7 +96,7 @@ export class StartCommand {
     this.credentialRepo = credentialRepo;
   }
 
-  private handleError(error: any): never {
+  private handleError(error: unknown): never {
     if (this.database) {
       try {
         this.database.close();
@@ -89,21 +107,17 @@ export class StartCommand {
 
     const errorMessage = error instanceof Error ? error.message : String(error);
 
-    if (this.isConfigError(error)) {
-      console.error(`Configuration error: ${errorMessage}`);
-      process.exit(1);
-    } else if (errorMessage.includes('database') || errorMessage.includes('keystore')) {
-      console.error(`Initialization error: ${errorMessage}`);
-      process.exit(2);
+    // Use typed error codes if available, otherwise fall back to generic startup error
+    if (error instanceof DaemonError) {
+      const prefix = error.code === DaemonErrorCode.CONFIG_ERROR ? 'Configuration error'
+        : error.code === DaemonErrorCode.INIT_ERROR ? 'Initialization error'
+        : 'Failed to start daemon';
+      console.error(`${prefix}: ${errorMessage}`);
+      process.exit(error.code);
     } else {
       console.error(`Failed to start daemon: ${errorMessage}`);
-      process.exit(3);
+      process.exit(DaemonErrorCode.STARTUP_ERROR);
     }
-  }
-
-  private isConfigError(error: any): boolean {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    return errorMessage.includes('config') || errorMessage.includes('validation') || errorMessage.includes('not found');
   }
 
   getCommand(): Command {
@@ -121,7 +135,4 @@ export class StartCommand {
 
     return command;
   }
-
-  private keystore?: KeystoreManager;
-  private credentialRepo?: any;
 }
