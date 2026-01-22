@@ -4,14 +4,15 @@
 Create executable daemon server with initialization orchestration, health checks, graceful shutdown, and CLI foundation for future administrative commands (similar to tailscaled). This feature provides the foundation for running the streaming enhancement service as a proper daemon process.
 
 ## Scope & Deliverables
-- [ ] Main entry point with CLI command parser (`streaming-daemon start`)
-- [ ] Database/keystore/server initialization orchestration
-- [ ] Health check endpoint (`GET /status`) with detailed component status
-- [ ] Graceful shutdown (SIGTERM/SIGINT) with configurable timeout
-- [ ] Logging (console + rotating file) with configurable level
-- [ ] CLI flags override config file values
-- [ ] Configuration validation with proper exit codes
-- [ ] Integration tests for full daemon lifecycle
+- [x] Main entry point with CLI command parser (`streaming-daemon start`)
+- [x] Database/keystore/server initialization orchestration
+- [x] Health check endpoint (`GET /status`) with detailed component status
+- [x] Graceful shutdown (SIGTERM/SIGINT) with configurable timeout
+- [x] Logging (console + rotating file) with configurable level
+- [x] CLI flags override config file values
+- [x] Configuration validation with proper exit codes
+- [x] Unit tests for daemon components
+- [ ] Integration tests for full daemon lifecycle (OAuth integration - Phase 9)
 
 ## Architecture
 

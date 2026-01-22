@@ -5,6 +5,7 @@ export type Platform = z.infer<typeof PlatformEnum>;
 
 export const ServerConfigSchema = z.object({
   port: z.number().int().min(1).max(65535).default(3000),
+  host: z.string().default('127.0.0.1'),
   shutdownTimeout: z.number().default(10000),
   healthCheckPath: z.string().default('/status'),
 });

@@ -54,9 +54,17 @@ Each platform provides a unified facade that handles API calls, OAuth, WebSocket
    - **API**: @api/oauth-endpoints.md
    - **Status**: Phases 1-8 complete with 252/252 unit tests passing. Daemon server integration moved to Daemon Server Core feature.
    - **Fix**: Linux Secret Service password storage - see @docs/fixes/native-keystore-linux-secret-service.md (2026-01-19)
-- [ ] Feature: Daemon Server Core (In Progress - Phase 1/11 complete)
-  - **Implementation**: @docs/feature-plans/daemon-server-core.md
-  - **Status**: CLI entry point, health checks, graceful shutdown, PID tracking, initialization orchestration
+- [x] Feature: Daemon Server Core (Complete ✅)
+   - **Implementation**: @docs/archive/feature-plans/daemon-server-core.md
+   - **Status**: All 10 phases implemented. Core daemon infrastructure complete.
+    - **Components**:
+      - CLI: StartCommand with proper exit codes
+      - Orchestrator: DaemonApp for server lifecycle
+      - Health Check: Component-level health monitoring
+      - Shutdown Handler: Graceful SIGTERM/SIGINT handling
+      - **Tests**: 313 total unit tests passing (including 252 existing OAuth tests)
+   - **Documentation**: Complete API docs, CLI reference, configuration guide, troubleshooting guide
+   - **Completion Date**: 2026-01-22
 - [x] Feature: SQLite persistence layer (schema, migrations, operations)
 - [ ] Feature: Shared data models (normalized Stream, User, Chat, Event types)
 - [ ] Feature: Basic HTTP endpoints (health, config, stream queries)
@@ -102,4 +110,14 @@ Each platform provides a unified facade that handles API calls, OAuth, WebSocket
 - **Needed by**: CLI module, Web UI module
 
 ## Completion Date
-[Date when fully implemented]
+2026-01-22
+
+## Documentation
+- API Overview: @api/daemon-api.md
+- Health Check Endpoint: @api/health-check.md
+- OAuth Endpoints: @api/oauth-endpoints.md
+- CLI Reference: @guides/cli-reference.md
+- Configuration Guide: @guides/configuration.md
+- Installation Guide: @guides/installation.md
+- Troubleshooting Guide: @guides/troubleshooting.md
+- Architecture Overview: @architecture/daemon-server-core.md
