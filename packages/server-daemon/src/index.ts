@@ -1,47 +1,13 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { Logger } from 'winston';
 import { DaemonServer } from '../infrastructure/server/DaemonServer';
 import { DatabaseConnection } from '../infrastructure/database/Database';
 import { KeystoreManager } from '../infrastructure/keystore/KeystoreManager';
 import { OAuthCredentialsRepository } from '../infrastructure/database/OAuthCredentialsRepository';
 import { loadConfig, LoggerFactory } from '../infrastructure/config';
 import { OAuthController } from '../controllers/OAuthController';
-
-let daemonServer: DaemonServer | null = null;
-let dbConnection: DatabaseConnection | null = null;
-let loggerInstance: Logger | null = null;
-
-const gracefulShutdown = async (signal: string): Promise<void> => {
-  if (!loggerInstance) {
-    console.error(`Received ${signal}, shutting down...`);
-  } else {
-    loggerInstance.info(`Received ${signal}, shutting down...`);
-  }
-
-  try {
-    if (daemonServer) {
-      await daemonServer.stop();
-    }
-
-    if (dbConnection) {
-      dbConnection.close();
-    }
-
-    if (loggerInstance) {
-      loggerInstance.info('Shutdown complete');
-    }
-    process.exit(0);
-  } catch (error) {
-    if (loggerInstance) {
-      loggerInstance.error('Error during shutdown:', error);
-    } else {
-      console.error('Error during shutdown:', error);
-    }
-    process.exit(1);
-  }
-};
+import { ShutdownHandler } from './daemon/ShutdownHandler';
 
 const program = new Command();
 
@@ -69,18 +35,15 @@ program
       }
 
       const logger = LoggerFactory.create(config.logging, 'daemon');
-      loggerInstance = logger;
       logger.info('Starting daemon...');
 
       const db = new DatabaseConnection(config.database.path, config.database.migrationsDir || '', logger);
       await db.initialize();
-      dbConnection = db;
 
       const keystore = new KeystoreManager(undefined, logger);
       const credentialRepo = new OAuthCredentialsRepository(db, logger);
 
       const server = new DaemonServer(logger, config);
-      daemonServer = server;
 
       const oauthController = new OAuthController(
         logger,
@@ -95,20 +58,15 @@ program
 
       logger.info('Server ready');
 
-      process.on('SIGINT', () => gracefulShutdown('SIGINT'));
-      process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+      const shutdownHandler = new ShutdownHandler({
+        server,
+        database: db,
+        logger
+      }, config.server.shutdownTimeout || 10000);
+      shutdownHandler.register();
     } catch (error) {
       console.error('Failed to start daemon:', error);
-
-      if (dbConnection) {
-        try {
-          dbConnection.close();
-        } catch (closeError) {
-          console.error('Error closing database during cleanup:', closeError);
-        }
-      }
-
-      process.exit(1);
+      process.exit(2);
     }
   });
 
