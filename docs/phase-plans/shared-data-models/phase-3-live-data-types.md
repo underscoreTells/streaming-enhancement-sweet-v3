@@ -5,7 +5,7 @@
 **Phase:** 3 of 13
 **Title:** Live Data Types (StreamStats)
 **Estimated Time:** 1-2 hours
-**Status:** Not Started
+**Status:** Complete
 
 ## Objective
 

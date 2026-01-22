@@ -7,7 +7,7 @@
 **Phase:** 5 of 13
 **Title:** Adapter Interfaces
 **Estimated Time:** 3-4 hours
-**Status:** Not Started
+**Status:** Complete
 
 ## Objective
 
