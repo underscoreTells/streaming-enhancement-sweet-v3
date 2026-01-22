@@ -28,6 +28,11 @@ This document describes the methodology for working with AI agents on this proje
 - **Named**: `module-[name].md` (no dates)
 - **When created**: When module is completed
 
+### docs/archive/phase-plans/*.md
+- **Purpose**: Completed phase plans for reference
+- **Content**: Phase-specific implementation details, task lists, decisions
+- **When created**: When each phase is completed
+
 ## Agent Mode Usage
 
 ### Plan Mode (Tab key)
@@ -77,8 +82,9 @@ This document describes the methodology for working with AI agents on this proje
   - Implementation order
   - Files to create/modify
   - Dependencies between tasks
-- **Lifecycle**: Created before phase implementation, deleted when phase complete
-- **Commit**: Commit deletion along with phase implementation
+- **Lifecycle**: Created before phase implementation, archived when phase complete
+- **Commit**: Commit archived file along with phase implementation
+- **Archive location**: Move completed phase plans to `docs/archive/phase-plans/[phase-name].md`
 
 ### Feature Phase Tracking
 - Each feature plan should include "Current Phase" section with:
