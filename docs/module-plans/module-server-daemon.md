@@ -66,7 +66,7 @@ Each platform provides a unified facade that handles API calls, OAuth, WebSocket
    - **Documentation**: Complete API docs, CLI reference, configuration guide, troubleshooting guide
    - **Completion Date**: 2026-01-22
 - [x] Feature: SQLite persistence layer (schema, migrations, operations)
-- [ ] Feature: Shared data models (normalized Stream, User, Chat, Event types)
+- [🟡] Feature: Shared data models (normalized Stream, User, Chat, Event types) - **Planning Complete**, ready for implementation (@docs/feature-plans/shared-data-models.md)
 - [ ] Feature: Basic HTTP endpoints (health, config, stream queries)
 
 ### Real-time Communication
