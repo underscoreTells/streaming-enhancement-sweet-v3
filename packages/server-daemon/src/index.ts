@@ -1,13 +1,12 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { DaemonServer } from '../infrastructure/server/DaemonServer';
 import { DatabaseConnection } from '../infrastructure/database/Database';
 import { KeystoreManager } from '../infrastructure/keystore/KeystoreManager';
 import { OAuthCredentialsRepository } from '../infrastructure/database/OAuthCredentialsRepository';
 import { loadConfig, LoggerFactory } from '../infrastructure/config';
-import { OAuthController } from '../controllers/OAuthController';
 import { ShutdownHandler } from './daemon/ShutdownHandler';
+import { DaemonApp } from './daemon/DaemonApp';
 
 const program = new Command();
 
@@ -43,27 +42,25 @@ program
       const keystore = new KeystoreManager(undefined, logger);
       const credentialRepo = new OAuthCredentialsRepository(db, logger);
 
-      const server = new DaemonServer(logger, config);
-
-      const oauthController = new OAuthController(
+      const daemonApp = new DaemonApp({
+        config,
         logger,
+        database: db,
         keystore,
-        credentialRepo,
-        config.oauth
-      );
+        oauthCredentialRepo: credentialRepo
+      });
 
-      server.attachRoutes('/oauth', oauthController.getRouter());
-      server.attachErrorHandler();
-      await server.start();
-
-      logger.info('Server ready');
+      await daemonApp.start();
+      daemonApp.addHealthCheckRoute();
 
       const shutdownHandler = new ShutdownHandler({
-        server,
+        server: daemonApp.getServer(),
         database: db,
         logger
       }, config.server.shutdownTimeout || 10000);
       shutdownHandler.register();
+
+      logger.info('Daemon started successfully');
     } catch (error) {
       console.error('Failed to start daemon:', error);
       process.exit(2);

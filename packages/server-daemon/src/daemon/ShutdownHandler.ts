@@ -3,7 +3,7 @@ import { DatabaseConnection } from '../../infrastructure/database/Database';
 import { Logger } from 'winston';
 
 export interface ShutdownDeps {
-  server: DaemonServer;
+  server: DaemonServer | null;
   database: DatabaseConnection;
   logger: Logger;
 }
@@ -32,7 +32,9 @@ export class ShutdownHandler {
     this.deps.logger.info(`Received ${signal}, shutting down...`);
 
     try {
-      await this.deps.server.stop();
+      if (this.deps.server) {
+        await this.deps.server.stop();
+      }
     } catch (error) {
       this.deps.logger.error('Error stopping server:', error);
     }

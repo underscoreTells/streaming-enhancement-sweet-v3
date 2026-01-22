@@ -86,4 +86,8 @@ export class DaemonServer {
   public getPort(): number {
     return this.port;
   }
+
+  public getApp(): Express {
+    return this.app;
+  }
 }

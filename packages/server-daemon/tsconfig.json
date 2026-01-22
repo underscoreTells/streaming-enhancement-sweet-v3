@@ -11,8 +11,8 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "moduleResolution": "bundler",
-    "types": ["node", "vitest/globals"]
+    "types": ["node"]
   },
-  "include": ["infrastructure/**/*", "platforms/**/*", "src/**/*", "__tests__/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["infrastructure/**/*", "platforms/**/*", "src/**/*"],
+  "exclude": ["node_modules", "dist", "__tests__"]
 }
