@@ -33,7 +33,7 @@ describe('IrcMessageParser', () => {
       expect(result.raw).toBe(message);
       expect(result.command).toBe('PRIVMSG');
       expect(result.tags).toBeDefined();
-      expect(result.tags!.display_name).toBe('testuser');
+      expect(result.tags && result.tags['display-name']).toBe('testuser');
       expect(result.tags!.color).toBe('#008000');
       expect(result.prefix).toBeUndefined();
       expect(result.params).toEqual(['#channel', 'Hello world']);
@@ -108,19 +108,19 @@ describe('IrcMessageParser', () => {
       const message = '@display-name=testuser PRIVMSG #channel :Hi';
       const result = IrcMessageParser.parse(message);
 
-      expect(result.tags?.display_name).toBe('testuser');
+      expect(result.tags?.['display-name']).toBe('testuser');
     });
 
     it('should parse multiple tags', () => {
       const message = '@badge-info=;badges=broadcaster/1;color=#FF0000;display-name=TestUser;emotes=;flags=0-8:P.20;id=abc123;mod=0;room-id=xyz;subscriber=0;tmi-sent-ts=1640995200000;turbo=0;user-id=12345;user-type= PRIVMSG #channel :Hi';
       const result = IrcMessageParser.parse(message);
 
-      expect(result.tags?.badge_info).toBe('');
+      expect(result.tags && result.tags['badge-info']).toBe('');
       expect(result.tags?.badges).toBe('broadcaster/1');
       expect(result.tags?.color).toBe('#FF0000');
-      expect(result.tags?.display_name).toBe('TestUser');
+      expect(result.tags && result.tags['display-name']).toBe('TestUser');
       expect(result.tags?.id).toBe('abc123');
-      expect(result.tags?.user_id).toBe('12345');
+      expect(result.tags && result.tags['user-id']).toBe('12345');
     });
 
     it('should decode escaped backslash sequences', () => {
@@ -134,7 +134,7 @@ describe('IrcMessageParser', () => {
       const message = '@display-name=user\\sname PRIVMSG #channel :Hi';
       const result = IrcMessageParser.parse(message);
 
-      expect(result.tags?.display_name).toBe('user name');
+      expect(result.tags && result.tags['display-name']).toBe('user name');
     });
 
     it('should decode \\: to semicolon', () => {
@@ -184,7 +184,7 @@ describe('IrcMessageParser', () => {
       const result = IrcMessageParser.parse(message);
 
       expect(result.tags?.badges).toBe('broadcaster/1,subscriber/24');
-      expect(result.tags?.badges_entries).toBe('broadcaster/1/1,subscriber/0/1');
+      expect(result.tags && result.tags['badges-entries']).toBe('broadcaster/1/1,subscriber/0/1');
     });
 
     it('should parse emote tags correctly', () => {
@@ -212,7 +212,7 @@ describe('IrcMessageParser', () => {
       expect(result.command).toBe('PRIVMSG');
       expect(result.prefix).toBe('testuser!testuser@testuser.tmi.twitch.tv');
       expect(result.params).toEqual(['#channel', 'Hello, chat!']);
-      expect(result.tags?.display_name).toBe('TestUser');
+      expect(result.tags && result.tags['display-name']).toBe('TestUser');
       expect(result.tags?.badges).toBe('subscriber/24');
     });
 
@@ -231,7 +231,7 @@ describe('IrcMessageParser', () => {
 
       expect(result.prefix).toBe('tmi.twitch.tv');
       expect(result.command).toBe('NOTICE');
-      expect(result.tags?.msg_id).toBe('msg_channel_suspended');
+      expect(result.tags && result.tags['msg-id']).toBe('msg_channel_suspended');
     });
   });
 });

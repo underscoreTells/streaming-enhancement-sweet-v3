@@ -99,16 +99,12 @@ describe('getUser', () => {
       expect(users[1].login).toBe('user2');
     });
 
-    it('should use indexed login parameters', async () => {
+    it('should pass login array', async () => {
       const getSpy = vi.spyOn(restClient, 'get');
 
       await getUsers(restClient, ['user1', 'user2', 'user3']);
 
-      expect(getSpy).toHaveBeenCalledWith('/users', {
-        'login[0]': 'user1',
-        'login[1]': 'user2',
-        'login[2]': 'user3',
-      });
+      expect(getSpy).toHaveBeenCalledWith('/users', { login: ['user1', 'user2', 'user3'] });
     });
 
     it('should return empty array for empty usernames input', async () => {
@@ -169,16 +165,12 @@ describe('getUser', () => {
       expect(users[1].id).toBe('789012');
     });
 
-    it('should use indexed id parameters', async () => {
+    it('should pass id array', async () => {
       const getSpy = vi.spyOn(restClient, 'get');
 
       await getUsersById(restClient, ['111', '222', '333']);
 
-      expect(getSpy).toHaveBeenCalledWith('/users', {
-        'id[0]': '111',
-        'id[1]': '222',
-        'id[2]': '333',
-      });
+      expect(getSpy).toHaveBeenCalledWith('/users', { id: ['111', '222', '333'] });
     });
 
     it('should return empty array for empty IDs input', async () => {

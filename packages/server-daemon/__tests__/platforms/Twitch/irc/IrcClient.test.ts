@@ -173,7 +173,7 @@ describe('IrcClient', () => {
         expect(chatData.channel).toBe('#testchannel');
         expect(chatData.content).toBe('Hello, world!');
         expect(chatData.displayName).toBe('TestUser');
-        expect(chatData.userId).toBe('123456');
+        expect(chatData.userId).toBe('12345');
         done();
       });
 
@@ -377,8 +377,8 @@ describe('IrcClient', () => {
         return fn();
       });
 
-      const handleClose = (client as any).handleClose.bind(client);
-      handleClose(1006, Buffer.from('Abnormal closure'));
+      const onClose = (client as any).onClose.bind(client);
+      onClose(1006, Buffer.from('Abnormal closure'));
 
       expect(setTimeoutSpy).toHaveBeenCalled();
 
@@ -389,10 +389,10 @@ describe('IrcClient', () => {
       const clientWithMaxAttempts = new IrcClient(logger, { maxReconnectAttempts: 2 });
       const errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {});
 
-      const handleClose = (clientWithMaxAttempts as any).handleClose;
-      handleClose(1006, Buffer.from('Lost'));
-      handleClose(1006, Buffer.from('Lost'));
-      handleClose(1006, Buffer.from('Lost'));
+      const onClose = (clientWithMaxAttempts as any).onClose.bind(clientWithMaxAttempts);
+      onClose(1006, Buffer.from('Lost'));
+      onClose(1006, Buffer.from('Lost'));
+      onClose(1006, Buffer.from('Lost'));
 
       expect(errorSpy).toHaveBeenCalledWith('IRC max reconnect attempts reached (2)');
 
@@ -402,8 +402,8 @@ describe('IrcClient', () => {
     it('should not reconnect on normal closure (1000)', () => {
       const setTimeoutSpy = vi.spyOn(global, 'setTimeout').mockImplementation(() => 123 as any);
 
-      const handleClose = (client as any).handleClose;
-      handleClose(1000, Buffer.from('Normal closure'));
+      const onClose = (client as any).onClose.bind(client);
+      onClose(1000, Buffer.from('Normal closure'));
 
       expect(setTimeoutSpy).not.toHaveBeenCalled();
 
@@ -413,8 +413,8 @@ describe('IrcClient', () => {
     it('should use exponential backoff', () => {
       const setTimeoutSpy = vi.spyOn(global, 'setTimeout').mockImplementation(() => 123 as any);
 
-      const handleClose = (client as any).handleClose;
-      handleClose(1006, Buffer.from('Lost'));
+      const onClose = (client as any).onClose.bind(client);
+      onClose(1006, Buffer.from('Lost'));
 
       const delay = setTimeoutSpy.mock.calls[0][1] as number;
       expect(delay).toBeGreaterThan(900);
