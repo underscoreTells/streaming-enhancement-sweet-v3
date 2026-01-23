@@ -1,5 +1,6 @@
 import type { KickChatMessage } from '../ChatMessage';
-import type { ChatMessageAdapter, Badge, Emote, BadgeType, EmoteType } from './ChatMessageAdapter';
+import type { ChatMessageAdapter, Badge, Emote } from './ChatMessageAdapter';
+import { BadgeType, EmoteType } from './ChatMessageAdapter';
 
 export class KickChatMessageAdapter implements ChatMessageAdapter {
   constructor(private readonly data: KickChatMessage) {}
