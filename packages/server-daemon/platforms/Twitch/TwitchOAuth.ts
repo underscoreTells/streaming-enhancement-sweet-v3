@@ -3,12 +3,14 @@ import { OAuthFlow } from '../OAuthFlow';
 import { KeystoreManager } from '../../infrastructure/keystore/KeystoreManager';
 import { OAuthCredentialsRepository } from '../../infrastructure/database/OAuthCredentialsRepository';
 import { OAuthConfig } from '../../infrastructure/config/Config';
+import type { PlatformOAuthStrategy } from '../interfaces';
+import type { TokenSet } from '../types';
 import {
   exchangeCodeForTokens,
   refreshAccessToken,
 } from './http';
 
-export class TwitchOAuth extends OAuthFlow {
+export class TwitchOAuth extends OAuthFlow implements PlatformOAuthStrategy {
   readonly platform = 'twitch';
 
   constructor(
@@ -93,5 +95,46 @@ export class TwitchOAuth extends OAuthFlow {
     });
 
     return response;
+  }
+
+  /**
+   * PlatformOAuthStrategy implementation
+   * Start OAuth flow for a user
+   */
+  async startOAuth(username: string): Promise<string> {
+    const { url } = await this.generateAuthorizationUrl();
+    return url;
+  }
+
+  /**
+   * PlatformOAuthStrategy implementation
+   * Handle OAuth callback
+   */
+  async handleCallback(code: string, state: string): Promise<TokenSet> {
+    const tokens = await this.exchangeCodeForTokens(code);
+    return this.handleTokensInternal(tokens, state);
+  }
+
+  /**
+   * Internal helper to handle auth callback tokens
+   */
+  private async handleTokensInternal(
+    tokens: {
+      access_token: string;
+      refresh_token?: string;
+      expires_in?: number;
+      scope?: string[];
+    },
+    state: string
+  ): Promise<TokenSet> {
+    const { expires_in, refresh_token, scope } = tokens;
+    const tokenSet = {
+      access_token: tokens.access_token,
+      refresh_token,
+      expires_at: new Date(Date.now() + (expires_in || 3600) * 1000),
+      refresh_at: new Date(Date.now() + (expires_in || 3600) * 1000 - 5 * 60 * 1000),
+      scope: scope || [],
+    };
+    return tokenSet;
   }
 }
