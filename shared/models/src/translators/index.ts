@@ -2,8 +2,7 @@
 export {
   createStreamAdapter,
   createStreamAdapterFromRaw,
-  createPlatformStreamRecord,
-  type PlatformStreamRecord
+  createPlatformStreamRecord
 } from './StreamTranslator';
 
 // User translators

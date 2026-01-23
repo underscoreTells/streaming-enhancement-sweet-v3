@@ -51,7 +51,7 @@ docs/
 - Purpose: Web interface for managing server-daemon, viewing analytics, managing integrations
 
 ### Integration Layer
-- OBS WebSocket: OBS Studio integration via obs-websocket-js
+- OBS WebSocket: OBS Studio integration via thin wrapper around ws library
 - TTS: Local text-to-speech service
 
 ## Project Structure
@@ -115,7 +115,7 @@ project-root/
 - **CLI ↔ Server**: HTTP/WebSocket API (port TBD)
 - **Web UI ↔ Server**: HTTP/WebSocket API (port TBD)
 - **Server → Twitch/Kick/YouTube**: OAuth + REST API + Websockets
-- **Server ↔ OBS**: WebSocket (obs-websocket-js)
+- **Server ↔ OBS**: WebSocket (thin wrapper around ws)
 
 ### Data Flow
 1. CLI/Web client sends requests to server-daemon

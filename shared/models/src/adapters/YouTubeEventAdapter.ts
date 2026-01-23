@@ -22,7 +22,7 @@ export class YouTubeEventAdapter implements EventAdapter {
   }
 
   getUserId(): string | null {
-    return null;
+    return this.data.channelId || null;
   }
 
   getUsername(): string | null {

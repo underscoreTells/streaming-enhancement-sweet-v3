@@ -47,7 +47,11 @@ export type PlatformStream = TwitchStream | KickStream | YouTubeStream;
 import type { StreamAdapter } from './adapters/StreamAdapter';
 import type { Platform } from './Platform';
 
-export interface Stream {
+/**
+ * @deprecated Use the Stream class from './stream' instead.
+ * This interface is kept for backward compatibility.
+ */
+export interface StreamInterface {
   commonId: string;
   obsStartTime: Date;
   obsEndTime: Date | null;

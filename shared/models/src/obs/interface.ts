@@ -1,4 +1,4 @@
-import type { ObsStreamStatus, ObsStreamStateChangedEvent } from './types';
+import type { ObsStreamStatus, ObsStreamStateChangedEvent, ObsRequestMessage, ObsResponseMessage, ObsMessage } from './types';
 import type { Stream } from '../stream';
 
 export interface ObsWebSocketClient {
@@ -33,5 +33,3 @@ export type ObsWebSocketEvent =
   | 'error'
   | 'StreamStateChanged'
   | 'message';
-
-import type { ObsRequestMessage, ObsResponseMessage, ObsMessage } from './types';

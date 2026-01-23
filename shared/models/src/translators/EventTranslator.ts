@@ -31,9 +31,10 @@ export function createEventAdapter(
       return new KickEventAdapter(platformEvent);
     case 'youtube':
       return new YouTubeEventAdapter(platformEvent);
-    default:
+    default: {
       const _exhaustiveCheck: never = platformEvent;
       throw new Error(`Unsupported platform: ${String(_exhaustiveCheck)}`);
+    }
   }
 }
 

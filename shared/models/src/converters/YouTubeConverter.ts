@@ -127,8 +127,9 @@ export class YouTubeConverter {
       thumbnailUrl: user.snippet.thumbnails?.default?.url || null,
       description: user.snippet.description || null,
       subscriberCount: this.parseNumber(user.statistics?.subscriberCount),
-      videoCount: this.parseNumber(user.statistics?.videoCount),
-      viewCount: this.parseNumber(user.statistics?.viewCount),
+      hiddenSubscriberCount: user.statistics?.hiddenSubscriberCount ?? false,
+      videoCount: this.parseNumber(user.statistics?.videoCount) ?? 0,
+      viewCount: this.parseNumber(user.statistics?.viewCount) ?? 0,
       createdAt: this.parseDate(user.snippet.publishedAt)
     };
   }

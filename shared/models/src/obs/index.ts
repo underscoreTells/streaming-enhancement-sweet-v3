@@ -1,4 +1,4 @@
 export * from './types';
-export * from './interface';
-export * from './ObsWebSocketClient';
+export type { ObsWebSocketClient, StreamState, StreamDetectorCallbacks, ObsWebSocketEvent } from './interface';
+export { ObsWebSocketClient as ObsWebSocketClientImpl } from './ObsWebSocketClient';
 export * from './ObsStreamDetector';

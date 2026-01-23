@@ -34,9 +34,10 @@ export function createStreamAdapter(
       return new KickStreamAdapter(platformStream, cache);
     case 'youtube':
       return new YouTubeStreamAdapter(platformStream, cache);
-    default:
+    default: {
       const _exhaustiveCheck: never = platformStream;
       throw new Error(`Unsupported platform: ${String(_exhaustiveCheck)}`);
+    }
   }
 }
 

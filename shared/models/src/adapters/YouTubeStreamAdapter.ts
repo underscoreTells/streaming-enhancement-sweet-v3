@@ -6,7 +6,7 @@ import type { FeatureData } from '../interface';
 export class YouTubeStreamAdapter implements StreamAdapter {
   constructor(
     private readonly data: YouTubeStream,
-    private readonly categoryCache: CategoryCache
+    private readonly categoryCache?: CategoryCache
   ) {}
 
   getPlatform(): 'youtube' {
@@ -24,6 +24,9 @@ export class YouTubeStreamAdapter implements StreamAdapter {
   async getCategory(): Promise<string> {
     if (!this.data.categoryId) {
       return 'No Category';
+    }
+    if (!this.categoryCache) {
+      return this.data.categoryId;
     }
     try {
       return await this.categoryCache.getCategory(this.data.categoryId, 'youtube');

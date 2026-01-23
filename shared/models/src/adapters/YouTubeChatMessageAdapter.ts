@@ -1,5 +1,6 @@
 import type { YouTubeChatMessage } from '../ChatMessage';
-import type { ChatMessageAdapter, Badge, Emote, BadgeType, EmoteType, SuperChatDetails } from './ChatMessageAdapter';
+import type { ChatMessageAdapter, Badge, Emote, EmoteType, SuperChatDetails } from './ChatMessageAdapter';
+import { BadgeType } from './ChatMessageAdapter';
 
 export class YouTubeChatMessageAdapter implements ChatMessageAdapter {
   constructor(private readonly data: YouTubeChatMessage) {}
@@ -17,7 +18,7 @@ export class YouTubeChatMessageAdapter implements ChatMessageAdapter {
   }
 
   getUsername(): string {
-    return this.data.channelTitle;
+    return this.data.displayName || this.data.channelId;
   }
 
   getDisplayName(): string {
