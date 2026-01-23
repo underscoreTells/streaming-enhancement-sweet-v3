@@ -3,6 +3,9 @@ import type { EventAdapter } from '../adapters/EventAdapter';
 import { TwitchEventAdapter } from '../adapters/TwitchEventAdapter';
 import { KickEventAdapter } from '../adapters/KickEventAdapter';
 import { YouTubeEventAdapter } from '../adapters/YouTubeEventAdapter';
+import { TwitchConverter } from '../converters/TwitchConverter';
+import { KickConverter } from '../converters/KickConverter';
+import { YouTubeConverter } from '../converters/YouTubeConverter';
 
 /**
  * Creates an EventAdapter instance from a normalized PlatformEvent type.
@@ -71,7 +74,3 @@ export function createEventAdapterFromRaw(
 
   return createEventAdapter(platformEvent);
 }
-
-import { TwitchConverter } from '../converters/TwitchConverter';
-import { KickConverter } from '../converters/KickConverter';
-import { YouTubeConverter } from '../converters/YouTubeConverter';

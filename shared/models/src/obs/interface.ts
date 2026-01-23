@@ -2,7 +2,7 @@ import type { ObsStreamStatus, ObsStreamStateChangedEvent } from './types';
 import type { Stream } from '../stream';
 
 export interface ObsWebSocketClient {
-  connect(url: string, password?: string): Promise<void>;
+  connect(password?: string): Promise<void>;
   disconnect(): Promise<void>;
   isConnected(): boolean;
 

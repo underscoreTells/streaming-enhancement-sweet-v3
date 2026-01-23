@@ -7,6 +7,7 @@ import type { CategoryCache } from '../cache/CategoryCache';
 import { TwitchConverter } from '../converters/TwitchConverter';
 import { KickConverter } from '../converters/KickConverter';
 import { YouTubeConverter } from '../converters/YouTubeConverter';
+import { PlatformStreamRecord } from '../stream';
 
 /**
  * Creates a StreamAdapter instance from a normalized PlatformStream type.
@@ -104,6 +105,3 @@ export function createPlatformStreamRecord(
     createdAt: new Date()
   };
 }
-
-import { PlatformStreamRecord } from '../stream';
-import type { PlatformStream } from '../Stream';

@@ -64,19 +64,20 @@ export class ObsStreamDetector {
         break;
 
       case ObsOutputState.Started:
-      case ObsOutputState.Reconnected:
         newState = 'live';
-        if (this.state !== 'live') {
+        if (this.state !== 'live' && !this.currentStream) {
           const startTime = new Date();
           const commonId = crypto.randomUUID();
           this.currentStream = new Stream(commonId, startTime, this.streamService);
           await this.streamService.createStream(commonId, startTime);
           this.callbacks.onStreamStart?.(this.currentStream);
-
-          if (this.state === 'reconnecting') {
-            this.callbacks.onStreamReconnected?.();
-          }
         }
+        break;
+
+      case ObsOutputState.Reconnected:
+        newState = 'live';
+        // Reuse existing stream after reconnection - don't create a new one
+        this.callbacks.onStreamReconnected?.();
         break;
 
       case ObsOutputState.Stopping:
@@ -116,9 +117,13 @@ export class ObsStreamDetector {
         if (!this.currentStream) {
           const estimatedStart = new Date(Date.now() - status.outputDuration);
           const commonId = crypto.randomUUID();
-          this.currentStream = new Stream(commonId, estimatedStart, this.streamService);
+          const stream = new Stream(commonId, estimatedStart, this.streamService);
+          this.currentStream = stream;
           this.streamService.createStream(commonId, estimatedStart).then(() => {
-            this.callbacks.onStreamStart?.(this.currentStream!);
+            // Only call callback if this stream is still current (wasn't replaced by disconnect)
+            if (this.currentStream === stream) {
+              this.callbacks.onStreamStart?.(stream);
+            }
           }).catch((error) => {
             console.error('Failed to create stream from status:', error);
           });
@@ -130,8 +135,8 @@ export class ObsStreamDetector {
     }
   }
 
-  async connect(url: string, password?: string): Promise<void> {
-    await this.client.connect(url, password);
+  async connect(password?: string): Promise<void> {
+    await this.client.connect(password);
   }
 
   async disconnect(): Promise<void> {

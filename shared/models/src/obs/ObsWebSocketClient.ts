@@ -136,6 +136,8 @@ export class ObsWebSocketClient implements IObsWebSocketClient {
       this.pendingRequests.set(request.d.requestId, { resolve, reject, timeout });
 
       if (!this.ws) {
+        clearTimeout(timeout);
+        this.pendingRequests.delete(request.d.requestId);
         reject(new Error('Not connected'));
         return;
       }
@@ -168,7 +170,7 @@ export class ObsWebSocketClient implements IObsWebSocketClient {
     switch (message.op) {
       case OpCode.Hello:
       case OpCode.Identified:
-        this.emit('message', message);
+        // Message already emitted above
         break;
 
       case OpCode.RequestResponse:
@@ -186,7 +188,6 @@ export class ObsWebSocketClient implements IObsWebSocketClient {
         if (event.d.eventType === 'StreamStateChanged') {
           this.emit('StreamStateChanged', event.d.eventData as ObsStreamStateChangedEvent);
         }
-        this.emit('message', message);
         break;
     }
   }
