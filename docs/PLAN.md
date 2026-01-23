@@ -14,12 +14,13 @@ Complete Twitch platform integration implementing unified interfaces for OAuth, 
 @docs/feature-plans/twitch-platform-strategy.md
 
 ### Current Phase
-**Phase**: Phase 3 - EventSub WebSocket Client
+**Phase**: Phase 4 - EventSub Event Handler
 **Status**: In Progress
 
 ### Completed Phases
 - ✅ Phase 1: Define Platform Interfaces - @docs/phase-plans/twitch-platform-strategy-phase-1-interfaces.md
 - ✅ Phase 2: TwitchStrategy Main Facade - @docs/phase-plans/twitch-platform-strategy-phase-2-facade.md
+- ✅ Phase 3: EventSub WebSocket Client - @docs/phase-plans/twitch-platform-strategy-phase-3-eventsub-client.md
 
 ### Platform Capabilities Summary
 
