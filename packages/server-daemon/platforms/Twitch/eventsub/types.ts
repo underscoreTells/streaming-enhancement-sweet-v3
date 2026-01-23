@@ -1,3 +1,15 @@
+export enum EventType {
+  StreamOnline = 'channel.stream.online',
+  StreamOffline = 'channel.stream.offline',
+  ChannelUpdate = 'channel.update',
+  ChatMessage = 'channel.chat.message',
+  Subscribe = 'channel.subscribe',
+  SubscriptionMessage = 'channel.subscription.message',
+  SubscriptionGift = 'channel.subscription.gift',
+  RewardRedemption = 'channel.channel_points_custom_reward_redemption.add',
+  Follow = 'channel.follow',
+}
+
 export interface EventSubMessage {
   metadata: {
     message_id: string;
