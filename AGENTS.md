@@ -5,9 +5,15 @@ Read these files for complete context:
 - @docs/WORKFLOW.md - AI-assisted development methodology and file structure
 - @docs/PLAN.md - Current feature being implemented
 - @docs/module-plans/module-server-daemon.md - Server daemon module details
-- @docs/feature-plans/daemon-server-core.md - Daemon Server Core feature plan (current)
+- @docs/architecture/shared-data-models.md - Shared data models architecture
+- @docs/architecture/stream-field-mapping.md - Stream field mapping reference
+- @docs/archive/shared-data-models-summary.md - Shared data models feature summary
 
 ### Completed Features
+- @docs/archive/phase-plans/phase-7-translator-layer.md - Translator layer (complete)
+- @docs/archive/phase-plans/phase-9-stream-matcher.md - Stream matcher (complete)
+- @docs/archive/phase-plans/phase-11-obs-websocket.md - OBS WebSocket integration (complete)
+- @docs/archive/phase-plans/phase-12-integration-tests.md - Integration tests (complete)
 - @docs/archive/feature-plans/oauth-flow-keystore.md - OAuth flow & keystore implementation (complete)
 - @docs/fixes/native-keystore-linux-secret-service.md - Linux keystore Secret Service fix (complete)
 
@@ -175,7 +181,25 @@ server-daemon/
 │   └── infrastructure/       # Server setup, database (SQLite), OAuth, config, logging
 └── __tests__/                # Tests
 
-shared/models/                # Unified data types for cross-platform consistency
+shared/models/                # Shared data types for cross-platform consistency
+**Purpose**: Unified data types and adapter pattern for cross-platform streaming data
+
+**Key Files**:
+- `src/Platform.ts` - Platform type
+- `src/Stream.ts` - Platform Stream types (TwitchStream, KickStream, YouTubeStream)
+- `src/User.ts` - Platform User types
+- `src/ChatMessage.ts` - Platform chat message types
+- `src/Event.ts` - Platform event types
+- `src/adapters/` - Adapter interfaces and implementations
+- `src/translators/` - Factory functions to create adapters
+- `src/matchers/` - Stream matcher for historical data (85-90% overlap threshold)
+- `src/obs/` - OBS WebSocket integration (thin wrapper around ws library)
+- `src/stream/` - Stream class, StreamService interface, PlatformStreamRecord
+- `src/converters/` - Platform data converters (TwitchConverter, KickConverter, YouTubeConverter)
+
+**Usage**: Platform strategies import and use these types to normalize API responses
+
+**Docs**: @shared/models/README.md
 ```
 
 ### CLI Structure
