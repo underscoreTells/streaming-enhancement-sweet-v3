@@ -4,11 +4,18 @@
 Local analytics & integration tool for livestreamers (Twitch, Kick, YouTube). Provides !commands, points rewards, TTS, OBS integration via CLI, Web UI, and Streamdeck interfaces. Daemon (Express + WebSocket + SQLite) with strategy pattern for platforms.
 
 ## Current Feature
-**Feature**: [NEXT FEATURE NAME]
-**Status**: Pending
+**Feature**: Twitch Platform Strategy
+**Status**: In Progress (Planning complete)
 
 ### Overview
-Create unified, platform-agnostic data types for streaming data across Twitch (EventSub + IRC WebSocket), Kick (REST + Webhooks), and YouTube (REST + Server-Stream chat). This is a foundational feature for all platform strategies.
+Complete Twitch platform integration implementing unified interfaces for OAuth, WebSocket (EventSub + IRC), and REST API. Establishes patterns for Kick and YouTube platform strategies.
+
+### Implementation
+@docs/feature-plans/twitch-platform-strategy.md
+
+### Current Phase
+**Phase**: None (starting Phase 1)
+**Status**: Pending
 
 ### Platform Capabilities Summary
 
@@ -125,7 +132,6 @@ Key achievements:
 **Details**: See @docs/module-plans/module-server-daemon.md
 
 ## Upcoming in This Module
-- Feature: Twitch platform strategy (EventSub WebSocket + IRC WebSocket)
 - Feature: Kick platform strategy (REST API + Webhooks)
 - Feature: YouTube platform strategy (REST API + Server-Stream chat)
 - Feature: OBS WebSocket integration (ObsService beyond shared/models)
