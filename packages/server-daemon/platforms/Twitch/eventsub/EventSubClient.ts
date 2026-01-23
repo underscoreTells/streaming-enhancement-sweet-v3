@@ -12,6 +12,7 @@ export interface EventSubClientOptions {
 
 export class EventSubClient extends EventEmitter {
   private ws: WebSocket | null = null;
+  private oldWs: WebSocket | null = null; // Old connection during reconnect
   private sessionId: string | null = null;
   private reconnectUrl: string | null = null;
   private keepaliveTimer: NodeJS.Timeout | null = null;
@@ -38,14 +39,51 @@ export class EventSubClient extends EventEmitter {
     const connectUrl = url ?? this.options.url;
     
     this.logger.info(`EventSubClient connecting to ${connectUrl}`);
-    this.ws = new WebSocket(connectUrl);
+    
+    return new Promise<void>((resolve, reject) => {
+      const connectionTimeout = setTimeout(() => {
+        this.disconnect();
+        reject(new Error('EventSub connection timeout: no session_welcome received'));
+      }, 30000); // 30 second timeout
 
-    this.ws.on('open', () => this.onOpen());
-    this.ws.on('message', (data) => this.onMessage(data as Buffer));
-    this.ws.on('close', (code, reason) => this.onClose(code, reason));
-    this.ws.on('error', (error) => this.onError(error));
-    this.ws.on('ping', () => this.onPing());
-    this.ws.on('pong', () => this.onPong());
+      const cleanup = () => {
+        clearTimeout(connectionTimeout);
+      };
+
+      const onConnected = (session: SessionWelcome) => {
+        cleanup();
+        resolve();
+      };
+
+      const onError = (error: Error) => {
+        cleanup();
+        this.removeListener('connected', onConnected);
+        this.removeListener('error', onError);
+        reject(error);
+      };
+
+      this.once('connected', onConnected);
+      this.once('error', onError);
+
+      this.ws = new WebSocket(connectUrl);
+
+      this.ws.on('open', () => this.onOpen());
+      this.ws.on('message', (data) => this.onMessage(data as Buffer));
+      this.ws.on('close', (code, reason) => {
+        cleanup();
+        this.removeListener('connected', onConnected);
+        this.removeListener('error', onError);
+        this.onClose(code, reason);
+      });
+      this.ws.on('error', (error) => {
+        cleanup();
+        this.removeListener('connected', onConnected);
+        this.removeListener('error', onError);
+        this.onError(error);
+      });
+      this.ws.on('ping', () => this.onPing());
+      this.ws.on('pong', () => this.onPong());
+    });
   }
 
   private onOpen() {
@@ -117,6 +155,13 @@ export class EventSubClient extends EventEmitter {
     this.reconnectAttempts = 0;
     this.reconnectTimer = null;
     
+    // Close old connection if reconnecting
+    if (this.oldWs) {
+      this.logger.info('Closing old EventSub connection after successful reconnect');
+      this.oldWs.close(1000, 'Reconnected');
+      this.oldWs = null;
+    }
+    
     this.emit('connected', session);
   }
 
@@ -149,6 +194,11 @@ export class EventSubClient extends EventEmitter {
     const newUrl = session.reconnect_url;
     this.logger.info(`EventSub reconnect requested. New URL: ${newUrl}`);
     
+    // Store old connection to keep it alive until new connection is established
+    this.oldWs = this.ws;
+    this.ws = null;
+    
+    // Connect to new URL; old connection will be closed after session_welcome
     this.connect(newUrl);
   }
 
@@ -196,6 +246,10 @@ export class EventSubClient extends EventEmitter {
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
+    }
+    if (this.oldWs) {
+      this.oldWs.close(1000, 'Graceful shutdown');
+      this.oldWs = null;
     }
     if (this.ws) {
       this.ws.close(1000, 'Graceful shutdown');

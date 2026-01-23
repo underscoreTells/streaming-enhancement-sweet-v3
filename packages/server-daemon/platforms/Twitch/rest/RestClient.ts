@@ -28,14 +28,18 @@ export class RestClient {
     };
   }
 
-  async get(endpoint: string, params?: Record<string, string | number | boolean>): Promise<unknown> {
+  async get(endpoint: string, params?: Record<string, string | number | boolean | (string | number)[]>): Promise<unknown> {
     await this.waitForRateLimit();
 
     const url = new URL(`${this.baseUrl}${endpoint}`);
     
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        url.searchParams.append(key, String(value));
+        if (Array.isArray(value)) {
+          value.forEach(v => url.searchParams.append(key, String(v)));
+        } else {
+          url.searchParams.append(key, String(value));
+        }
       });
     }
 
@@ -61,11 +65,12 @@ export class RestClient {
   }
 
   private async request(url: string, method: string, body?: unknown): Promise<unknown> {
-    const headers = await this.getHeaders();
     const maxRetries = 3;
     let attempt = 0;
 
     while (attempt < maxRetries) {
+      const headers = await this.getHeaders();
+      
       try {
         const response = await fetch(url, {
           method,

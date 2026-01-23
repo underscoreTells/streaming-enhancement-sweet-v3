@@ -135,7 +135,7 @@ export class TwitchStrategy extends EventEmitter
         clientId: this.config.clientId,
         accessToken,
       });
-      this.eventSubHandler = new EventSubHandler();
+      this.eventSubHandler = new EventSubHandler(this.logger);
       
       const handlers = createEventHandlers(this.logger);
       for (const [eventType, handler] of handlers.entries()) {
@@ -230,7 +230,7 @@ export class TwitchStrategy extends EventEmitter
         this.eventSubSubscription.create(EventType.Follow, '2', { broadcaster_user_id: user.id, moderator_user_id: user.id }, sessionId),
       ]);
 
-      this.ircClient.connect(user.login, token);
+      await this.ircClient.connect(user.login, token);
       this.ircClient.join(user.login);
 
       this.logger.info(`Subscribed to channel: ${username} (${user.id})`);
@@ -274,7 +274,7 @@ export class TwitchStrategy extends EventEmitter
         sessionId
       );
 
-      this.ircClient.connect(user.login, token);
+      await this.ircClient.connect(user.login, token);
       this.ircClient.join(user.login);
 
       this.logger.info(`Subscribed to chat: ${user.login} (${channelId})`);
@@ -288,7 +288,12 @@ export class TwitchStrategy extends EventEmitter
     this.logger.debug(`unsubscribeFromChannel: channelId=${channelId}`);
     
     try {
-      const users = await getUsersById(this.restClient!, [channelId]);
+      if (!this.restClient) {
+        this.logger.warn('REST client not initialized, cannot unsubscribe from channel');
+        return;
+      }
+      
+      const users = await getUsersById(this.restClient, [channelId]);
       if (users.length > 0) {
         this.ircClient?.leave(users[0].login);
       }

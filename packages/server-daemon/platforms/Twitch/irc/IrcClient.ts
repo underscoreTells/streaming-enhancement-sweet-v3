@@ -47,14 +47,51 @@ export class IrcClient extends EventEmitter {
     this.options.token = token;
 
     this.logger.info(`IrcClient connecting as ${this.options.nick}`);
-    this.ws = new WebSocket(this.options.url);
+    
+    return new Promise<void>((resolve, reject) => {
+      const connectionTimeout = setTimeout(() => {
+        this.disconnect();
+        reject(new Error('IRC connection timeout: authentication not completed'));
+      }, 30000); // 30 second timeout
 
-    this.ws.on('open', () => this.onOpen());
-    this.ws.on('message', (data) => this.onMessage(data as Buffer));
-    this.ws.on('close', (code, reason) => this.onClose(code, reason));
-    this.ws.on('error', (error) => this.onError(error));
-    this.ws.on('ping', () => this.onPing());
-    this.ws.on('pong', () => this.onPong());
+      const cleanup = () => {
+        clearTimeout(connectionTimeout);
+      };
+
+      const onConnected = () => {
+        cleanup();
+        resolve();
+      };
+
+      const onError = (error: Error) => {
+        cleanup();
+        this.removeListener('connected', onConnected);
+        this.removeListener('error', onError);
+        reject(error);
+      };
+
+      this.once('connected', onConnected);
+      this.once('error', onError);
+
+      this.ws = new WebSocket(this.options.url);
+
+      this.ws.on('open', () => this.onOpen());
+      this.ws.on('message', (data) => this.onMessage(data as Buffer));
+      this.ws.on('close', (code, reason) => {
+        cleanup();
+        this.removeListener('connected', onConnected);
+        this.removeListener('error', onError);
+        this.onClose(code, reason);
+      });
+      this.ws.on('error', (error) => {
+        cleanup();
+        this.removeListener('connected', onConnected);
+        this.removeListener('error', onError);
+        this.onError(error);
+      });
+      this.ws.on('ping', () => this.onPing());
+      this.ws.on('pong', () => this.onPong());
+    });
   }
 
   private onOpen() {
@@ -193,7 +230,9 @@ export class IrcClient extends EventEmitter {
     this.reconnectAttempts++;
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = null;
-      this.connect(this.options.nick, this.options.token);
+      this.connect(this.options.nick, this.options.token).catch((error) => {
+        this.logger.error('IRC reconnection failed:', error);
+      });
     }, delay);
   }
 

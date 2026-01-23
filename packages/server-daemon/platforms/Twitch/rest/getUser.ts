@@ -21,10 +21,7 @@ export async function getUsers(
   if (usernames.length === 0) return [];
   
   // Twitch API accepts multiple login params: ?login=user1&login=user2
-  const params = usernames.reduce<Record<string, string>>((acc, name, index) => {
-    acc[`login[${index}]`] = name;
-    return acc;
-  }, {});
+  const params = { login: usernames };
   
   const response = await restClient.get('/users', params) as TwitchUsersResponse;
   return response.data || [];
@@ -37,10 +34,7 @@ export async function getUsersById(
   if (userIds.length === 0) return [];
   
   // Twitch API accepts multiple id params: ?id=id1&id=id2
-  const params = userIds.reduce<Record<string, string>>((acc, id, index) => {
-    acc[`id[${index}]`] = id;
-    return acc;
-  }, {});
+  const params = { id: userIds };
   
   const response = await restClient.get('/users', params) as TwitchUsersResponse;
   return response.data || [];

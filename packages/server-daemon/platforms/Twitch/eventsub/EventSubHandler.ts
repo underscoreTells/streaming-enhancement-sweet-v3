@@ -7,6 +7,8 @@ export type EventSubHandlerFn = (message: EventSubMessage) => void;
 export class EventSubHandler {
   private handlers = new Map<EventType, EventSubHandlerFn>();
 
+  constructor(private logger: Logger) {}
+
   register(eventType: EventType, handler: EventSubHandlerFn) {
     this.handlers.set(eventType, handler);
   }
@@ -17,8 +19,8 @@ export class EventSubHandler {
     if (subscriptionType && this.handlers.has(subscriptionType as EventType)) {
       const handler = this.handlers.get(subscriptionType as EventType)!;
       handler(message);
-    } else {
-      console.warn(`No handler registered for event type: ${subscriptionType}`);
+    } else if (subscriptionType) {
+      this.logger.debug(`No handler registered for event type: ${subscriptionType}`);
     }
   }
 }
