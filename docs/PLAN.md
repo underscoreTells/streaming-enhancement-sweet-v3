@@ -5,8 +5,11 @@ Local analytics & integration tool for livestreamers (Twitch, Kick, YouTube). Pr
 
 ## Current Feature
 **Feature**: Shared Data Models
-**Status**: In Progress - Phases 1-6 Complete, 6 of 13 phases complete (46%)
-**Estimated Effort**: 85-105 hours
+**Status**: In Progress - Phases 1-7 Complete, 7 of 12 phases remaining (58%)
+**Estimated Effort**: 40-50 hours (revised after architecture change)
+
+**Current Phase**: Phase 11 - OBS WebSocket Integration (foundation layer)
+**Last Completed**: Phase 7 - Translator Layer (completed 2026-01-22)
 
 **Full Implementation Plan**: @docs/feature-plans/shared-data-models.md
 
@@ -34,30 +37,33 @@ Create unified, platform-agnostic data types for streaming data across Twitch (E
 | **Kick** | ✅ @docs.kick.com | ✅ Webhooks | ✅ Webhooks | HTTPS |
 | **YouTube** | ✅ Data API v3 | ⚠️ Limited (Polling) | ✅ Server-Stream HTTP | HTTP/gRPC |
 
-### Completed Phases (1-6)
+### Completed Phases (1-7)
 1. **✅ Phase 1: Module Structure Setup** - TypeScript, Vitest, build scripts
 2. **✅ Phase 2: Platform-Specific Base Types** - Platform, Stream, User types
 3. **✅ Phase 3: Live Data Types** - StreamStats interface
 4. **✅ Phase 4: Converter Layer** - TwitchConverter, KickConverter, YouTubeConverter
 5. **✅ Phase 5: Adapter Interfaces** - StreamAdapter, UserAdapter, ChatMessageAdapter, EventAdapter
 6. **✅ Phase 6: Adapter Implementations** - Concrete adapters + unified Stream/User wrappers
+7. **✅ Phase 7: Translator Layer** - Factory functions to create adapters from platform types (completed 2026-01-22)
 
-### Remaining Phases (7-13)
-7. **Phase 7: Translator Layer** - Create adapters from platform types
-8. **Phase 8: Category Cache Implementation** - InMemoryCategoryCache, DatabaseCategoryCache
-9. **Phase 9: Stream Matcher** - Stream matching for late data reconstruction
-10. **Phase 10: User Matcher** - Cross-platform user linking framework
-11. **Phase 11: OBS WebSocket Integration** - ObsWebSocketClient, ObsStreamDetector
-12. **Phase 12: Integration Tests** - End-to-end testing
-13. **Phase 13: Documentation** - Architecture docs, field mapping tables
+### Remaining Phases (8-12)
+8. **Phase 9: Stream Matcher** - Stream matching for late data reconstruction (next after Phase 11)
+9. **Phase 11: OBS WebSocket Integration** - ObsWebSocketClient, ObsStreamDetector, StreamService (FOUNDATION - current)
+10. **Phase 12: Integration Tests** - End-to-end testing
+11. **Phase 13: Documentation** - Architecture docs, field mapping tables
+
+**Removed Phases** (as per architecture revision):
+- Phase 8 (Category Cache) - UI will handle category ID→name resolution
+- Phase 10 (User Matcher) - Cross-platform chatter linking infeasible without identity verification
 
 ### Key Deliverables (So Far)
 - ✅ Complete type definitions with @docs/research/API-RESEARCH.md field mappings
-- ✅ Platform data converters (Twitch, Kick, YouTube)
+- ✅ Platform data converters (Twitch, Kick, YouTube) with chat message and event support
 - ✅ Adapter interfaces and implementations (Stream, User, ChatMessage, Event)
 - ✅ Unified Stream and User wrapper types
-- ✅ 87 unit tests passing (including converter and adapter tests)
-- ⏳ 100% test coverage for validators (in progress)
+- ✅ Translator factory functions for creating adapters from platform types
+- ✅ 134 unit tests passing (including converter and adapter tests)
+- ⏳ OBS WebSocket integration with StreamService (Phase 11 - in progress)
 - ⏳ Comprehensive documentation (Phase 13)
 
 ---

@@ -82,9 +82,6 @@ export function createStreamAdapterFromRaw(
 /**
  * Helper function to create a PlatformStreamRecord from platform stream data.
  *
- * NOTE: This function is dependent on Phase 11 implementation.
- * The PlatformStreamRecord type will be defined in the new Stream module.
- *
  * @param commonId - The common stream ID linking multiple platforms
  * @param platformStream - The platform-specific stream data
  * @returns A PlatformStreamRecord instance for database storage
@@ -108,14 +105,5 @@ export function createPlatformStreamRecord(
   };
 }
 
-/**
- * Type for platform stream records stored in the database.
- * This will be fully defined in Phase 11 when the new Stream module is created.
- */
-export interface PlatformStreamRecord {
-  id: string;
-  commonId: string;
-  platform: 'twitch' | 'kick' | 'youtube';
-  data: PlatformStream;
-  createdAt: Date;
-}
+import { PlatformStreamRecord } from '../stream';
+import type { PlatformStream } from '../Stream';
