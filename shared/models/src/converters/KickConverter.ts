@@ -1,5 +1,8 @@
 import type { KickStream } from '../Stream';
 import type { KickUser } from '../User';
+import type { KickChatMessage } from '../ChatMessage';
+import type { KickEvent } from '../Event';
+import { KickEventType } from '../Event';
 
 interface KickStreamApiResponse {
   id: string;
@@ -46,15 +49,11 @@ export class KickConverter {
       throw new Error('Invalid Kick stream API response: missing stream id');
     }
 
-    if (!stream.username && !(data as any).user?.username) {
-      throw new Error('Invalid Kick stream API response: missing username');
-    }
-
     if (!stream.title) {
       throw new Error('Invalid Kick stream API response: missing title');
     }
 
-    const username = stream.username || (data as any).user.username;
+    const username = stream.username || (data as any).user?.username;
 
     return {
       platform: 'kick',
@@ -65,7 +64,9 @@ export class KickConverter {
       tags: stream.tags || [],
       language: stream.language || 'en',
       thumbnailUrl: stream.thumbnail || null,
-      totalTipsUsd: 0
+      totalTipsUsd: 0,
+      startTime: this.parseDate(stream.created_at) || new Date(),
+      endTime: null
     };
   }
 
@@ -93,6 +94,73 @@ export class KickConverter {
       bio: user.bio || null,
       isVerified: user.is_verified ?? false,
       createdAt: this.parseDate(user.created_at)
+    };
+  }
+
+  static convertChatMessage(data: unknown): KickChatMessage {
+    const msg = data as any;
+
+    if (!msg) {
+      throw new Error('Invalid Kick chat message: empty data');
+    }
+
+    if (!msg.id && !msg.chat_id) {
+      throw new Error('Invalid Kick chat message: missing message id');
+    }
+
+    return {
+      platform: 'kick',
+      messageId: msg.id || msg.chat_id || '',
+      userId: msg.user_id || msg.sender?.id || '',
+      username: msg.username || msg.sender?.username || '',
+      displayName: msg.display_name || msg.sender?.display_name || null,
+      color: msg.color || null,
+      message: msg.content || '',
+      timestamp: this.parseDate(msg.created_at || msg.timestamp) || new Date(),
+      roomId: msg.room_id || msg.channel_id || '',
+      badges: msg.badges || msg.sender?.badges || [],
+      emotes: msg.emotes || []
+    };
+  }
+
+  static convertEvent(data: unknown): KickEvent {
+    const event = data as any;
+
+    if (!event) {
+      throw new Error('Invalid Kick event: empty data');
+    }
+
+    let eventType: KickEventType;
+    switch (event.type || event.event_type) {
+      case 'followed':
+        eventType = KickEventType.Follow;
+        break;
+      case 'subscribed':
+        eventType = KickEventType.Subscribe;
+        break;
+      case 'subscription_gift':
+        eventType = KickEventType.SubscriptionGift;
+        break;
+      case 'raid':
+        eventType = KickEventType.Raid;
+        break;
+      case 'tip':
+        eventType = KickEventType.Tip;
+        break;
+      default:
+        eventType = KickEventType.Follow;
+    }
+
+    return {
+      platform: 'kick',
+      eventId: event.id || '',
+      type: eventType,
+      timestamp: this.parseDate(event.timestamp || event.created_at) || new Date(),
+      userId: event.user_id || '',
+      username: event.username || '',
+      displayName: event.display_name || null,
+      channelId: event.channel_id || '',
+      data: event.data || event
     };
   }
 

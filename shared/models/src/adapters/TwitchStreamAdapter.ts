@@ -6,7 +6,7 @@ import type { FeatureData } from '../interface';
 export class TwitchStreamAdapter implements StreamAdapter {
   constructor(
     private readonly data: TwitchStream,
-    private readonly categoryCache: CategoryCache
+    private readonly categoryCache?: CategoryCache
   ) {}
 
   getPlatform(): 'twitch' {
@@ -24,6 +24,9 @@ export class TwitchStreamAdapter implements StreamAdapter {
   async getCategory(): Promise<string> {
     if (!this.data.categoryId) {
       return 'No Category';
+    }
+    if (!this.categoryCache) {
+      return this.data.categoryId;
     }
     return await this.categoryCache.getCategory(this.data.categoryId, 'twitch');
   }

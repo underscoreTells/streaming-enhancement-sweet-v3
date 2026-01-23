@@ -1,5 +1,8 @@
 import type { YouTubeStream } from '../Stream';
 import type { YouTubeUser } from '../User';
+import type { YouTubeChatMessage } from '../ChatMessage';
+import type { YouTubeEvent } from '../Event';
+import { YouTubeEventType } from '../Event';
 
 interface YouTubeStreamApiResponse {
   kind: string;
@@ -94,7 +97,9 @@ export class YouTubeConverter {
       privacyStatus: stream.status?.privacyStatus || 'public',
       thumbnailUrl: stream.snippet.thumbnails?.default?.url || null,
       subscriberCount: 0,
-      superChatTotal: 0
+      superChatTotal: 0,
+      startTime: this.parseDate(stream.snippet.publishedAt) || new Date(),
+      endTime: null
     };
   }
 
@@ -122,9 +127,81 @@ export class YouTubeConverter {
       thumbnailUrl: user.snippet.thumbnails?.default?.url || null,
       description: user.snippet.description || null,
       subscriberCount: this.parseNumber(user.statistics?.subscriberCount),
-      videoCount: this.parseNumber(user.statistics?.videoCount),
-      viewCount: this.parseNumber(user.statistics?.viewCount),
+      hiddenSubscriberCount: user.statistics?.hiddenSubscriberCount ?? false,
+      videoCount: this.parseNumber(user.statistics?.videoCount) ?? 0,
+      viewCount: this.parseNumber(user.statistics?.viewCount) ?? 0,
       createdAt: this.parseDate(user.snippet.publishedAt)
+    };
+  }
+
+  static convertChatMessage(data: unknown): YouTubeChatMessage {
+    const msg = data as any;
+
+    if (!msg) {
+      throw new Error('Invalid YouTube chat message: empty data');
+    }
+
+    const snippet = msg.snippet || {};
+    const authorDetails = msg.authorDetails || {};
+
+    return {
+      platform: 'youtube',
+      messageId: msg.id || '',
+      channelId: authorDetails.channelId || '',
+      displayName: authorDetails.displayName || '',
+      profileImageUrl: authorDetails.profileImageUrl || null,
+      message: snippet.textMessageDetails?.message || snippet.displayMessage || '',
+      timestamp: this.parseDate(snippet.publishedAt) || new Date(),
+      liveChatId: snippet.liveChatId || '',
+      badges: authorDetails.badges || [],
+      superChatDetails: snippet.superChatDetails ? {
+        amountDisplayString: snippet.superChatDetails.amountDisplayString || '',
+        amountMicros: snippet.superChatDetails.amountMicros || 0,
+        currency: snippet.superChatDetails.currency || '',
+        userComment: snippet.superChatDetails.userComment || '',
+        tier: snippet.superChatDetails.tier || 0
+      } : undefined
+    };
+  }
+
+  static convertEvent(data: unknown): YouTubeEvent {
+    const event = data as any;
+
+    if (!event) {
+      throw new Error('Invalid YouTube event: empty data');
+    }
+
+    let eventType: YouTubeEventType;
+    switch (event.kind) {
+      case 'youtube#superChatEvent':
+        eventType = YouTubeEventType.SuperChat;
+        break;
+      case 'youtube#superStickerEvent':
+        eventType = YouTubeEventType.SuperSticker;
+        break;
+      case 'youtube#membershipGiftingEvent':
+        eventType = YouTubeEventType.Membership;
+        break;
+      case 'youtube#newSponsorEvent':
+        eventType = YouTubeEventType.NewMember;
+        break;
+      case 'youtube#memberMilestoneChatEvent':
+        eventType = YouTubeEventType.MemberMilestone;
+        break;
+      default:
+        eventType = YouTubeEventType.Membership;
+    }
+
+    const snippet = event.snippet || {};
+
+    return {
+      platform: 'youtube',
+      eventId: event.id || '',
+      type: eventType,
+      timestamp: this.parseDate(snippet.publishedAt || event.timestamp) || new Date(),
+      channelId: snippet.channelId || '',
+      channelTitle: snippet.channelTitle || '',
+      data: event.snippet || event
     };
   }
 

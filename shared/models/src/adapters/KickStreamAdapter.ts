@@ -6,7 +6,7 @@ import type { FeatureData } from '../interface';
 export class KickStreamAdapter implements StreamAdapter {
   constructor(
     private readonly data: KickStream,
-    private readonly categoryCache: CategoryCache
+    private readonly categoryCache?: CategoryCache
   ) {}
 
   getPlatform(): 'kick' {
@@ -24,6 +24,9 @@ export class KickStreamAdapter implements StreamAdapter {
   async getCategory(): Promise<string> {
     if (!this.data.categorySlug) {
       return 'No Category';
+    }
+    if (!this.categoryCache) {
+      return this.data.categorySlug;
     }
     return await this.categoryCache.getCategory(this.data.categorySlug, 'kick');
   }
