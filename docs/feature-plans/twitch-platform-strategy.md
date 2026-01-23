@@ -142,8 +142,9 @@ DaemonApp → TwitchStrategy → EventSubClient → EventSubHandler → Shared m
 ## Current Phase
 
 - Status: In Progress
-- Active Phase Plan: @docs/phase-plans/twitch-platform-strategy-phase-2-facade.md
+- Active Phase Plan: @docs/phase-plans/twitch-platform-strategy-phase-3-eventsub-client.md
 
 ## Completed Phases
 
-- ✅ Phase 1: Define Platform Interfaces - @docs/archive/phase-plans/twitch-platform-strategy-phase-1-interfaces.md (2026-01-23)
+- ✅ Phase 1: Define Platform Interfaces (2026-01-23)
+- ✅ Phase 2: TwitchStrategy Main Facade (2026-01-23)
