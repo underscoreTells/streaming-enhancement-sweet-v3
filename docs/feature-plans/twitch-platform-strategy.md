@@ -142,10 +142,11 @@ DaemonApp → TwitchStrategy → EventSubClient → EventSubHandler → Shared m
 ## Current Phase
 
 - Status: In Progress
-- Active Phase Plan: @docs/phase-plans/twitch-platform-strategy-phase-4-eventsub-handler.md
+- Active Phase Plan: @docs/phase-plans/twitch-platform-strategy-phase-5-irc-client.md
 
 ## Completed Phases
 
 - ✅ Phase 1: Define Platform Interfaces (2026-01-23)
 - ✅ Phase 2: TwitchStrategy Main Facade (2026-01-23)
 - ✅ Phase 3: EventSub WebSocket Client (2026-01-23)
+- ✅ Phase 4: EventSub Event Handler (2026-01-23)
