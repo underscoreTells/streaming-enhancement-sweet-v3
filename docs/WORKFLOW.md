@@ -73,15 +73,20 @@ This document describes the methodology for working with AI agents on this proje
 
 ## Phase Planning
 
+### Phase Plan Template
+- **Template**: @docs/phase-plan-template.md
+- **Purpose**: Streamlined template for creating phase plans (~80% less detail)
+- **Usage**: Copy template and fill in for each phase
+
 ### Phase Plan Files
 - **Location**: `docs/phase-plans/[phase-name].md`
-- **Purpose**: Detailed task breakdown for individual phases within a feature
+- **Purpose**: Task breakdown for individual phases within a feature
 - **Content**:
-  - Phase-specific architecture decisions
-  - Detailed task list with checkboxes
-  - Implementation order
+  - Phase overview (1-2 sentences)
+  - Task checklist
   - Files to create/modify
-  - Dependencies between tasks
+  - Acceptance criteria (checklist format)
+  - Dependencies between phases
 - **Lifecycle**: Created before phase implementation, archived when phase complete
 - **Commit**: Commit archived file along with phase implementation
 - **Archive location**: Move completed phase plans to `docs/archive/phase-plans/[phase-name].md`

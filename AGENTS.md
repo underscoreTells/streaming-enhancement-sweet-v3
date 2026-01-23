@@ -3,6 +3,7 @@
 ## Documentation Hub
 Read these files for complete context:
 - @docs/WORKFLOW.md - AI-assisted development methodology and file structure
+- @docs/phase-plan-template.md - Template for creating streamlined phase plans
 - @docs/PLAN.md - Current feature being implemented
 - @docs/module-plans/module-server-daemon.md - Server daemon module details
 - @docs/architecture/shared-data-models.md - Shared data models architecture
