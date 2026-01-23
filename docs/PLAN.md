@@ -14,7 +14,7 @@ Complete Twitch platform integration implementing unified interfaces for OAuth, 
 @docs/feature-plans/twitch-platform-strategy.md
 
 ### Current Phase
-**Phase**: Phase 5 - IRC WebSocket Client
+**Phase**: Phase 6 - REST API Client (Minimal)
 **Status**: In Progress
 
 ### Completed Phases
@@ -22,6 +22,7 @@ Complete Twitch platform integration implementing unified interfaces for OAuth, 
 - ✅ Phase 2: TwitchStrategy Main Facade - @docs/phase-plans/twitch-platform-strategy-phase-2-facade.md
 - ✅ Phase 3: EventSub WebSocket Client - @docs/phase-plans/twitch-platform-strategy-phase-3-eventsub-client.md
 - ✅ Phase 4: EventSub Event Handler - @docs/phase-plans/twitch-platform-strategy-phase-4-eventsub-handler.md
+- ✅ Phase 5: IRC WebSocket Client - @docs/phase-plans/twitch-platform-strategy-phase-5-irc-client.md
 
 ### Platform Capabilities Summary
 
