@@ -14,6 +14,7 @@ interface TwitchStreamApiResponse {
     is_mature?: boolean;
     language: string;
     thumbnail_url?: string;
+    started_at?: string;
   }>;
 }
 
@@ -62,7 +63,9 @@ export class TwitchConverter {
       isMature: stream.is_mature ?? false,
       language: stream.language,
       thumbnailUrl: stream.thumbnail_url || null,
-      channelPoints: 0
+      channelPoints: 0,
+      startTime: this.parseDate(stream.started_at) || new Date(),
+      endTime: null
     };
   }
 

@@ -9,6 +9,8 @@ export interface TwitchStream {
   language: string;
   thumbnailUrl: string | null;
   channelPoints: number;
+  startTime: Date;
+  endTime?: Date | null;
 }
 
 export interface KickStream {
@@ -21,6 +23,8 @@ export interface KickStream {
   language: string;
   thumbnailUrl: string | null;
   totalTipsUsd: number;
+  startTime: Date;
+  endTime?: Date | null;
 }
 
 export interface YouTubeStream {
@@ -34,6 +38,8 @@ export interface YouTubeStream {
   thumbnailUrl: string | null;
   subscriberCount: number;
   superChatTotal: number;
+  startTime: Date;
+  endTime?: Date | null;
 }
 
 export type PlatformStream = TwitchStream | KickStream | YouTubeStream;

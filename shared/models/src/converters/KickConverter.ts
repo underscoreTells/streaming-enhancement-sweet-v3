@@ -64,7 +64,9 @@ export class KickConverter {
       tags: stream.tags || [],
       language: stream.language || 'en',
       thumbnailUrl: stream.thumbnail || null,
-      totalTipsUsd: 0
+      totalTipsUsd: 0,
+      startTime: this.parseDate(stream.created_at) || new Date(),
+      endTime: null
     };
   }
 

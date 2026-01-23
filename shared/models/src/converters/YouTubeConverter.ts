@@ -97,7 +97,9 @@ export class YouTubeConverter {
       privacyStatus: stream.status?.privacyStatus || 'public',
       thumbnailUrl: stream.snippet.thumbnails?.default?.url || null,
       subscriberCount: 0,
-      superChatTotal: 0
+      superChatTotal: 0,
+      startTime: this.parseDate(stream.snippet.publishedAt) || new Date(),
+      endTime: null
     };
   }
 
