@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createLogger } from 'winston';
-import { TwitchOAuth } from '../../../platforms/Twitch/TwitchOAuth';
+import { TwitchOAuth } from '../../../../platforms/Twitch/TwitchOAuth';
 import { MockKeystoreManager } from '../mocks/KeystoreManager.mock';
 import { KeystoreManager } from '../../../infrastructure/keystore/KeystoreManager';
 import { OAuthConfig } from '../../../infrastructure/config/Config';
-import { RefreshFailedError } from '../../../platforms/errors';
+import { RefreshFailedError } from '../../../../platforms/errors';
 
 class MockOAuthCredentialsRepository {
   private credentials: Map<string, { client_id: string; client_secret: string; scopes: string[]; created_at: string }> = new Map();

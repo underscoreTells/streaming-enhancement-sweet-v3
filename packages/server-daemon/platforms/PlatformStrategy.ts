@@ -1,13 +1,10 @@
-import type { TokenSet } from './types';
+/**
+ * @deprecated Use separate interfaces from @platforms/interfaces
+ * - PlatformOAuthStrategy for OAuth operations
+ * - PlatformWebSocketStrategy for WebSocket connections
+ * - PlatformRestStrategy for REST API calls
+ */
+import type { PlatformOAuthStrategy, PlatformWebSocketStrategy, PlatformRestStrategy } from './interfaces';
 
-export interface PlatformStrategy {
-  readonly platform: string;
-
-  startOAuth(username: string): Promise<string>;
-
-  handleCallback(code: string, state: string): Promise<TokenSet>;
-
-  getAccessToken(username: string): Promise<TokenSet>;
-
-  refreshToken(username: string): Promise<TokenSet>;
+export interface PlatformStrategy extends PlatformOAuthStrategy, PlatformWebSocketStrategy, PlatformRestStrategy {
 }
