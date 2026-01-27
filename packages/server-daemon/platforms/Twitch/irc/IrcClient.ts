@@ -266,7 +266,12 @@ export class IrcClient extends EventEmitter {
   private sendRaw(message: string) {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       this.ws.send(`${message}\r\n`);
-      this.logger.debug(`IRC sent: ${message}`);
+      if (message.startsWith('PASS ')) {
+        const maskedMessage = 'PASS oauth:' +('*'.repeat(message.substring(5).length - 4)) + message.substring(message.length - 4);
+        this.logger.debug(`IRC sent: ${maskedMessage}`);
+      } else {
+        this.logger.debug(`IRC sent: ${message}`);
+      }
     } else {
       this.logger.warn('IRC not ready to send message');
     }

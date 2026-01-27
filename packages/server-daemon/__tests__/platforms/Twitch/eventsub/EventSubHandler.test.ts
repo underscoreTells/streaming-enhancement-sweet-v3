@@ -10,7 +10,7 @@ describe('EventSubHandler', () => {
 
   beforeEach(() => {
     logger = createLogger({ silent: true });
-    handler = new EventSubHandler();
+    handler = new EventSubHandler(logger);
   });
 
   describe('Registration', () => {
@@ -116,10 +116,10 @@ describe('EventSubHandler', () => {
       consoleWarnSpy.mockRestore();
     });
 
-    it('should warn for unregistered event types', () => {
+    it('should debug for unregistered event types', () => {
       handler.register(EventType.StreamOnline, vi.fn());
 
-      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const loggerSpy = vi.spyOn(logger, 'debug').mockImplementation(() => {});
 
       const message: EventSubMessage = {
         metadata: {
@@ -133,9 +133,31 @@ describe('EventSubHandler', () => {
 
       handler.handle(message);
 
-      expect(consoleWarnSpy).toHaveBeenCalledWith('No handler registered for event type: channel.subscribe');
+      expect(loggerSpy).toHaveBeenCalledWith('No handler registered for event type: channel.subscribe');
 
-      consoleWarnSpy.mockRestore();
+      loggerSpy.mockRestore();
+    });
+
+    it('should debug log for unregistered event types', () => {
+      handler.register(EventType.StreamOnline, vi.fn());
+
+      const loggerDebugSpy = vi.spyOn(logger, 'debug').mockImplementation(() => {});
+
+      const message: EventSubMessage = {
+        metadata: {
+          message_id: 'test-id',
+          message_type: 'notification',
+          message_timestamp: '2024-01-01T00:00:00Z',
+          subscription_type: EventType.Subscribe,
+        },
+        payload: {},
+      };
+
+      handler.handle(message);
+
+      expect(loggerDebugSpy).toHaveBeenCalledWith('No handler registered for event type: channel.subscribe');
+
+      loggerDebugSpy.mockRestore();
     });
   });
 });
@@ -145,6 +167,7 @@ describe('createEventHandlers', () => {
 
   beforeEach(() => {
     logger = createLogger({ silent: true });
+    handler = new EventSubHandler(logger);
   });
 
   it('should create handlers for all event types', () => {

@@ -11,6 +11,8 @@ export class RestClient {
   private timeout: number;
   private lastRequestTime = 0;
   private minRequestInterval = 1000;
+  private rateLimitQueue: Array<() => void> = [];
+  private isProcessingQueue = false;
 
   constructor(private logger: Logger, config: RestClientConfig = {}) {
     this.baseUrl = config.baseUrl || 'https://kick.com';
@@ -133,16 +135,42 @@ export class RestClient {
   }
 
   private async checkRateLimit(): Promise<void> {
-    const now = Date.now();
-    const timeSinceLastRequest = now - this.lastRequestTime;
+    return new Promise<void>((resolve) => {
+      this.rateLimitQueue.push(() => {
+        const now = Date.now();
+        const timeSinceLastRequest = now - this.lastRequestTime;
 
-    if (timeSinceLastRequest < this.minRequestInterval) {
-      const waitTime = this.minRequestInterval - timeSinceLastRequest;
-      this.logger.debug(`Rate limit: waiting ${waitTime}ms`);
-      await this.sleep(waitTime);
+        if (timeSinceLastRequest < this.minRequestInterval) {
+          const waitTime = this.minRequestInterval - timeSinceLastRequest;
+          this.logger.debug(`Rate limit: waiting ${waitTime}ms`);
+          (async () => {
+            await this.sleep(waitTime);
+            this.lastRequestTime = Date.now();
+            this.processQueue();
+            resolve();
+          })();
+        } else {
+          this.lastRequestTime = Date.now();
+          this.processQueue();
+          resolve();
+        }
+      });
+
+      this.processQueue();
+    });
+  }
+
+  private processQueue(): void {
+    if (this.isProcessingQueue || this.rateLimitQueue.length === 0) {
+      return;
     }
 
-    this.lastRequestTime = Date.now();
+    this.isProcessingQueue = true;
+    const nextTask = this.rateLimitQueue.shift();
+    if (nextTask) {
+      nextTask();
+    }
+    this.isProcessingQueue = false;
   }
 
   private async sleep(ms: number): Promise<void> {

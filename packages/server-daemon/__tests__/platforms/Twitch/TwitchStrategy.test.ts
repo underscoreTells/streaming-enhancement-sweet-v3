@@ -54,7 +54,7 @@ class MockTwitchOAuth {
     };
   }
 
-  async refreshToken(_refreshToken: string): Promise<TokenSet> {
+  async refreshToken(username: string): Promise<TokenSet> {
     return {
       access_token: 'new_access_token',
       refresh_token: 'new_refresh_token',
@@ -249,7 +249,7 @@ describe('TwitchStrategy', () => {
     });
 
     it('should delegate refreshToken to oauth', async () => {
-      const tokens = await strategy.refreshToken('old_refresh_token');
+      const tokens = await strategy.refreshToken('test_user');
 
       expect(tokens.access_token).toBe('new_access_token');
       expect(tokens.refresh_token).toBe('new_refresh_token');

@@ -1,7 +1,7 @@
 import type { IrcMessage } from './types';
 
 export class IrcMessageParser {
-  private static readonly TAG_PATTERN = /@([^\s]+)\s/;
+  private static readonly TAG_PATTERN = /^@([^\s]*)\s/;
 
   /**
    * Parse an IRC message into components
@@ -38,12 +38,16 @@ export class IrcMessageParser {
       const paramsPart = remaining.substring(spaceIndex + 1);
       
       // Handle trailing parameter (contains spaces)
-      const colonIndex = paramsPart.indexOf(' :');
-      if (colonIndex !== -1) {
-        result.params = paramsPart.substring(0, colonIndex).split(' ');
-        result.params.push(paramsPart.substring(colonIndex + 2));
+      if (paramsPart.startsWith(':')) {
+        result.params = paramsPart.substring(1).split(' ');
       } else {
-        result.params = paramsPart.split(' ');
+        const colonIndex = paramsPart.indexOf(' :');
+        if (colonIndex !== -1) {
+          result.params = paramsPart.substring(0, colonIndex).split(' ');
+          result.params.push(paramsPart.substring(colonIndex + 2));
+        } else {
+          result.params = paramsPart.split(' ');
+        }
       }
     } else {
       result.command = remaining;

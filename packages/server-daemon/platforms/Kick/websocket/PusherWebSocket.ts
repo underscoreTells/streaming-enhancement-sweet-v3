@@ -127,9 +127,26 @@ export class PusherWebSocket extends EventEmitter {
   }
 
   unsubscribeFromChannel(channelId: string): void {
+    if (!this.isConnected()) {
+      this.logger.warn('WebSocket not connected, cannot unsubscribe from channel');
+      return;
+    }
+
     const channel = `channel.${channelId}`;
+    this.sendUnsubscribe(channel);
     this.subscribedChannels.delete(channel);
     this.logger.debug(`Unsubscribed from channel: ${channel}`);
+  }
+
+  private async sendUnsubscribe(channel: string): Promise<void> {
+    const message = {
+      event: 'pusher:unsubscribe',
+      data: {
+        channel,
+      },
+    };
+
+    await this.sendMessage(channel, message.event, message.data);
   }
 
   private async sendSubscribe(channel: string): Promise<void> {

@@ -51,6 +51,9 @@ export class EventSubSubscriptionManager {
     }
 
     const result = await response.json() as { data: SubscriptionData[] };
+    if (!result?.data || result.data.length === 0) {
+      throw new Error('Empty response data');
+    }
     return result.data[0];
   }
 
