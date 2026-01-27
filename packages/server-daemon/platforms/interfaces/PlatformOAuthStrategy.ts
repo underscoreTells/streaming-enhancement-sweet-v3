@@ -28,6 +28,7 @@ export interface PlatformOAuthStrategy {
 
   /**
    * Refresh access token for a user
+   * @param username - The username whose token should be refreshed
    */
-  refreshToken(refreshToken: string): Promise<TokenSet>;
+  refreshToken(username: string): Promise<TokenSet>;
 }

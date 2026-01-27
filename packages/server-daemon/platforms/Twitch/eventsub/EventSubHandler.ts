@@ -9,13 +9,13 @@ export class EventSubHandler {
 
   constructor(private logger: Logger) {}
 
-  register(eventType: EventType, handler: EventSubHandlerFn) {
+  register(eventType: EventType, handler: EventSubHandlerFn): void {
     this.handlers.set(eventType, handler);
   }
 
-  handle(message: EventSubMessage) {
+  handle(message: EventSubMessage): void {
     const subscriptionType = message.metadata.subscription_type;
-    
+
     if (subscriptionType && this.handlers.has(subscriptionType as EventType)) {
       const handler = this.handlers.get(subscriptionType as EventType)!;
       handler(message);

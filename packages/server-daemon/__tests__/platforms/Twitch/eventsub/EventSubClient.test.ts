@@ -129,9 +129,9 @@ describe('EventSubClient', () => {
         vi.spyOn(client as any, 'ws', 'get').mockReturnValue({
           emit: (event: string, ...args: any[]) => {
             if (event === 'message') {
-              const handleMessage = (client as any).handleMessage.bind(client);
+              const onMessage = (client as any).onMessage.bind(client);
               try {
-                handleMessage(welcomeMessage);
+                onMessage(welcomeMessage);
               } catch (e) {
                 // ignore
               }
@@ -158,9 +158,9 @@ describe('EventSubClient', () => {
         vi.spyOn(client as any, 'ws', 'get').mockReturnValue({
           emit: (event: string, ...args: any[]) => {
             if (event === 'message') {
-              const handleMessage = (client as any).handleMessage.bind(client);
+              const onMessage = (client as any).onMessage.bind(client);
               try {
-                handleMessage(keepaliveMessage);
+                onMessage(keepaliveMessage);
               } catch (e) {
                 done();
               }
@@ -212,8 +212,8 @@ describe('EventSubClient', () => {
       vi.spyOn(client as any, 'ws', 'get').mockReturnValue({
         emit: (event: string, ...args: any[]) => {
           if (event === 'message') {
-            const handleMessage = (client as any).handleMessage.bind(client);
-            handleMessage(notificationMessage);
+            const onMessage = (client as any).onMessage.bind(client);
+            onMessage(notificationMessage);
           }
         },
         on: vi.fn(),
@@ -243,8 +243,8 @@ describe('EventSubClient', () => {
       vi.spyOn(client as any, 'ws', 'get').mockReturnValue({
         emit: (event: string, ...args: any[]) => {
           if (event === 'message') {
-            const handleMessage = (client as any).handleMessage.bind(client);
-            handleMessage(revocationMessage);
+            const onMessage = (client as any).onMessage.bind(client);
+            onMessage(revocationMessage);
           }
         },
         on: vi.fn(),
@@ -270,8 +270,8 @@ describe('EventSubClient', () => {
       vi.spyOn(client as any, 'ws', 'get').mockReturnValue({
         emit: (event: string, ...args: any[]) => {
           if (event === 'message') {
-            const handleMessage = (client as any).handleMessage.bind(client);
-            handleMessage(unknownMessage);
+            const onMessage = (client as any).onMessage.bind(client);
+            onMessage(unknownMessage);
           }
         },
         on: vi.fn(),
@@ -303,8 +303,8 @@ describe('EventSubClient', () => {
         vi.spyOn(client as any, 'ws', 'get').mockReturnValue({
           emit: (event: string, message: any) => {
             if (event === 'message') {
-              const handleMessage = (client as any).handleMessage.bind(client);
-              handleMessage(reconnectMessage);
+              const onMessage = (client as any).onMessage.bind(client);
+              onMessage(reconnectMessage);
               setTimeout(() => {
                 expect(connectSpy).toHaveBeenCalled();
                 done();
@@ -323,8 +323,8 @@ describe('EventSubClient', () => {
     it('should handle Twitch close codes', () => {
       const loggerSpy = vi.spyOn(logger, 'error').mockImplementation(() => {});
 
-      const handleClose = (client as any).handleClose.bind(client);
-      handleClose(4000, Buffer.from('Internal server error'));
+      const onClose = (client as any).onClose.bind(client);
+      onClose(4000, Buffer.from('Internal server error'));
 
       expect(loggerSpy).toHaveBeenCalledWith(expect.stringContaining('EventSub closed by Twitch'));
       loggerSpy.mockRestore();
@@ -333,8 +333,8 @@ describe('EventSubClient', () => {
     it('should schedule reconnect for non-1000 close codes', (done) => {
       const connectSpy = vi.spyOn(client, 'connect').mockResolvedValue(undefined);
 
-      const handleClose = (client as any).handleClose.bind(client);
-      handleClose(1006, Buffer.from('Abnormal closure'));
+      const onClose = (client as any).onClose.bind(client);
+      onClose(1006, Buffer.from('Abnormal closure'));
 
       setTimeout(() => {
         expect(connectSpy).toHaveBeenCalled();
@@ -345,8 +345,8 @@ describe('EventSubClient', () => {
     it('should not schedule reconnect on normal closure (1000)', () => {
       const connectSpy = vi.spyOn(client, 'connect').mockResolvedValue(undefined);
 
-      const handleClose = (client as any).handleClose.bind(client);
-      handleClose(1000, Buffer.from('Normal closure'));
+      const onClose = (client as any).onClose.bind(client);
+      onClose(1000, Buffer.from('Normal closure'));
 
       setTimeout(() => {
         expect(connectSpy).not.toHaveBeenCalled();
@@ -359,8 +359,8 @@ describe('EventSubClient', () => {
       const connectSpy = vi.spyOn(client, 'connect').mockResolvedValue(undefined);
       const startTime = Date.now();
 
-      const handleClose = (client as any).handleClose.bind(client);
-      handleClose(1006, Buffer.from('Connection lost'));
+      const onClose = (client as any).onClose.bind(client);
+      onClose(1006, Buffer.from('Connection lost'));
 
       setTimeout(() => {
         const elapsed = Date.now() - startTime;
@@ -378,9 +378,9 @@ describe('EventSubClient', () => {
         done();
       });
 
-      const handleClose = (limitedClient as any).handleClose;
-      handleClose(1006, Buffer.from('Lost 1'));
-      handleClose(1006, Buffer.from('Lost 2'));
+      const onClose = (limitedClient as any).onClose.bind(limitedClient);
+      onClose(1006, Buffer.from('Lost 1'));
+      onClose(1006, Buffer.from('Lost 2'));
     });
   });
 

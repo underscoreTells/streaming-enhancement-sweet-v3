@@ -4,12 +4,14 @@ import { KeystoreManager } from '../../infrastructure/keystore/KeystoreManager';
 import { OAuthCredentialsRepository } from '../../infrastructure/database/OAuthCredentialsRepository';
 import { OAuthConfig } from '../../infrastructure/config/Config';
 import { PKCEManager } from '../pkce/PKCEManager';
+import type { PlatformOAuthStrategy } from '../interfaces';
+import type { TokenSet } from '../types';
 import {
   exchangeCodeForTokens,
   refreshAccessToken,
 } from './http';
 
-export class KickOAuth extends OAuthFlow {
+export class KickOAuth extends OAuthFlow implements PlatformOAuthStrategy {
   readonly platform = 'kick';
 
   constructor(
@@ -185,6 +187,46 @@ export class KickOAuth extends OAuthFlow {
     }
 
     return `${this.getAuthUrlBase()}?${params.toString()}`;
+  }
+
+  /**
+   * PlatformOAuthStrategy implementation
+   * Start OAuth flow for a user
+   */
+  async startOAuth(username: string): Promise<string> {
+    const { url } = await this.generateAuthorizationUrl();
+    return url;
+  }
+
+  /**
+   * PlatformOAuthStrategy implementation
+   * Handle OAuth callback
+   * 
+   * NOTE: This method does NOT persist tokens to the keystore.
+   * The caller is responsible for associating tokens with a user
+   * and calling the appropriate storage mechanism.
+   */
+  async handleCallback(code: string, state: string): Promise<TokenSet> {
+    const codeVerifier = await this.pkceManager.getVerifier(state);
+    if (!codeVerifier) {
+      throw new Error('Unable to retrieve code_verifier for state. OAuth flow may have expired.');
+    }
+
+    const response = await this.exchangeCodeForTokensWithVerifier(code, codeVerifier);
+    
+    await this.pkceManager.clearVerifier(state);
+    
+    const normalized = this.normalizeTokenResponse(response);
+    const { refresh_token, scope, expires_in } = normalized;
+    const expiresIn = expires_in ?? 3600;
+    
+    return {
+      access_token: normalized.access_token,
+      refresh_token,
+      expires_at: new Date(Date.now() + expiresIn * 1000),
+      refresh_at: new Date(Date.now() + expiresIn * 1000 - 5 * 60 * 1000),
+      scope: scope || [],
+    };
   }
 
 }

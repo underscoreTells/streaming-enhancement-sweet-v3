@@ -14,6 +14,7 @@ export interface EventSubMessage {
   metadata: {
     message_id: string;
     message_type: 'session_welcome' | 'session_keepalive' | 'session_reconnect' | 'notification' | 'revocation';
+    message_timestamp: string;
     subscription_type?: string;
     subscription_version?: string;
   };

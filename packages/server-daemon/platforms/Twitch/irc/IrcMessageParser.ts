@@ -1,7 +1,7 @@
 import type { IrcMessage } from './types';
 
 export class IrcMessageParser {
-  private static readonly TAG_PATTERN = /@([^\s]+)\s/;
+  private static readonly TAG_PATTERN = /^@([^\s]*)\s/;
 
   /**
    * Parse an IRC message into components
@@ -36,14 +36,19 @@ export class IrcMessageParser {
     if (spaceIndex !== -1) {
       result.command = remaining.substring(0, spaceIndex);
       const paramsPart = remaining.substring(spaceIndex + 1);
-      
+
       // Handle trailing parameter (contains spaces)
-      const colonIndex = paramsPart.indexOf(' :');
-      if (colonIndex !== -1) {
-        result.params = paramsPart.substring(0, colonIndex).split(' ');
-        result.params.push(paramsPart.substring(colonIndex + 2));
+      if (paramsPart.startsWith(':')) {
+        // Entire paramsPart is a single parameter after :
+        result.params = [paramsPart.substring(1)];
       } else {
-        result.params = paramsPart.split(' ');
+        const colonIndex = paramsPart.indexOf(' :');
+        if (colonIndex !== -1) {
+          result.params = paramsPart.substring(0, colonIndex).split(' ');
+          result.params.push(paramsPart.substring(colonIndex + 2));
+        } else {
+          result.params = paramsPart.split(' ');
+        }
       }
     } else {
       result.command = remaining;
@@ -56,6 +61,10 @@ export class IrcMessageParser {
    * Parse IRC tags (key=value;key=value format)
    */
   private static parseTags(tagsString: string): Record<string, string> {
+    if (!tagsString) {
+      return {};
+    }
+
     const tags: Record<string, string> = {};
     const pairs = tagsString.split(';');
 
@@ -72,9 +81,9 @@ export class IrcMessageParser {
    */
   private static unescapeTagValue(value: string): string {
     return value
+      .replace(/\\\\/g, '\\')
       .replace(/\\s/g, ' ')
       .replace(/\\:/g, ';')
-      .replace(/\\\\/g, '\\')
       .replace(/\\r/g, '\r')
       .replace(/\\n/g, '\n');
   }

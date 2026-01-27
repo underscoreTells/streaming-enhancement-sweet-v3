@@ -4,6 +4,8 @@ import { OAuthCredentialsRepository } from '../../infrastructure/database/OAuthC
 import { OAuthConfig } from '../../infrastructure/config/Config';
 import { PKCEManager } from '../pkce/PKCEManager';
 import { KickOAuth } from './KickOAuth';
+import { KickStrategy } from './KickStrategy';
+import type { KickStrategyConfig } from './KickStrategy';
 
 export function createKickOAuth(
   logger: Logger,
@@ -19,4 +21,12 @@ export function createKickOAuth(
     config,
     pkceManager ?? new PKCEManager()
   );
+}
+
+export function createKickStrategy(
+  logger: Logger,
+  oauth: KickOAuth,
+  config?: KickStrategyConfig
+): KickStrategy {
+  return new KickStrategy(logger, oauth, config);
 }
