@@ -43,7 +43,7 @@ Each platform provides a unified facade that handles API calls, OAuth, WebSocket
 ## Features List
 
 ### Core Platform Support
-- [ ] Feature: Twitch platform strategy (OAuth + API + data translation)
+- [x] Feature: Twitch platform strategy (OAuth + API + data translation) - **Complete ✅** (2026-01-23)
 - [ ] Feature: Kick platform strategy (OAuth + API + data translation)
 - [ ] Feature: YouTube platform strategy (OAuth + API + data translation)
 
@@ -66,8 +66,8 @@ Each platform provides a unified facade that handles API calls, OAuth, WebSocket
    - **Documentation**: Complete API docs, CLI reference, configuration guide, troubleshooting guide
    - **Completion Date**: 2026-01-22
 - [x] Feature: SQLite persistence layer (schema, migrations, operations)
-- [🟡] Feature: Shared data models (normalized Stream, User, Chat, Event types) - **Planning Complete**, ready for implementation (@docs/feature-plans/shared-data-models.md)
-- [ ] Feature: Basic HTTP endpoints (health, config, stream queries)
+ - [x] Feature: Shared data models (normalized Stream, User, Chat, Event types) - **Complete ✅** (2026-01-22)
+ - [ ] Feature: Basic HTTP endpoints (health, config, stream queries)
 
 ### Real-time Communication
 - [ ] Feature: WebSocket event broadcasting (client registrations and subscriptions)
@@ -110,7 +110,7 @@ Each platform provides a unified facade that handles API calls, OAuth, WebSocket
 - **Needed by**: CLI module, Web UI module
 
 ## Completion Date
-2026-01-22
+2026-01-23
 
 ## Documentation
 - API Overview: @api/daemon-api.md
