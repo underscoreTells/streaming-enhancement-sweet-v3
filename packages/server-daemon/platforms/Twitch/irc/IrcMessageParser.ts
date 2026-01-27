@@ -36,10 +36,11 @@ export class IrcMessageParser {
     if (spaceIndex !== -1) {
       result.command = remaining.substring(0, spaceIndex);
       const paramsPart = remaining.substring(spaceIndex + 1);
-      
+
       // Handle trailing parameter (contains spaces)
       if (paramsPart.startsWith(':')) {
-        result.params = paramsPart.substring(1).split(' ');
+        // Entire paramsPart is a single parameter after :
+        result.params = [paramsPart.substring(1)];
       } else {
         const colonIndex = paramsPart.indexOf(' :');
         if (colonIndex !== -1) {
@@ -60,6 +61,10 @@ export class IrcMessageParser {
    * Parse IRC tags (key=value;key=value format)
    */
   private static parseTags(tagsString: string): Record<string, string> {
+    if (!tagsString) {
+      return {};
+    }
+
     const tags: Record<string, string> = {};
     const pairs = tagsString.split(';');
 
@@ -76,9 +81,9 @@ export class IrcMessageParser {
    */
   private static unescapeTagValue(value: string): string {
     return value
+      .replace(/\\\\/g, '\\')
       .replace(/\\s/g, ' ')
       .replace(/\\:/g, ';')
-      .replace(/\\\\/g, '\\')
       .replace(/\\r/g, '\r')
       .replace(/\\n/g, '\n');
   }
