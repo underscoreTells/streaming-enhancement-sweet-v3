@@ -201,6 +201,10 @@ export class KickOAuth extends OAuthFlow implements PlatformOAuthStrategy {
   /**
    * PlatformOAuthStrategy implementation
    * Handle OAuth callback
+   * 
+   * NOTE: This method does NOT persist tokens to the keystore.
+   * The caller is responsible for associating tokens with a user
+   * and calling the appropriate storage mechanism.
    */
   async handleCallback(code: string, state: string): Promise<TokenSet> {
     const codeVerifier = await this.pkceManager.getVerifier(state);
@@ -209,13 +213,18 @@ export class KickOAuth extends OAuthFlow implements PlatformOAuthStrategy {
     }
 
     const response = await this.exchangeCodeForTokensWithVerifier(code, codeVerifier);
-    const { expires_in, refresh_token, scope } = response;
+    
+    await this.pkceManager.clearVerifier(state);
+    
+    const normalized = this.normalizeTokenResponse(response);
+    const { refresh_token, scope, expires_in } = normalized;
+    const expiresIn = expires_in ?? 3600;
     
     return {
-      access_token: response.access_token,
+      access_token: normalized.access_token,
       refresh_token,
-      expires_at: new Date(Date.now() + (expires_in || 3600) * 1000),
-      refresh_at: new Date(Date.now() + (expires_in || 3600) * 1000 - 5 * 60 * 1000),
+      expires_at: new Date(Date.now() + expiresIn * 1000),
+      refresh_at: new Date(Date.now() + expiresIn * 1000 - 5 * 60 * 1000),
       scope: scope || [],
     };
   }

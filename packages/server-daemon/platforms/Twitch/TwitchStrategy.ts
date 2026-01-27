@@ -113,8 +113,8 @@ export class TwitchStrategy extends EventEmitter
     return this.oauth.getAccessToken(username);
   }
 
-  async refreshToken(refreshToken: string): Promise<TokenSet> {
-    return this.oauth.refreshToken(refreshToken);
+  async refreshToken(username: string): Promise<TokenSet> {
+    return this.oauth.refreshToken(username);
   }
 
   /**

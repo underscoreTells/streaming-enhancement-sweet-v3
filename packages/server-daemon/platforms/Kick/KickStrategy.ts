@@ -13,7 +13,7 @@ import { RestClient, getUser } from './rest';
 
 export type ConnectionState = 'connecting' | 'connected' | 'disconnecting' | 'disconnected' | 'error';
 
-interface KickStrategyConfig {
+export interface KickStrategyConfig {
   pusherAppKey?: string;
   pusherCluster?: string;
   baseUrl?: string;
@@ -93,8 +93,8 @@ export class KickStrategy extends EventEmitter
     return this.oauth.getAccessToken(username);
   }
 
-  async refreshToken(refreshToken: string): Promise<TokenSet> {
-    return this.oauth.refreshToken(refreshToken);
+  async refreshToken(username: string): Promise<TokenSet> {
+    return this.oauth.refreshToken(username);
   }
 
   /**

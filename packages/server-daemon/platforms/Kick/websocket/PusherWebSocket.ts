@@ -19,7 +19,6 @@ export class PusherWebSocket extends EventEmitter {
   private maxReconnectAttempts = 5;
   private reconnectTimeout: NodeJS.Timeout | null = null;
   
-  private messageQueue: Array<{ channel: string; event: string; data: object }> = [];
   private messageLimit = 5;
   private messageWindowMs = 1000;
   private messageTimestamps: number[] = [];
@@ -160,7 +159,7 @@ export class PusherWebSocket extends EventEmitter {
   }
 
   private async checkRateLimit(): Promise<void> {
-    const now = Date.now();
+    let now = Date.now();
     
     this.messageTimestamps = this.messageTimestamps.filter(
       ts => now - ts < this.messageWindowMs
@@ -173,6 +172,7 @@ export class PusherWebSocket extends EventEmitter {
       this.logger.debug(`Rate limit reached, waiting ${waitTime}ms`);
       await new Promise(resolve => setTimeout(resolve, waitTime));
       
+      now = Date.now();
       this.messageTimestamps = this.messageTimestamps.filter(
         ts => now - ts < this.messageWindowMs
       );

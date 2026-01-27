@@ -1,4 +1,4 @@
-export { KickWebSocket } from './PusherWebSocket';
+export { PusherWebSocket } from './PusherWebSocket';
 export type {
   PusherEventType,
   PusherMessage,

@@ -1,5 +1,6 @@
 import { RestClient } from './RestClient';
 import type { KickChannelData, KickLivestreamData } from './types';
+import type { Logger } from 'winston';
 
 export interface UserResult {
   id: string;
@@ -44,7 +45,11 @@ export async function getChannelLivestream(restClient: RestClient, channelId: st
   }
 }
 
-export async function getUsersByUsername(restClient: RestClient, usernames: string[]): Promise<UserResult[]> {
+export async function getUsersByUsername(
+  restClient: RestClient,
+  usernames: string[],
+  logger?: Logger
+): Promise<UserResult[]> {
   const results: UserResult[] = [];
 
   for (const username of usernames) {
@@ -54,7 +59,7 @@ export async function getUsersByUsername(restClient: RestClient, usernames: stri
         results.push(user);
       }
     } catch (error) {
-      console.error(`Failed to fetch user ${username}:`, error);
+      logger?.warn(`Failed to fetch user ${username}:`, { error });
     }
   }
 

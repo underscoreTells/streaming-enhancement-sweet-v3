@@ -109,6 +109,10 @@ export class TwitchOAuth extends OAuthFlow implements PlatformOAuthStrategy {
   /**
    * PlatformOAuthStrategy implementation
    * Handle OAuth callback
+   * 
+   * NOTE: This method does NOT persist tokens to the keystore.
+   * The caller is responsible for associating tokens with a user
+   * and calling the appropriate storage mechanism.
    */
   async handleCallback(code: string, state: string): Promise<TokenSet> {
     const tokens = await this.exchangeCodeForTokens(code);

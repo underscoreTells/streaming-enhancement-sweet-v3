@@ -5,7 +5,6 @@ export * from './http';
 
 export { PusherWebSocket } from './websocket';
 export * from './websocket/types';
-export { PusherWebSocket } from './websocket/PusherWebSocket';
 
 export { KickEventHandler, createEventHandlers, KickEventType } from './event';
 export type { EventHandler } from './event/types';
