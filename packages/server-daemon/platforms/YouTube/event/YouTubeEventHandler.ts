@@ -1,6 +1,5 @@
 import { Logger } from 'winston';
 import { YouTubeMessageType, EventHandler } from './types';
-import { YouTubeChatMessageAdapter } from '@streaming-enhancement/shared-models';
 import type { YouTubeLiveChatMessage } from '../rest/types';
 
 export class YouTubeEventHandler {
@@ -53,20 +52,6 @@ export function createEventHandlers(logger: Logger): Map<YouTubeMessageType, Eve
       return;
     }
 
-    const chatMessageAdapter = new YouTubeChatMessageAdapter({
-      messageId: messageData.id,
-      channelId: authorDetails.channelId,
-      displayName: authorDetails.displayName,
-      message: snippet.displayMessage,
-      timestamp: new Date(snippet.publishedAt),
-      liveChatId: snippet.liveChatId,
-      badges: [
-        authorDetails.isChatOwner ? { badgeId: 'owner' } : null,
-        authorDetails.isChatModerator ? { badgeId: 'moderator' } : null,
-        authorDetails.isChatSponsor ? { badgeId: 'member' } : null,
-      ].filter(Boolean),
-    });
-
     logger.debug(`TextMessageEvent processed from ${authorDetails.displayName}: ${snippet.displayMessage}`);
   });
 
@@ -87,28 +72,6 @@ export function createEventHandlers(logger: Logger): Map<YouTubeMessageType, Eve
 
     const { superChatDetails } = snippet;
 
-    const chatMessageAdapter = new YouTubeChatMessageAdapter({
-      messageId: messageData.id,
-      channelId: authorDetails.channelId,
-      displayName: authorDetails.displayName,
-      message: superChatDetails.userComment || '',
-      timestamp: new Date(snippet.publishedAt),
-      liveChatId: snippet.liveChatId,
-      badges: [
-        { badgeId: 'supers' },
-        authorDetails.isChatOwner ? { badgeId: 'owner' } : null,
-        authorDetails.isChatModerator ? { badgeId: 'moderator' } : null,
-        authorDetails.isChatSponsor ? { badgeId: 'member' } : null,
-      ].filter(Boolean),
-      superChatDetails: {
-        tier: superChatDetails.tier,
-        amountDisplayString: superChatDetails.amountDisplayString,
-        currency: superChatDetails.currency,
-        amountMicros: parseInt(superChatDetails.amountMicros, 10),
-        userComment: superChatDetails.userComment,
-      },
-    });
-
     logger.debug(`SuperChatEvent processed from ${authorDetails.displayName}: ${superChatDetails.amountDisplayString}`);
   });
 
@@ -128,30 +91,6 @@ export function createEventHandlers(logger: Logger): Map<YouTubeMessageType, Eve
     }
 
     const { superStickerDetails } = snippet;
-
-    const chatMessageAdapter = new YouTubeChatMessageAdapter({
-      messageId: messageData.id,
-      channelId: authorDetails.channelId,
-      displayName: authorDetails.displayName,
-      message: '',
-      timestamp: new Date(snippet.publishedAt),
-      liveChatId: snippet.liveChatId,
-      badges: [
-        { badgeId: 'supers' },
-        authorDetails.isChatOwner ? { badgeId: 'owner' } : null,
-        authorDetails.isChatModerator ? { badgeId: 'moderator' } : null,
-        authorDetails.isChatSponsor ? { badgeId: 'member' } : null,
-      ].filter(Boolean),
-      superChatDetails: {
-        tier: superStickerDetails.tier,
-        amountDisplayString: superStickerDetails.amountDisplayString,
-        currency: superStickerDetails.currency,
-        amountMicros: parseInt(superStickerDetails.amountMicros, 10),
-        isSuperSticker: true,
-        stickerUrl: superStickerDetails.sticker.url,
-        stickerName: superStickerDetails.sticker.displayName,
-      },
-    });
 
     logger.debug(`SuperStickerEvent processed from ${authorDetails.displayName}: ${superStickerDetails.sticker.displayName}`);
   });

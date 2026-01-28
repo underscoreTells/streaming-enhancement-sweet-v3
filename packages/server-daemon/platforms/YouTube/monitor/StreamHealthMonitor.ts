@@ -130,7 +130,7 @@ export class StreamHealthMonitor extends EventEmitter {
   private async getStreamInfo(): Promise<YouTubeLiveStream | null> {
     try {
       const params: Record<string, string> = {
-        part: 'snippet,status,cdn,',
+        part: 'snippet,status,cdn',
       };
 
       if (this.config.streamId) {

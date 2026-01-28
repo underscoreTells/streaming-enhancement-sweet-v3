@@ -16,6 +16,7 @@ import { StreamHealthMonitor } from './monitor';
 import { getChannel } from './rest/getChannel';
 import { getLiveStreamByChannel } from './rest/getLiveStream';
 import type { YouTubeLiveChatMessage, YouTubeLiveBroadcast } from './rest/types';
+import { YouTubeChatMessageAdapter } from '@streaming-enhancement/shared-models';
 
 export type ConnectionState = 'connecting' | 'connected' | 'disconnecting' | 'disconnected' | 'error';
 
@@ -128,7 +129,18 @@ export class YouTubeStrategy extends EventEmitter
   }
 
   async handleCallback(code: string, state: string): Promise<TokenSet> {
-    throw new Error('handleCallback requires username - use OAuthFlow.handleOAuthCallback directly');
+    if (!this.currentUsername) {
+      throw new Error('Username must be set before handling OAuth callback. Set it via config or during subscription.');
+    }
+    try {
+      await this.oauth.handleOAuthCallback(code, state, this.currentUsername);
+      const tokenSet = await this.oauth.getAccessToken(this.currentUsername);
+      this.logger.info(`OAuth callback handled successfully for ${this.currentUsername}`);
+      return tokenSet;
+    } catch (error) {
+      this.logger.error('Failed to handle OAuth callback:', error);
+      throw error;
+    }
   }
 
   async getAccessToken(username: string): Promise<TokenSet> {
@@ -160,9 +172,14 @@ export class YouTubeStrategy extends EventEmitter
         const tokenSet = await this.oauth.getAccessToken(this.currentUsername);
         this.restClient.setToken(tokenSet.access_token);
         this.restClient.setTokenRefreshCallback(async (username) => {
-          const newTokens = await this.oauth.refreshToken(username);
-          this.logger.info('Token refreshed successfully for monitoring');
-          return newTokens.access_token;
+          try {
+            const newTokens = await this.oauth.refreshToken(username);
+            this.logger.info('Token refreshed successfully for monitoring');
+            return newTokens.access_token;
+          } catch (error) {
+            this.logger.error('Token refresh failed during monitoring:', error);
+            throw error;
+          }
         });
       }
 
@@ -228,9 +245,14 @@ export class YouTubeStrategy extends EventEmitter
         const tokenSet = await this.oauth.getAccessToken(username);
         this.restClient.setToken(tokenSet.access_token);
         this.restClient.setTokenRefreshCallback(async (username) => {
-          const newTokens = await this.oauth.refreshToken(username);
-          this.logger.info('Token refreshed successfully');
-          return newTokens.access_token;
+          try {
+            const newTokens = await this.oauth.refreshToken(username);
+            this.logger.info('Token refreshed successfully');
+            return newTokens.access_token;
+          } catch (error) {
+            this.logger.error('Token refresh failed:', error);
+            throw error;
+          }
         });
       }
 
@@ -400,11 +422,13 @@ export class YouTubeStrategy extends EventEmitter
       }
 
       if (this.broadcastLifecycleMonitor) {
+        this.broadcastLifecycleMonitor.removeAllListeners();
         this.broadcastLifecycleMonitor.stopMonitoring();
         this.broadcastLifecycleMonitor = null;
       }
 
       if (this.streamHealthMonitor) {
+        this.streamHealthMonitor.removeAllListeners();
         this.streamHealthMonitor.stopMonitoring();
         this.streamHealthMonitor = null;
       }
@@ -433,10 +457,11 @@ export class YouTubeStrategy extends EventEmitter
         this.eventHandler.handle(eventType, message);
       }
 
+      const adaptedMessage = this.adaptChatMessage(message);
       this.emit('chatMessage', {
         platform: 'youtube',
         channelId: this.currentChannelId,
-        message,
+        message: adaptedMessage,
       });
     } catch (error) {
       this.logger.error('Error handling chat message:', error);
@@ -454,6 +479,66 @@ export class YouTubeStrategy extends EventEmitter
       return 'textMessageEvent';
     }
     return 'textMessageEvent';
+  }
+
+  private adaptChatMessage(message: YouTubeLiveChatMessage) {
+    const { snippet, authorDetails } = message;
+
+    const baseAdapter = {
+      messageId: message.id,
+      channelId: authorDetails.channelId,
+      displayName: authorDetails.displayName,
+      message: snippet.displayMessage || '',
+      timestamp: new Date(snippet.publishedAt),
+      liveChatId: snippet.liveChatId,
+      badges: [
+        authorDetails.isChatOwner ? { badgeId: 'owner' } : null,
+        authorDetails.isChatModerator ? { badgeId: 'moderator' } : null,
+        authorDetails.isChatSponsor ? { badgeId: 'member' } : null,
+      ].filter(Boolean),
+    };
+
+    if (snippet.superChatDetails) {
+      const { superChatDetails } = snippet;
+      return new YouTubeChatMessageAdapter({
+        ...baseAdapter,
+        message: superChatDetails.userComment || '',
+        badges: [
+          { badgeId: 'supers' },
+          ...baseAdapter.badges,
+        ],
+        superChatDetails: {
+          tier: superChatDetails.tier,
+          amountDisplayString: superChatDetails.amountDisplayString,
+          currency: superChatDetails.currency,
+          amountMicros: parseInt(superChatDetails.amountMicros, 10),
+          userComment: superChatDetails.userComment,
+        },
+      });
+    }
+
+    if (snippet.superStickerDetails) {
+      const { superStickerDetails } = snippet;
+      return new YouTubeChatMessageAdapter({
+        ...baseAdapter,
+        message: '',
+        badges: [
+          { badgeId: 'supers' },
+          ...baseAdapter.badges,
+        ],
+        superChatDetails: {
+          tier: superStickerDetails.tier,
+          amountDisplayString: superStickerDetails.amountDisplayString,
+          currency: superStickerDetails.currency,
+          amountMicros: parseInt(superStickerDetails.amountMicros, 10),
+          isSuperSticker: true,
+          stickerUrl: superStickerDetails.sticker.url,
+          stickerName: superStickerDetails.sticker.displayName,
+        },
+      });
+    }
+
+    return new YouTubeChatMessageAdapter(baseAdapter);
   }
 
   async get(endpoint: string, params?: Record<string, string | number | boolean>): Promise<unknown> {

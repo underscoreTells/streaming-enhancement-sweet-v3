@@ -56,7 +56,7 @@ export class YouTubeChatPollingClient extends EventEmitter {
   }
 
   isConnected(): boolean {
-    return this.state === 'polling';
+    return this.state === 'polling' || this.state === 'connected';
   }
 
   getCurrentPageToken(): string | null {

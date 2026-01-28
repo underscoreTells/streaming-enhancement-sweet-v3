@@ -191,8 +191,32 @@ describe('YouTubeStrategy', () => {
       expect(token.access_token).toBe('new-token');
     });
 
-    it('should throw error for handleCallback (wrong method)', async () => {
-      await expect(strategy.handleCallback('code', 'state')).rejects.toThrow('handleCallback requires username');
+    it('should handle OAuth callback and return token set', async () => {
+      strategy = new YouTubeStrategy(logger, mockOAuth as unknown as YouTubeOAuth, { username: 'test-user' });
+
+      const handleCallbackSpy = vi.spyOn(mockOAuth, 'handleOAuthCallback');
+
+      const tokenSet = await strategy.handleCallback('code123', 'state123');
+      expect(tokenSet.access_token).toBe('test-token');
+      expect(handleCallbackSpy).toHaveBeenCalledWith('code123', 'state123', 'test-user');
+
+      handleCallbackSpy.mockRestore();
+    });
+
+    it('should handle OAuth callback errors', async () => {
+      strategy = new YouTubeStrategy(logger, mockOAuth as unknown as YouTubeOAuth, { username: 'test-user' });
+
+      const handleCallbackSpy = vi.spyOn(mockOAuth, 'handleOAuthCallback');
+      const error = new Error('Invalid OAuth code');
+      handleCallbackSpy.mockRejectedValueOnce(error as never);
+
+      await expect(strategy.handleCallback('invalid-code', 'state123')).rejects.toThrow('Invalid OAuth code');
+
+      handleCallbackSpy.mockRestore();
+    });
+
+    it('should throw error when handleCallback called without username', async () => {
+      await expect(strategy.handleCallback('code123', 'state123')).rejects.toThrow('Username must be set');
     });
   });
 
