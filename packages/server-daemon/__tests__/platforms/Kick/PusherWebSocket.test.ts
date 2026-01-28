@@ -175,7 +175,8 @@ describe('PusherWebSocket', () => {
         mockWs.close();
       }
 
-      await new Promise(resolve => setTimeout(resolve, 10));
+      vi.advanceTimersByTime(10);
+      await Promise.resolve();
 
       expect(disconnectedSpy).toHaveBeenCalled();
     });
@@ -243,7 +244,13 @@ describe('PusherWebSocket', () => {
   });
 
   describe('Retry Logic', () => {
-    vi.useFakeTimers();
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
 
     it('should schedule reconnect on disconnect', async () => {
       await ws.connect();
@@ -264,6 +271,7 @@ describe('PusherWebSocket', () => {
       const maxReconnectSpy = vi.fn();
       ws.on('maxReconnectAttemptsReached', maxReconnectSpy);
 
+      await ws.connect();
       const mockWs = (ws as any).ws;
 
       for (let i = 0; i < 6; i++) {
@@ -290,8 +298,6 @@ describe('PusherWebSocket', () => {
       expect(reconnectDelaySpy).toHaveBeenCalled();
       reconnectDelaySpy.mockRestore();
     });
-
-    vi.restoreAllMocks();
   });
 
   describe('Subscriptions', () => {
@@ -386,6 +392,7 @@ describe('PusherWebSocket', () => {
     });
 
     it('should handle subscription_succeeded event', async () => {
+      const subscriptionSucceededSpy = vi.spyOn(ws as any, 'handleSubscriptionSucceeded').mockImplementation(() => {});
       await ws.connect();
 
       const mockWs = (ws as any).ws;
@@ -395,6 +402,9 @@ describe('PusherWebSocket', () => {
           data: '{}',
         }));
       }
+
+      expect(subscriptionSucceededSpy).toHaveBeenCalled();
+      subscriptionSucceededSpy.mockRestore();
     });
 
     it('should emit channelEvent for channel events', async () => {

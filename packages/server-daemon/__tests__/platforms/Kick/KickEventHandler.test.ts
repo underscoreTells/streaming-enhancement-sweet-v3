@@ -76,14 +76,14 @@ describe('KickEventHandler', () => {
       expect(handler).toBeDefined();
     });
 
-    it('should unregister event handler', () => {
+    it('should unregister event handler', async () => {
       const mockHandler = vi.fn().mockResolvedValue(undefined);
 
       handler.register(KickEventType.ChatMessageEvent, mockHandler);
       handler.unregister(KickEventType.ChatMessageEvent);
 
       const handlePromise = handler.handle(KickEventType.ChatMessageEvent, {});
-      expect(handlePromise).resolves.not.toThrow();
+      await expect(handlePromise).resolves.toBeUndefined();
     });
 
     it('should log on registration', () => {

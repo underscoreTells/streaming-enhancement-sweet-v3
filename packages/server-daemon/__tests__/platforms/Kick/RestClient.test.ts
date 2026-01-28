@@ -6,6 +6,7 @@ describe('RestClient', () => {
   let logger: ReturnType<typeof createLogger>;
   let client: RestClient;
   let mockFetch: ReturnType<typeof vi.fn>;
+  let originalFetch: typeof fetch;
 
   beforeEach(() => {
     logger = createLogger({ silent: true });
@@ -14,11 +15,13 @@ describe('RestClient', () => {
       timeout: 30000,
     });
 
+    originalFetch = global.fetch;
     mockFetch = vi.fn();
     global.fetch = mockFetch;
   });
 
   afterEach(() => {
+    global.fetch = originalFetch;
     vi.restoreAllMocks();
   });
 
@@ -212,8 +215,6 @@ describe('RestClient', () => {
 
       await expect(client.get('/test')).rejects.toThrow('Request failed: 500 Internal Server Error');
     });
-
-  });
 
   });
 

@@ -1,14 +1,8 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { createLogger } from 'winston';
-import { KickStrategy } from '../../../platforms/Kick/KickStrategy';
-import { KickOAuth } from '../../../platforms/Kick/KickOAuth';
 import type { TokenSet } from '../../../platforms/types';
 
-describe('KickStrategy', () => {
-  let logger: ReturnType<typeof createLogger>;
-  let mockKickOAuth: KickOAuth;
-  let strategy: KickStrategy;
-
+const { MockPusherWebSocket, MockRestClient } = vi.hoisted(() => {
   class MockPusherWebSocket {
     public connected = false;
 
@@ -91,6 +85,25 @@ describe('KickStrategy', () => {
     }
   }
 
+  return { MockPusherWebSocket, MockRestClient };
+});
+
+vi.mock('../../../platforms/Kick/websocket/PusherWebSocket', () => ({
+  PusherWebSocket: MockPusherWebSocket,
+}));
+
+vi.mock('../../../platforms/Kick/rest/RestClient', () => ({
+  RestClient: MockRestClient,
+}));
+
+import { KickStrategy } from '../../../platforms/Kick/KickStrategy';
+import { KickOAuth } from '../../../platforms/Kick/KickOAuth';
+
+describe('KickStrategy', () => {
+  let logger: ReturnType<typeof createLogger>;
+  let mockKickOAuth: KickOAuth;
+  let strategy: KickStrategy;
+
   class MockKickOAuth implements Partial<KickOAuth> {
     async startOAuth(username: string): Promise<string> {
       return `https://kick.com/oauth2/authorize?client_id=test_client_id&redirect_uri=http://localhost:3000/callback&response_type=code&state=test_state`;
@@ -134,14 +147,6 @@ describe('KickStrategy', () => {
       pusherCluster: 'mt1',
       baseUrl: 'https://kick.com',
     });
-
-    vi.doMock('../../../platforms/Kick/websocket/PusherWebSocket', () => ({
-      PusherWebSocket: MockPusherWebSocket,
-    }));
-
-    vi.doMock('../../../platforms/Kick/rest/RestClient', () => ({
-      RestClient: MockRestClient,
-    }));
   });
 
   afterEach(() => {
