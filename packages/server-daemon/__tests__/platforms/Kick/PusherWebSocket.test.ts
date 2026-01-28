@@ -485,13 +485,10 @@ describe('PusherWebSocket', () => {
         baseUrl: 'wss://invalid-url.pusher.com',
       });
 
-      try {
-        await failWs.connect();
-      } catch (error) {
-        expect(error).toBeDefined();
-      }
+      await expect(failWs.connect()).resolves.toBeDefined();
 
       failWs.disconnect();
+      expect(errorSpy).toHaveBeenCalled();
       errorSpy.mockRestore();
     });
 

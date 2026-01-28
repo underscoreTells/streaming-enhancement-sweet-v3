@@ -357,6 +357,8 @@ describe('KickStrategy', () => {
 
       await strategy.connect();
       await strategy.subscribeToChannel('12345', 'testuser');
+
+      expect(subscribedSpy).toHaveBeenCalledWith({ channel: 'channel.12345', type: 'channel' });
     });
   });
 
@@ -377,6 +379,8 @@ describe('KickStrategy', () => {
 
       await strategy.connect();
       await strategy.subscribeToChat('67890');
+
+      expect(subscribedSpy).toHaveBeenCalledWith({ channel: 'chatrooms.67890.v2', type: 'chatroom' });
     });
   });
 
@@ -401,6 +405,7 @@ describe('KickStrategy', () => {
 
   describe('Event Handling', () => {
     it('should handle channel events through eventHandler', async () => {
+      const emitSpy = vi.spyOn(strategy, 'emit').mockImplementation(() => {});
       await strategy.connect();
 
       const mockWs = (strategy as any).websocketClient;
@@ -416,9 +421,22 @@ describe('KickStrategy', () => {
           }),
         });
       }
+
+      expect(emitSpy).toHaveBeenCalledWith('channelEvent', {
+        event: 'StreamerIsLive',
+        channel: 'channel.12345',
+        data: JSON.stringify({
+          livestream: {
+            id: 'stream123',
+            channel_id: '12345',
+          },
+        }),
+      });
+      emitSpy.mockRestore();
     });
 
     it('should handle chat events through eventHandler', async () => {
+      const emitSpy = vi.spyOn(strategy, 'emit').mockImplementation(() => {});
       await strategy.connect();
 
       const mockWs = (strategy as any).websocketClient;
@@ -432,9 +450,20 @@ describe('KickStrategy', () => {
           }),
         });
       }
+
+      expect(emitSpy).toHaveBeenCalledWith('chatEvent', {
+        event: 'ChatMessageEvent',
+        channel: 'chatrooms.67890.v2',
+        data: JSON.stringify({
+          sender: { id: '123', username: 'testuser' },
+          content: 'Hello',
+        }),
+      });
+      emitSpy.mockRestore();
     });
 
     it('should handle generic events', async () => {
+      const emitSpy = vi.spyOn(strategy, 'emit').mockImplementation(() => {});
       await strategy.connect();
 
       const mockWs = (strategy as any).websocketClient;
@@ -445,6 +474,13 @@ describe('KickStrategy', () => {
           data: '{}',
         });
       }
+
+      expect(emitSpy).toHaveBeenCalledWith('event', {
+        event: 'CustomEvent',
+        channel: 'channel.12345',
+        data: '{}',
+      });
+      emitSpy.mockRestore();
     });
   });
 
