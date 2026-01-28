@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@streaming-enhancement/keystore-native": "file:../../shared/keystore-native",
+    "@streaming-enhancement/shared-models": "file:../../shared/models",
     "async-mutex": "^0.5.0",
     "better-sqlite3": "^12.6.2",
     "commander": "^11.1.0",

@@ -63,7 +63,7 @@ export class KickStrategy extends EventEmitter
       websocket: {
         connected: this.websocketClient?.isConnected() ?? false,
         region: this.websocketClient?.getCurrentRegion() ?? null,
-        appKey: this.config.pusherAppKey ?? null,
+        appKey: this.config.pusherAppKey ?? 'eb1d5f283081a78b932c',
       },
       rest: {
         baseUrl: this.config.baseUrl ?? 'https://kick.com',
@@ -123,18 +123,31 @@ export class KickStrategy extends EventEmitter
         this.logger.warn('Pusher WebSocket disconnected');
       });
 
+      this.websocketClient.on('subscribed', (data) => {
+        this.logger.debug('Subscribed to channel:', data);
+        this.emit('subscribed', data);
+      });
+
+      this.websocketClient.on('unsubscribed', (data) => {
+        this.logger.debug('Unsubscribed from channel:', data);
+        this.emit('unsubscribed', data);
+      });
+
       this.websocketClient.on('channelEvent', (message) => {
         this.logger.debug('Received channel event:', message.event);
+        this.emit('channelEvent', message);
         this.handleChannelEvent(message);
       });
 
       this.websocketClient.on('chatEvent', (message) => {
         this.logger.debug('Received chat event:', message.event);
+        this.emit('chatEvent', message);
         this.handleChatEvent(message);
       });
 
       this.websocketClient.on('event', (message) => {
         this.logger.debug('Received generic event:', message.event);
+        this.emit('event', message);
       });
 
       this.eventHandler = new KickEventHandler(this.logger);

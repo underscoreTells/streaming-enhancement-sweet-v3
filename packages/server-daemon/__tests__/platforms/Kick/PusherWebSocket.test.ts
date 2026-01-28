@@ -125,29 +125,45 @@ describe('PusherWebSocket', () => {
       const connectedSpy = vi.fn();
 
       ws.on('connected', connectedSpy);
-      await ws.connect();
+
+      const connectPromise = ws.connect();
 
       const mockWs = (ws as any).ws;
       if (mockWs && mockWs.open) {
         mockWs.open();
       }
 
-      vi.runAllTimers();
-      await new Promise(resolve => setImmediate(resolve));
+      await connectPromise;
+      vi.advanceTimersByTime(0);
+      await Promise.resolve();
 
       expect(ws.isConnected()).toBe(true);
       expect(ws.getCurrentRegion()).toBe('us2');
     });
 
     it('should not reconnect if already connected', async () => {
-      await ws.connect();
+      const connectPromise = ws.connect();
+      const mockWs = (ws as any).ws;
+      if (mockWs && mockWs.open) {
+        mockWs.open();
+      }
+      await connectPromise;
       const initialRegion = ws.getCurrentRegion();
-      await ws.connect();
+      const connectPromise2 = ws.connect();
+      await connectPromise2;
       expect(ws.getCurrentRegion()).toBe(initialRegion);
     });
 
     it('should disconnect cleanly', async () => {
-      await ws.connect();
+      const connectPromise = ws.connect();
+      const mockWs = (ws as any).ws;
+      if (mockWs && mockWs.open) {
+        mockWs.open();
+      }
+      await connectPromise;
+      vi.advanceTimersByTime(0);
+      await Promise.resolve();
+
       expect(ws.isConnected()).toBe(true);
 
       ws.disconnect();
@@ -159,7 +175,14 @@ describe('PusherWebSocket', () => {
       const connectedSpy = vi.fn();
       ws.on('connected', connectedSpy);
 
-      await ws.connect();
+      const connectPromise = ws.connect();
+      const mockWs = (ws as any).ws;
+      if (mockWs && mockWs.open) {
+        mockWs.open();
+      }
+      await connectPromise;
+      vi.advanceTimersByTime(0);
+      await Promise.resolve();
 
       expect(connectedSpy).toHaveBeenCalled();
     });
@@ -185,9 +208,13 @@ describe('PusherWebSocket', () => {
       const errorSpy = vi.fn();
       ws.on('error', errorSpy);
 
-      await ws.connect();
-
+      const connectPromise = ws.connect();
       const mockWs = (ws as any).ws;
+      if (mockWs && mockWs.open) {
+        mockWs.open();
+      }
+      await connectPromise;
+
       if (mockWs) {
         mockWs.emit('error', new Error('Test error'));
       }
@@ -197,6 +224,15 @@ describe('PusherWebSocket', () => {
 
     it('should handle connection state transitions', async () => {
       expect(ws.isConnected()).toBe(false);
+
+      const connectPromise = ws.connect();
+      const mockWs = (ws as any).ws;
+      if (mockWs && mockWs.open) {
+        mockWs.open();
+      }
+      await connectPromise;
+      vi.advanceTimersByTime(0);
+      await Promise.resolve();
 
       await ws.connect();
       expect(ws.isConnected()).toBe(true);
@@ -214,21 +250,38 @@ describe('PusherWebSocket', () => {
         region: 'eu1',
       });
 
-      await noAutoRegionWs.connect();
+      const connectPromise = noAutoRegionWs.connect();
+      const mockWs = (noAutoRegionWs as any).ws;
+      if (mockWs && mockWs.open) {
+        mockWs.open();
+      }
+      await connectPromise;
       expect(noAutoRegionWs.getCurrentRegion()).toBe('eu1');
 
       noAutoRegionWs.disconnect();
     });
 
     it('should default to us2 when no region specified', async () => {
-      await ws.connect();
+      const connectPromise = ws.connect();
+      const mockWs = (ws as any).ws;
+      if (mockWs && mockWs.open) {
+        mockWs.open();
+      }
+      await connectPromise;
       expect(ws.getCurrentRegion()).toBe('us2');
     });
   });
 
   describe('Rate Limiting', () => {
     it('should enforce message rate limit', async () => {
-      await ws.connect();
+      const connectPromise = ws.connect();
+      const mockWs = (ws as any).ws;
+      if (mockWs && mockWs.open) {
+        mockWs.open();
+      }
+      await connectPromise;
+      vi.advanceTimersByTime(0);
+      await Promise.resolve();
 
       const sendPromises = [];
       for (let i = 0; i < 7; i++) {
@@ -306,7 +359,14 @@ describe('PusherWebSocket', () => {
     });
 
     it('should subscribe to channel', async () => {
-      await ws.connect();
+      const connectPromise = ws.connect();
+      const mockWs = (ws as any).ws;
+      if (mockWs && mockWs.open) {
+        mockWs.open();
+      }
+      await connectPromise;
+      vi.advanceTimersByTime(0);
+      await Promise.resolve();
 
       await ws.subscribeToChannel('12345');
 
@@ -314,7 +374,14 @@ describe('PusherWebSocket', () => {
     });
 
     it('should subscribe to chatroom', async () => {
-      await ws.connect();
+      const connectPromise = ws.connect();
+      const mockWs = (ws as any).ws;
+      if (mockWs && mockWs.open) {
+        mockWs.open();
+      }
+      await connectPromise;
+      vi.advanceTimersByTime(0);
+      await Promise.resolve();
 
       await ws.subscribeToChatroomId('67890');
 
@@ -325,7 +392,15 @@ describe('PusherWebSocket', () => {
       const subscribedSpy = vi.fn();
       ws.on('subscribed', subscribedSpy);
 
-      await ws.connect();
+      const connectPromise = ws.connect();
+      const mockWs = (ws as any).ws;
+      if (mockWs && mockWs.open) {
+        mockWs.open();
+      }
+      await connectPromise;
+      vi.advanceTimersByTime(0);
+      await Promise.resolve();
+
       await ws.subscribeToChannel('12345');
 
       expect(subscribedSpy).toHaveBeenCalledWith({ channel: 'channel.12345', type: 'channel' });
@@ -335,14 +410,30 @@ describe('PusherWebSocket', () => {
       const subscribedSpy = vi.fn();
       ws.on('subscribed', subscribedSpy);
 
-      await ws.connect();
+      const connectPromise = ws.connect();
+      const mockWs = (ws as any).ws;
+      if (mockWs && mockWs.open) {
+        mockWs.open();
+      }
+      await connectPromise;
+      vi.advanceTimersByTime(0);
+      await Promise.resolve();
+
       await ws.subscribeToChatroomId('67890');
 
       expect(subscribedSpy).toHaveBeenCalledWith({ channel: 'chatrooms.67890.v2', type: 'chatroom' });
     });
 
     it('should unsubscribe from channel', async () => {
-      await ws.connect();
+      const connectPromise = ws.connect();
+      const mockWs = (ws as any).ws;
+      if (mockWs && mockWs.open) {
+        mockWs.open();
+      }
+      await connectPromise;
+      vi.advanceTimersByTime(0);
+      await Promise.resolve();
+
       await ws.subscribeToChannel('12345');
 
       ws.unsubscribeFromChannel('12345');
@@ -361,9 +452,13 @@ describe('PusherWebSocket', () => {
       const pusherReadySpy = vi.fn();
       ws.on('pusher:ready', pusherReadySpy);
 
-      await ws.connect();
-
+      const connectPromise = ws.connect();
       const mockWs = (ws as any).ws;
+      if (mockWs && mockWs.open) {
+        mockWs.open();
+      }
+      await connectPromise;
+
       if (mockWs) {
         mockWs.emit('message', JSON.stringify({
           event: 'pusher:connection_established',
@@ -378,9 +473,13 @@ describe('PusherWebSocket', () => {
       const pusherErrorSpy = vi.fn();
       ws.on('pusher:error', pusherErrorSpy);
 
-      await ws.connect();
-
+      const connectPromise = ws.connect();
       const mockWs = (ws as any).ws;
+      if (mockWs && mockWs.open) {
+        mockWs.open();
+      }
+      await connectPromise;
+
       if (mockWs) {
         mockWs.emit('message', JSON.stringify({
           event: 'pusher:error',
@@ -393,9 +492,13 @@ describe('PusherWebSocket', () => {
 
     it('should handle subscription_succeeded event', async () => {
       const subscriptionSucceededSpy = vi.spyOn(ws as any, 'handleSubscriptionSucceeded').mockImplementation(() => {});
-      await ws.connect();
-
+      const connectPromise = ws.connect();
       const mockWs = (ws as any).ws;
+      if (mockWs && mockWs.open) {
+        mockWs.open();
+      }
+      await connectPromise;
+
       if (mockWs) {
         mockWs.emit('message', JSON.stringify({
           event: 'pusher_internal:subscription_succeeded',
@@ -411,9 +514,13 @@ describe('PusherWebSocket', () => {
       const channelEventSpy = vi.fn();
       ws.on('channelEvent', channelEventSpy);
 
-      await ws.connect();
-
+      const connectPromise = ws.connect();
       const mockWs = (ws as any).ws;
+      if (mockWs && mockWs.open) {
+        mockWs.open();
+      }
+      await connectPromise;
+
       if (mockWs) {
         mockWs.emit('message', JSON.stringify({
           event: 'StreamerIsLive',
@@ -429,9 +536,13 @@ describe('PusherWebSocket', () => {
       const chatEventSpy = vi.fn();
       ws.on('chatEvent', chatEventSpy);
 
-      await ws.connect();
-
+      const connectPromise = ws.connect();
       const mockWs = (ws as any).ws;
+      if (mockWs && mockWs.open) {
+        mockWs.open();
+      }
+      await connectPromise;
+
       if (mockWs) {
         mockWs.emit('message', JSON.stringify({
           event: 'ChatMessageEvent',
@@ -447,9 +558,13 @@ describe('PusherWebSocket', () => {
       const eventSpy = vi.fn();
       ws.on('event', eventSpy);
 
-      await ws.connect();
-
+      const connectPromise = ws.connect();
       const mockWs = (ws as any).ws;
+      if (mockWs && mockWs.open) {
+        mockWs.open();
+      }
+      await connectPromise;
+
       if (mockWs) {
         mockWs.emit('message', JSON.stringify({
           event: 'CustomEvent',
@@ -464,9 +579,13 @@ describe('PusherWebSocket', () => {
     it('should handle malformed messages gracefully', async () => {
       const errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {});
 
-      await ws.connect();
-
+      const connectPromise = ws.connect();
       const mockWs = (ws as any).ws;
+      if (mockWs && mockWs.open) {
+        mockWs.open();
+      }
+      await connectPromise;
+
       if (mockWs) {
         mockWs.emit('message', 'invalid json');
       }
@@ -485,7 +604,12 @@ describe('PusherWebSocket', () => {
         baseUrl: 'wss://invalid-url.pusher.com',
       });
 
-      await expect(failWs.connect()).resolves.toBeDefined();
+      const connectPromise = failWs.connect();
+      const failMockWs = (failWs as any).ws;
+      if (failMockWs && failMockWs.open) {
+        failMockWs.open();
+      }
+      await connectPromise;
 
       failWs.disconnect();
       expect(errorSpy).toHaveBeenCalled();
@@ -495,9 +619,13 @@ describe('PusherWebSocket', () => {
     it('should handle message parsing errors', async () => {
       const errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {});
 
-      await ws.connect();
-
+      const connectPromise = ws.connect();
       const mockWs = (ws as any).ws;
+      if (mockWs && mockWs.open) {
+        mockWs.open();
+      }
+      await connectPromise;
+
       if (mockWs) {
         mockWs.emit('message', '{invalid json');
       }
@@ -509,9 +637,13 @@ describe('PusherWebSocket', () => {
 
   describe('WebSocket URL Building', () => {
     it('should build correct WebSocket URL with default config', async () => {
-      await ws.connect();
-
+      const connectPromise = ws.connect();
       const mockWs = (ws as any).ws;
+      if (mockWs && mockWs.open) {
+        mockWs.open();
+      }
+      await connectPromise;
+
       expect(mockWs.url).toContain('wss://ws-us2.pusher.com');
       expect(mockWs.url).toContain('app/test_app_key');
       expect(mockWs.url).toContain('protocol=7');

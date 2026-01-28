@@ -66,6 +66,20 @@ const { MockPusherWebSocket, MockRestClient } = vi.hoisted(() => {
           display_name: 'Test User',
         };
       }
+      if (endpoint === '/api/v2/channels/user1') {
+        return {
+          id: '11111',
+          username: 'user1',
+          display_name: 'User 1',
+        };
+      }
+      if (endpoint === '/api/v2/channels/user2') {
+        return {
+          id: '22222',
+          username: 'user2',
+          display_name: 'User 2',
+        };
+      }
       if (endpoint === '/api/v2/channels/nonexistent') {
         return null;
       }
@@ -191,14 +205,18 @@ describe('KickStrategy', () => {
   });
 
   describe('Connection State', () => {
-    it('should emit connectionStateChanged', (done) => {
+    it('should emit connectionStateChanged', async () => {
+      const stateChanges: any[] = [];
       strategy.on('connectionStateChanged', ({ oldState, newState }) => {
-        expect(oldState).toBe('disconnected');
-        expect(newState).toBe('connecting');
-        done();
+        stateChanges.push({ oldState, newState });
       });
 
-      strategy.connect();
+      await strategy.connect();
+
+      expect(stateChanges.length).toBeGreaterThan(0);
+      expect(stateChanges[0].oldState).toBe('disconnected');
+      expect(stateChanges[0].newState).toBe('connecting');
+      expect(stateChanges.some((s: any) => s.newState === 'connected')).toBe(true);
     });
 
     it('should transition to connected state on successful connection', async () => {
