@@ -409,24 +409,27 @@ export class YouTubeStrategy extends EventEmitter
           });
 
           this.pollingClient.on('message', (message: YouTubeLiveChatMessage) => {
-            this.handleChatMessage(message);
+            this.handleChatMessage(message).catch((error) => {
+              this.logger.error('Error handling chat message from fallback polling client:', error);
+            });
           });
 
           this.pollingClient.on('error', (error) => {
             this.logger.error('Polling client error:', error);
           });
 
-          try {
-            await this.pollingClient.connect();
-            this.logger.info(`Polling client connected for chat: ${liveChatId}`);
-            this.emit('chatConnected', { platform: 'youtube', channelId: channel.id });
+          await this.pollingClient.connect();
+          this.logger.info(`Polling client connected for chat: ${liveChatId}`);
+          this.emit('chatConnected', { platform: 'youtube', channelId: channel.id });
           } catch (error) {
             this.logger.error('Failed to connect polling client:', error);
           }
         });
 
         this.sseClient.on('message', (message: YouTubeLiveChatMessage) => {
-          this.handleChatMessage(message);
+          this.handleChatMessage(message).catch((error) => {
+            this.logger.error('Error handling chat message from SSE client:', error);
+          });
         });
 
         try {
@@ -448,7 +451,9 @@ export class YouTubeStrategy extends EventEmitter
           });
 
           this.pollingClient.on('message', (message: YouTubeLiveChatMessage) => {
-            this.handleChatMessage(message);
+            this.handleChatMessage(message).catch((error) => {
+              this.logger.error('Error handling chat message from polling client:', error);
+            });
           });
 
           this.pollingClient.on('error', (error) => {
@@ -457,6 +462,7 @@ export class YouTubeStrategy extends EventEmitter
 
           await this.pollingClient.connect();
           this.logger.info(`Polling client connected for chat: ${liveChatId}`);
+          this.emit('chatConnected', { platform: 'youtube', channelId: channel.id });
         }
       }
 
@@ -514,7 +520,7 @@ export class YouTubeStrategy extends EventEmitter
     }
   }
 
-  private handleChatMessage(message: YouTubeLiveChatMessage): void {
+  private async handleChatMessage(message: YouTubeLiveChatMessage): Promise<void> {
     try {
       if (!this.eventHandler) {
         return;
@@ -522,7 +528,7 @@ export class YouTubeStrategy extends EventEmitter
 
       const eventType = this.getMessageType(message);
       if (eventType) {
-        this.eventHandler.handle(eventType, message);
+        await this.eventHandler.handle(eventType, message);
       }
 
       const adaptedMessage = this.adaptChatMessage(message);
