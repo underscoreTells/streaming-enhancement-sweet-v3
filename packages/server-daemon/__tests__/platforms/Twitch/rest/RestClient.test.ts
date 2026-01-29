@@ -348,12 +348,12 @@ describe('RestClient', () => {
         return Promise.resolve();
       });
 
-      mockFetch.mockResolvedValue({
+      mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 500,
         text: async () => 'Internal Server Error',
         headers: new Headers(),
-      }).mockResolvedValue({
+      }).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ data: 'test' }),
         headers: new Headers({
@@ -400,12 +400,12 @@ describe('RestClient', () => {
     it('should use exponential backoff for 5xx after first attempt', async () => {
       const sleepSpy = vi.spyOn(RestClient.prototype as any, 'sleep').mockResolvedValue(undefined);
 
-      mockFetch.mockResolvedValue({
+      mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 500,
         text: async () => 'Server Error',
         headers: new Headers(),
-      }).mockResolvedValue({
+      }).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ data: 'test' }),
         headers: new Headers(),

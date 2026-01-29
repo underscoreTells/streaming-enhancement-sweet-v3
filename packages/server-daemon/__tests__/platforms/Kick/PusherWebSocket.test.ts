@@ -5,6 +5,10 @@ vi.mock('ws', () => {
   return {
     default: class MockWebSocket {
       public readyState = 0;
+      static CONNECTING = 0;
+      static OPEN = 1;
+      static CLOSING = 2;
+      static CLOSED = 3;
 
       constructor(public url: string) {
         this._handlers = new Map();
@@ -54,10 +58,14 @@ vi.mock('ws', () => {
       }
 
       open() {
+        // Set readyState before emitting to match real WebSocket behavior
         this.readyState = 1;
         const handlers = this._handlers.get('open');
         if (handlers) {
-          handlers.forEach((h: Function) => h());
+          // Use setImmediate to simulate async event emission
+          setImmediate(() => {
+            handlers.forEach((h: Function) => h());
+          });
         }
       }
 
@@ -134,6 +142,9 @@ describe('PusherWebSocket', () => {
       }
 
       await connectPromise;
+      await new Promise(resolve => setImmediate(resolve));
+      // Wait for async open event to be processed
+      await new Promise(resolve => setImmediate(resolve));
       vi.advanceTimersByTime(0);
       await Promise.resolve();
 
@@ -148,6 +159,8 @@ describe('PusherWebSocket', () => {
         mockWs.open();
       }
       await connectPromise;
+      await new Promise(resolve => setImmediate(resolve));
+      await new Promise(resolve => setImmediate(resolve));
       const initialRegion = ws.getCurrentRegion();
       const connectPromise2 = ws.connect();
       await connectPromise2;
@@ -161,6 +174,7 @@ describe('PusherWebSocket', () => {
         mockWs.open();
       }
       await connectPromise;
+      await new Promise(resolve => setImmediate(resolve));
       vi.advanceTimersByTime(0);
       await Promise.resolve();
 
@@ -181,6 +195,7 @@ describe('PusherWebSocket', () => {
         mockWs.open();
       }
       await connectPromise;
+      await new Promise(resolve => setImmediate(resolve));
       vi.advanceTimersByTime(0);
       await Promise.resolve();
 
@@ -214,6 +229,7 @@ describe('PusherWebSocket', () => {
         mockWs.open();
       }
       await connectPromise;
+      await new Promise(resolve => setImmediate(resolve));
 
       if (mockWs) {
         mockWs.emit('error', new Error('Test error'));
@@ -231,6 +247,7 @@ describe('PusherWebSocket', () => {
         mockWs.open();
       }
       await connectPromise;
+      await new Promise(resolve => setImmediate(resolve));
       vi.advanceTimersByTime(0);
       await Promise.resolve();
 
@@ -256,6 +273,7 @@ describe('PusherWebSocket', () => {
         mockWs.open();
       }
       await connectPromise;
+      await new Promise(resolve => setImmediate(resolve));
       expect(noAutoRegionWs.getCurrentRegion()).toBe('eu1');
 
       noAutoRegionWs.disconnect();
@@ -268,6 +286,7 @@ describe('PusherWebSocket', () => {
         mockWs.open();
       }
       await connectPromise;
+      await new Promise(resolve => setImmediate(resolve));
       expect(ws.getCurrentRegion()).toBe('us2');
     });
   });
@@ -280,6 +299,7 @@ describe('PusherWebSocket', () => {
         mockWs.open();
       }
       await connectPromise;
+      await new Promise(resolve => setImmediate(resolve));
       vi.advanceTimersByTime(0);
       await Promise.resolve();
 
@@ -365,6 +385,7 @@ describe('PusherWebSocket', () => {
         mockWs.open();
       }
       await connectPromise;
+      await new Promise(resolve => setImmediate(resolve));
       vi.advanceTimersByTime(0);
       await Promise.resolve();
 
@@ -380,6 +401,7 @@ describe('PusherWebSocket', () => {
         mockWs.open();
       }
       await connectPromise;
+      await new Promise(resolve => setImmediate(resolve));
       vi.advanceTimersByTime(0);
       await Promise.resolve();
 
@@ -398,6 +420,7 @@ describe('PusherWebSocket', () => {
         mockWs.open();
       }
       await connectPromise;
+      await new Promise(resolve => setImmediate(resolve));
       vi.advanceTimersByTime(0);
       await Promise.resolve();
 
@@ -416,6 +439,7 @@ describe('PusherWebSocket', () => {
         mockWs.open();
       }
       await connectPromise;
+      await new Promise(resolve => setImmediate(resolve));
       vi.advanceTimersByTime(0);
       await Promise.resolve();
 
@@ -431,6 +455,7 @@ describe('PusherWebSocket', () => {
         mockWs.open();
       }
       await connectPromise;
+      await new Promise(resolve => setImmediate(resolve));
       vi.advanceTimersByTime(0);
       await Promise.resolve();
 
@@ -458,6 +483,7 @@ describe('PusherWebSocket', () => {
         mockWs.open();
       }
       await connectPromise;
+      await new Promise(resolve => setImmediate(resolve));
 
       if (mockWs) {
         mockWs.emit('message', JSON.stringify({
@@ -479,6 +505,7 @@ describe('PusherWebSocket', () => {
         mockWs.open();
       }
       await connectPromise;
+      await new Promise(resolve => setImmediate(resolve));
 
       if (mockWs) {
         mockWs.emit('message', JSON.stringify({
@@ -498,6 +525,7 @@ describe('PusherWebSocket', () => {
         mockWs.open();
       }
       await connectPromise;
+      await new Promise(resolve => setImmediate(resolve));
 
       if (mockWs) {
         mockWs.emit('message', JSON.stringify({
@@ -520,6 +548,7 @@ describe('PusherWebSocket', () => {
         mockWs.open();
       }
       await connectPromise;
+      await new Promise(resolve => setImmediate(resolve));
 
       if (mockWs) {
         mockWs.emit('message', JSON.stringify({
@@ -542,6 +571,7 @@ describe('PusherWebSocket', () => {
         mockWs.open();
       }
       await connectPromise;
+      await new Promise(resolve => setImmediate(resolve));
 
       if (mockWs) {
         mockWs.emit('message', JSON.stringify({
@@ -564,6 +594,7 @@ describe('PusherWebSocket', () => {
         mockWs.open();
       }
       await connectPromise;
+      await new Promise(resolve => setImmediate(resolve));
 
       if (mockWs) {
         mockWs.emit('message', JSON.stringify({
@@ -585,6 +616,7 @@ describe('PusherWebSocket', () => {
         mockWs.open();
       }
       await connectPromise;
+      await new Promise(resolve => setImmediate(resolve));
 
       if (mockWs) {
         mockWs.emit('message', 'invalid json');
@@ -610,6 +642,7 @@ describe('PusherWebSocket', () => {
         failMockWs.open();
       }
       await connectPromise;
+      await new Promise(resolve => setImmediate(resolve));
 
       failWs.disconnect();
       expect(errorSpy).toHaveBeenCalled();
@@ -625,6 +658,7 @@ describe('PusherWebSocket', () => {
         mockWs.open();
       }
       await connectPromise;
+      await new Promise(resolve => setImmediate(resolve));
 
       if (mockWs) {
         mockWs.emit('message', '{invalid json');
@@ -643,6 +677,7 @@ describe('PusherWebSocket', () => {
         mockWs.open();
       }
       await connectPromise;
+      await new Promise(resolve => setImmediate(resolve));
 
       expect(mockWs.url).toContain('wss://ws-us2.pusher.com');
       expect(mockWs.url).toContain('app/test_app_key');

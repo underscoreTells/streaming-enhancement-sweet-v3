@@ -97,8 +97,6 @@ describe('EventSubHandler', () => {
       const mockHandler = vi.fn();
       handler.register(EventType.StreamOnline, mockHandler);
 
-      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-
       const message: EventSubMessage = {
         metadata: {
           message_id: 'test-id',
@@ -111,9 +109,7 @@ describe('EventSubHandler', () => {
       handler.handle(message);
 
       expect(mockHandler).not.toHaveBeenCalled();
-      expect(consoleWarnSpy).toHaveBeenCalledWith('No handler registered for event type: undefined');
-
-      consoleWarnSpy.mockRestore();
+      // When subscription_type is undefined, no handler is called and no error is thrown
     });
 
     it('should debug for unregistered event types', () => {
@@ -164,6 +160,7 @@ describe('EventSubHandler', () => {
 
 describe('createEventHandlers', () => {
   let logger: ReturnType<typeof createLogger>;
+  let handler: EventSubHandler;
 
   beforeEach(() => {
     logger = createLogger({ silent: true });

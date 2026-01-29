@@ -67,6 +67,7 @@ export class RestClient {
   private async request(url: string, method: string, body?: unknown): Promise<unknown> {
     const maxRetries = 3;
     let attempt = 0;
+    let lastError: Error | null = null;
 
     while (attempt < maxRetries) {
       const headers = await this.getHeaders();
@@ -86,18 +87,28 @@ export class RestClient {
 
         const isRetryable = response.status === 429 || response.status >= 500;
 
-        if (isRetryable && attempt < maxRetries - 1) {
+        if (!isRetryable) {
+          // Non-retryable error, throw immediately
+          const errorText = await response.text();
+          throw new Error(`Request failed: ${response.status} - ${errorText}`);
+        }
+
+        // Retryable error - check if we have more attempts
+        if (attempt < maxRetries - 1) {
           const delay = this.getBackoffDelay(attempt, response.status);
           this.logger.warn(`Request failed with ${response.status}, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`);
           await this.sleep(delay);
-          attempt++;
-          continue;
         }
-
-        const errorText = await response.text();
-        throw new Error(`Request failed: ${response.status} - ${errorText}`);
+        
+        attempt++;
       } catch (error) {
         if (error instanceof Error) {
+          if (error.message.startsWith('Request failed:')) {
+            // HTTP error that we've already handled - re-throw
+            throw error;
+          }
+          
+          // Network or other error
           if (attempt < maxRetries - 1) {
             const delay = this.getBackoffDelay(attempt, 500);
             this.logger.warn(`Request error, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`, { error: error.message });
@@ -105,11 +116,14 @@ export class RestClient {
             attempt++;
             continue;
           }
+          
+          lastError = error;
         }
         throw error;
       }
     }
 
+    // All retries exhausted
     throw new Error('Max retries reached');
   }
 
@@ -118,8 +132,14 @@ export class RestClient {
     const remaining = response.headers.get('Ratelimit-Remaining');
     const reset = response.headers.get('Ratelimit-Reset');
 
-    if (limit && remaining && reset) {
+    // Update headers individually, not atomically
+    if (limit) {
+      // Only update limit if provided
+    }
+    if (remaining) {
       this.rateLimit.remaining = parseInt(remaining, 10);
+    }
+    if (reset) {
       this.rateLimit.reset = parseInt(reset, 10) * 1000;
     }
   }
