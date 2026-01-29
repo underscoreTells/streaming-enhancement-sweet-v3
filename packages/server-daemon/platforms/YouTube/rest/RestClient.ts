@@ -78,6 +78,9 @@ export class RestClient {
         const response = await this.makeRequest(url, method, data);
 
         if (response.status === 401 && this.username && this.tokenRefreshCallback) {
+          if (attempts >= maxAttempts) {
+            throw new Error(`Authentication failed after ${attempts}/${maxAttempts} attempts`);
+          }
           this.logger.debug('Token expired (401), attempting refresh');
           try {
             const newToken = await this.tokenRefreshCallback(this.username);
@@ -92,6 +95,9 @@ export class RestClient {
         }
 
         if (response.status === 429) {
+          if (attempts >= maxAttempts) {
+            throw new Error(`Rate limited (429) after ${attempts}/${maxAttempts} attempts`);
+          }
           const resetTime = this.parseRetryAfter(response);
           const waitTime = Math.max(resetTime, 5000);
           this.logger.warn(`Rate limited (429), waiting ${waitTime}ms before retry (attempt ${attempts}/${maxAttempts})`);

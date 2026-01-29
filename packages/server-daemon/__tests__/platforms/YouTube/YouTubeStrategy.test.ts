@@ -247,7 +247,7 @@ describe('YouTubeStrategy', () => {
       await expect(strategy.subscribeToChat('123')).rejects.toThrow('Not connected');
     });
 
-    it('should throw error when subscribing without username', async () => {
+    it('should throw error when subscribing to non-existent channel id', async () => {
       await strategy.connect();
       await expect(strategy.subscribeToChannel('123')).rejects.toThrow('Channel 123 not found');
       await strategy.disconnect();

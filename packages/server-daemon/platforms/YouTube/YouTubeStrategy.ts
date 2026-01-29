@@ -124,18 +124,26 @@ export class YouTubeStrategy extends EventEmitter
     this.logger.debug(`YouTubeStrategy connection state: ${oldState} -> ${state}`);
   }
 
+  private pendingOAuthUsers = new Map<string, string>();
+
   async startOAuth(username: string): Promise<string> {
-    return this.oauth.generateAuthorizationUrl().then(result => result.url);
+    const result = await this.oauth.generateAuthorizationUrl();
+    this.pendingOAuthUsers.set(result.state, username);
+    return result.url;
   }
 
   async handleCallback(code: string, state: string): Promise<TokenSet> {
-    if (!this.currentUsername) {
+    // Try to get username from pending OAuth users first
+    const username = this.pendingOAuthUsers.get(state) || this.currentUsername;
+    if (!username) {
       throw new Error('Username must be set before handling OAuth callback. Set it via config or during subscription.');
     }
+    // Clean up pending OAuth user
+    this.pendingOAuthUsers.delete(state);
     try {
-      await this.oauth.handleOAuthCallback(code, state, this.currentUsername);
-      const tokenSet = await this.oauth.getAccessToken(this.currentUsername);
-      this.logger.info(`OAuth callback handled successfully for ${this.currentUsername}`);
+      await this.oauth.handleOAuthCallback(code, state, username);
+      const tokenSet = await this.oauth.getAccessToken(username);
+      this.logger.info(`OAuth callback handled successfully for ${username}`);
       return tokenSet;
     } catch (error) {
       this.logger.error('Failed to handle OAuth callback:', error);
@@ -358,14 +366,13 @@ export class YouTubeStrategy extends EventEmitter
 
         this.sseClient = new YouTubeLiveChatSSEClient(this.logger, sseConfig);
 
-        this.sseClient.on('connected', () => {
-          this.logger.debug('SSE connected');
-          this.emit('chatConnected', { platform: 'youtube', channelId: channel.id });
-        });
-
-        this.sseClient.on('disconnected', () => {
-          this.logger.debug('SSE disconnected');
-          this.emit('chatDisconnected', { platform: 'youtube', channelId: channel.id });
+        this.sseClient.on('stateChanged', (data: { oldState: string; newState: string }) => {
+          this.logger.debug(`SSE state changed: ${data.oldState} -> ${data.newState}`);
+          if (data.newState === 'connected') {
+            this.emit('chatConnected', { platform: 'youtube', channelId: channel.id });
+          } else if (data.newState === 'disconnected') {
+            this.emit('chatDisconnected', { platform: 'youtube', channelId: channel.id });
+          }
         });
 
         this.sseClient.on('error', (error) => {

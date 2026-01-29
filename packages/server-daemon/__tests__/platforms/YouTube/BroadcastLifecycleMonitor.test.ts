@@ -30,6 +30,9 @@ describe('BroadcastLifecycleMonitor', () => {
   });
 
   afterEach(() => {
+    if (monitor) {
+      monitor.stopMonitoring();
+    }
     vi.restoreAllMocks();
     vi.useRealTimers();
   });

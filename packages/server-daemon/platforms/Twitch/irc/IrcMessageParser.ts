@@ -78,13 +78,14 @@ export class IrcMessageParser {
 
   /**
    * Unescape IRC tag values (backslash escaping)
+   * Note: Process \\ last to avoid creating new escape sequences
    */
   private static unescapeTagValue(value: string): string {
     return value
-      .replace(/\\\\/g, '\\')
       .replace(/\\s/g, ' ')
       .replace(/\\:/g, ';')
       .replace(/\\r/g, '\r')
-      .replace(/\\n/g, '\n');
+      .replace(/\\n/g, '\n')
+      .replace(/\\\\/g, '\\');
   }
 }

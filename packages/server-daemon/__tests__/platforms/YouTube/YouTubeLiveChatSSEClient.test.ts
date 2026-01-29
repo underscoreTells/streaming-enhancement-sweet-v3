@@ -6,8 +6,6 @@ import { Logger } from 'winston';
 describe('YouTubeLiveChatSSEClient', () => {
   let logger: Logger;
   let client: YouTubeLiveChatSSEClient;
-  let mockReadableStream: ReadableStream;
-  let mockController: ReadableStreamDefaultController;
 
   beforeEach(() => {
     logger = {
@@ -17,22 +15,13 @@ describe('YouTubeLiveChatSSEClient', () => {
       error: vi.fn(),
     } as unknown as Logger;
 
-    mockController = {
-      enqueue: vi.fn(),
-      close: vi.fn(),
-      desiredSize: 1,
-    } as unknown as ReadableStreamDefaultController;
-
-    mockReadableStream = new ReadableStream({
-      start(controller) {
-        mockController = controller as ReadableStreamDefaultController;
-      },
-    });
-
     vi.stubGlobal('fetch', vi.fn());
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    if (client) {
+      await client.disconnect();
+    }
     vi.unstubAllGlobals();
   });
 
@@ -62,20 +51,19 @@ describe('YouTubeLiveChatSSEClient', () => {
 
   describe('connection lifecycle', () => {
     it('should transition to connecting when connect() is called', async () => {
-      const mockReader = {
-        read: vi.fn()
-          .mockResolvedValueOnce({ done: true, value: null }),
-      } as unknown as ReadableStreamDefaultReader;
+      const mockResponse: YouTubeLiveChatResponse = {
+        kind: 'youtube#liveChatMessageListResponse',
+        etag: '"test-etag"',
+        nextPageToken: 'next-page-token-123',
+        pollingIntervalMillis: 5000,
+        items: [],
+      };
 
-      const mockResponse = {
+      vi.mocked(fetch).mockResolvedValueOnce({
         ok: true,
         status: 200,
-        body: {
-          getReader: () => mockReader,
-        },
-      } as unknown as Response;
-
-      vi.mocked(fetch).mockResolvedValueOnce(mockResponse);
+        json: async () => mockResponse,
+      } as unknown as Response);
 
       client = new YouTubeLiveChatSSEClient(logger, {
         liveChatId: 'test-chat-id',
@@ -87,65 +75,66 @@ describe('YouTubeLiveChatSSEClient', () => {
       
       await connectPromise;
       await new Promise(resolve => setTimeout(resolve, 100));
-      await client.disconnect();
       
       expect(fetch).toHaveBeenCalled();
+      expect(client.getState()).toBe('connected');
     });
 
     it('should emit stateChanged events', async () => {
-      const mockReader = {
-        read: vi.fn()
-          .mockResolvedValueOnce({ done: true, value: null }),
-      } as unknown as ReadableStreamDefaultReader;
+      const mockResponse: YouTubeLiveChatResponse = {
+        kind: 'youtube#liveChatMessageListResponse',
+        etag: '"test-etag"',
+        nextPageToken: 'next-page-token-123',
+        pollingIntervalMillis: 5000,
+        items: [],
+      };
 
-      const mockResponse = {
+      vi.mocked(fetch).mockResolvedValueOnce({
         ok: true,
         status: 200,
-        body: {
-          getReader: () => mockReader,
-        },
-      } as unknown as Response;
-
-      vi.mocked(fetch).mockResolvedValueOnce(mockResponse);
+        json: async () => mockResponse,
+      } as unknown as Response);
 
       client = new YouTubeLiveChatSSEClient(logger, {
         liveChatId: 'test-chat-id',
         accessToken: 'test-token',
       });
 
-      const states: any[] = [];
-      client.on('stateChanged', (data: any) => {
+      const states: string[] = [];
+      client.on('stateChanged', (data: { oldState: string; newState: string }) => {
         states.push(data.newState);
       });
 
-      client.connect();
+      await client.connect();
       await new Promise(resolve => setTimeout(resolve, 50));
       await client.disconnect();
 
       expect(states.length).toBeGreaterThan(0);
+      expect(states).toContain('connected');
+      expect(states).toContain('disconnected');
     });
 
     it('should disconnect properly', async () => {
-      const mockReader = {
-        read: vi.fn()
-          .mockResolvedValueOnce({ done: true, value: null }),
-      } as unknown as ReadableStreamDefaultReader;
+      const mockResponse: YouTubeLiveChatResponse = {
+        kind: 'youtube#liveChatMessageListResponse',
+        etag: '"test-etag"',
+        nextPageToken: 'next-page-token-123',
+        pollingIntervalMillis: 5000,
+        items: [],
+      };
 
-      const mockResponse = {
+      vi.mocked(fetch).mockResolvedValueOnce({
         ok: true,
         status: 200,
-        body: {
-          getReader: () => mockReader,
-        },
-      } as unknown as Response;
-
-      vi.mocked(fetch).mockResolvedValueOnce(mockResponse);
+        json: async () => mockResponse,
+      } as unknown as Response);
 
       client = new YouTubeLiveChatSSEClient(logger, {
         liveChatId: 'test-chat-id',
         accessToken: 'test-token',
       });
 
+      await client.connect();
       await new Promise(resolve => setTimeout(resolve, 50));
       await client.disconnect();
 
@@ -165,14 +154,14 @@ describe('YouTubeLiveChatSSEClient', () => {
 
       await client.connect();
       await new Promise(resolve => setTimeout(resolve, 150));
-      await client.disconnect();
 
       expect(fetch).toHaveBeenCalled();
+      expect(client.getState()).toBe('error');
     });
   });
 
-  describe('SSE message parsing', () => {
-    it('should parse SSE messages correctly', async () => {
+  describe('message handling', () => {
+    it('should receive chat messages via polling', async () => {
       const testData: YouTubeLiveChatResponse = {
         kind: 'youtube#liveChatMessageListResponse',
         etag: '"test-etag"',
@@ -207,30 +196,11 @@ describe('YouTubeLiveChatSSEClient', () => {
         ],
       };
 
-      const chunk = `data: ${JSON.stringify(testData)}\n\n`;
-      const encoder = new TextEncoder();
-      
-      const mockReader = {
-        read: vi.fn()
-          .mockResolvedValueOnce({ done: false, value: encoder.encode(chunk) })
-          .mockResolvedValueOnce({ done: true, value: null }),
-      } as unknown as ReadableStreamDefaultReader;
-
-      const mockReadStream = new ReadableStream({
-        start(controller) {
-          (controller as any).reader = mockReader;
-        },
-      });
-
-      const mockResponse = {
+      vi.mocked(fetch).mockResolvedValueOnce({
         ok: true,
         status: 200,
-        body: {
-          getReader: () => mockReader,
-        },
-      } as unknown as Response;
-
-      vi.mocked(fetch).mockResolvedValueOnce(mockResponse);
+        json: async () => testData,
+      } as unknown as Response);
 
       const messages: any[] = [];
       client = new YouTubeLiveChatSSEClient(logger, {
@@ -248,6 +218,8 @@ describe('YouTubeLiveChatSSEClient', () => {
       expect(messages).toHaveLength(1);
       expect(messages[0].id).toBe('msg-1');
       expect(client.getCurrentPageToken()).toBe('next-page-token-123');
+      
+      await client.disconnect();
     });
   });
 
@@ -291,21 +263,20 @@ describe('YouTubeLiveChatSSEClient', () => {
   });
 
   describe('reconnection logic', () => {
-    it('should trigger reconnection on stream end', async () => {
-      const mockReader = {
-        read: vi.fn()
-          .mockResolvedValueOnce({ done: true, value: null }),
-      } as unknown as ReadableStreamDefaultReader;
+    it('should handle connection lifecycle', async () => {
+      const mockResponse: YouTubeLiveChatResponse = {
+        kind: 'youtube#liveChatMessageListResponse',
+        etag: '"test-etag"',
+        nextPageToken: 'next-page-token',
+        pollingIntervalMillis: 5000,
+        items: [],
+      };
 
-      const mockResponse = {
+      vi.mocked(fetch).mockResolvedValueOnce({
         ok: true,
         status: 200,
-        body: {
-          getReader: () => mockReader,
-        },
-      } as unknown as Response;
-
-      vi.mocked(fetch).mockResolvedValueOnce(mockResponse);
+        json: async () => mockResponse,
+      } as unknown as Response);
 
       client = new YouTubeLiveChatSSEClient(logger, {
         liveChatId: 'test-chat-id',
@@ -338,7 +309,10 @@ describe('YouTubeChatPollingClient', () => {
     vi.useFakeTimers();
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    if (client) {
+      await client.disconnect();
+    }
     vi.unstubAllGlobals();
     vi.useRealTimers();
   });
@@ -415,8 +389,8 @@ describe('YouTubeChatPollingClient', () => {
         accessToken: 'test-token',
       });
 
-      const states: any[] = [];
-      client.on('stateChanged', (data: any) => {
+      const states: string[] = [];
+      client.on('stateChanged', (data: { oldState: string; newState: string }) => {
         states.push(data.newState);
       });
 

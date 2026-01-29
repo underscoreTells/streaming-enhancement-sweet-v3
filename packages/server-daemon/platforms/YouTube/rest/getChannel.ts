@@ -12,13 +12,15 @@ export async function getChannel(
 
     if (identifier.startsWith('@')) {
       params.forHandle = identifier;
+    } else if (/^UC[A-Za-z0-9_-]{22}$/.test(identifier)) {
+      // Channel ID format: UC prefix + 22 alphanumeric/underscore/hyphen chars
+      params.id = identifier;
+    } else if (/^[A-Za-z0-9_.-]{3,30}$/.test(identifier)) {
+      // Legacy username format: 3-30 chars, allows dots, preserve case
+      params.forUsername = identifier;
     } else {
-      const lowerIdentifier = identifier.toLowerCase();
-      if (/^[a-z0-9_-]{3,24}$/.test(lowerIdentifier)) {
-        params.forUsername = identifier;
-      } else {
-        params.id = identifier;
-      }
+      // Fallback to ID for other formats
+      params.id = identifier;
     }
 
     const response = await client.get('/channels', params) as YouTubeApiResponse<YouTubeChannel>;

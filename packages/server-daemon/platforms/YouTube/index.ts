@@ -28,7 +28,8 @@ export type {
 } from './sse/types';
 
 export { YouTubeEventHandler, createEventHandlers } from './event';
-export { YouTubeMessageType, EventHandler } from './event/types';
+export { YouTubeMessageType } from './event/types';
+export type { EventHandler } from './event/types';
 
 export { BroadcastLifecycleMonitor } from './monitor';
 export { StreamHealthMonitor } from './monitor';

@@ -133,10 +133,13 @@ export class StreamHealthMonitor extends EventEmitter {
         part: 'snippet,status,cdn',
       };
 
+      // Validate that a required filter is present
       if (this.config.streamId) {
         params.id = this.config.streamId;
-      } else if (this.config.channelId) {
-        params.id = this.config.channelId;
+      } else {
+        // For fetching the authenticated user's streams, use mine=true
+        // This requires the restClient to be authenticated
+        params.mine = 'true';
       }
 
       const response = await this.restClient.get('/liveStreams', params) as any;

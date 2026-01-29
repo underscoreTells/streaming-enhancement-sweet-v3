@@ -92,7 +92,7 @@ export function createEventHandlers(logger: Logger): Map<YouTubeMessageType, Eve
 
     const { superStickerDetails } = snippet;
 
-    logger.debug(`SuperStickerEvent processed from ${authorDetails.displayName}: ${superStickerDetails.sticker.displayName}`);
+    logger.debug(`SuperStickerEvent processed from ${authorDetails.displayName}: ${superStickerDetails?.sticker?.displayName ?? 'unknown sticker'}`);
   });
 
   handlers.set(YouTubeMessageType.MemberMilestone, async (data: unknown) => {

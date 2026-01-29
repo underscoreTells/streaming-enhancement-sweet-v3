@@ -15,6 +15,7 @@ export class YouTubeChatPollingClient extends EventEmitter {
   ) {
     super();
     this.setMaxListeners(100);
+    this.pollInterval = this.config.initialPollInterval ?? 5000;
   }
 
   async connect(): Promise<void> {
@@ -131,9 +132,9 @@ export class YouTubeChatPollingClient extends EventEmitter {
 
   private handlePollError(error: unknown): void {
     this.logger.error('Polling error:', error);
-    this.setState('error');
     this.emit('error', error);
-    
+    // Set to polling state to allow retry scheduling
+    this.setState('polling');
     this.scheduleNextPoll();
   }
 
