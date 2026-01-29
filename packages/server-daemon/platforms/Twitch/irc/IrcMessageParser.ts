@@ -78,14 +78,30 @@ export class IrcMessageParser {
 
   /**
    * Unescape IRC tag values (backslash escaping)
-   * Note: Process \\ last to avoid creating new escape sequences
+   * Uses single-pass parser to avoid creating new escape sequences
    */
   private static unescapeTagValue(value: string): string {
-    return value
-      .replace(/\\s/g, ' ')
-      .replace(/\\:/g, ';')
-      .replace(/\\r/g, '\r')
-      .replace(/\\n/g, '\n')
-      .replace(/\\\\/g, '\\');
+    const escapeMap: Record<string, string> = {
+      's': ' ',
+      ':': ';',
+      'r': '\r',
+      'n': '\n',
+      '\\': '\\',
+    };
+
+    let result = '';
+    for (let i = 0; i < value.length; i++) {
+      const char = value[i];
+      if (char === '\\' && i + 1 < value.length) {
+        const nextChar = value[i + 1];
+        if (nextChar in escapeMap) {
+          result += escapeMap[nextChar];
+          i++;
+          continue;
+        }
+      }
+      result += char;
+    }
+    return result;
   }
 }

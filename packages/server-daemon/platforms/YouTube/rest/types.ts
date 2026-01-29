@@ -78,6 +78,7 @@ export interface YouTubeLiveStream {
     healthStatus: {
       status: string;
       lastUpdateTimeS?: string;
+      configurationIssues?: string[];
     };
   };
   contentDetails: {

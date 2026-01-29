@@ -65,6 +65,7 @@ export class YouTubeLiveChatSSEClient extends EventEmitter {
       this.setState('connected');
       this.logger.info(`Connected to YouTube LiveChat for ${this.config.liveChatId}`);
     } catch (error) {
+      this.clearInternalListeners();
       this.handleConnectionError(error);
     }
   }
@@ -98,7 +99,7 @@ export class YouTubeLiveChatSSEClient extends EventEmitter {
   }
 
   isConnected(): boolean {
-    return this.state === 'connected';
+    return this.state === 'connected' || this.state === 'polling';
   }
 
   getCurrentPageToken(): string | null {

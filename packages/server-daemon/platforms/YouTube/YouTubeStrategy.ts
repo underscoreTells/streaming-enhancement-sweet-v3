@@ -210,10 +210,27 @@ export class YouTubeStrategy extends EventEmitter
       this.currentBroadcastId = null;
       this.currentUsername = null;
 
-      this.sseClient?.disconnect();
-      this.sseClient = null;
+      const disconnectPromises: Promise<void>[] = [];
 
-      this.pollingClient?.disconnect();
+      if (this.sseClient) {
+        disconnectPromises.push(
+          this.sseClient.disconnect().catch((error) => {
+            this.logger.error('Error disconnecting SSE client:', error);
+          })
+        );
+      }
+
+      if (this.pollingClient) {
+        disconnectPromises.push(
+          this.pollingClient.disconnect().catch((error) => {
+            this.logger.error('Error disconnecting polling client:', error);
+          })
+        );
+      }
+
+      await Promise.allSettled(disconnectPromises);
+
+      this.sseClient = null;
       this.pollingClient = null;
 
       this.broadcastLifecycleMonitor?.stopMonitoring();
@@ -405,6 +422,36 @@ export class YouTubeStrategy extends EventEmitter
         this.sseClient.on('message', (message: YouTubeLiveChatMessage) => {
           this.handleChatMessage(message);
         });
+
+        try {
+          await this.sseClient.connect();
+          this.logger.info(`SSE client connected for chat: ${liveChatId}`);
+        } catch (error) {
+          this.logger.error('Failed to connect SSE client, falling back to polling:', error);
+          this.sseClient = null;
+
+          const tokenSet = await this.oauth.getAccessToken(this.currentUsername);
+          this.pollingClient = new YouTubeChatPollingClient(this.logger, {
+            liveChatId,
+            accessToken: tokenSet.access_token,
+            initialPollInterval: 5000,
+          });
+
+          this.pollingClient.on('stateChanged', (data: any) => {
+            this.logger.debug(`Polling client state: ${data.newState}`);
+          });
+
+          this.pollingClient.on('message', (message: YouTubeLiveChatMessage) => {
+            this.handleChatMessage(message);
+          });
+
+          this.pollingClient.on('error', (error) => {
+            this.logger.error('Polling client error:', error);
+          });
+
+          await this.pollingClient.connect();
+          this.logger.info(`Polling client connected for chat: ${liveChatId}`);
+        }
       }
 
       this.logger.info(`Subscribed to chat: ${liveChatId} for channel ${channel.id}`);
@@ -419,12 +466,20 @@ export class YouTubeStrategy extends EventEmitter
     
     try {
       if (this.sseClient) {
-        this.sseClient.disconnect();
+        try {
+          await this.sseClient.disconnect();
+        } catch (error) {
+          this.logger.error('Error disconnecting SSE client during unsubscribe:', error);
+        }
         this.sseClient = null;
       }
 
       if (this.pollingClient) {
-        this.pollingClient.disconnect();
+        try {
+          await this.pollingClient.disconnect();
+        } catch (error) {
+          this.logger.error('Error disconnecting polling client during unsubscribe:', error);
+        }
         this.pollingClient = null;
       }
 
