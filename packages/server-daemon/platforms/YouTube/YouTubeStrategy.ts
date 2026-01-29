@@ -396,7 +396,7 @@ export class YouTubeStrategy extends EventEmitter
           this.logger.error('SSE error:', error);
         });
 
-        this.sseClient.on('fallback', () => {
+        this.sseClient.on('fallback', async () => {
           this.logger.info('Falling back to HTTP polling for chat');
           this.pollingClient = new YouTubeChatPollingClient(this.logger, {
             liveChatId,
@@ -416,7 +416,13 @@ export class YouTubeStrategy extends EventEmitter
             this.logger.error('Polling client error:', error);
           });
 
-          this.pollingClient.connect();
+          try {
+            await this.pollingClient.connect();
+            this.logger.info(`Polling client connected for chat: ${liveChatId}`);
+            this.emit('chatConnected', { platform: 'youtube', channelId: channel.id });
+          } catch (error) {
+            this.logger.error('Failed to connect polling client:', error);
+          }
         });
 
         this.sseClient.on('message', (message: YouTubeLiveChatMessage) => {
