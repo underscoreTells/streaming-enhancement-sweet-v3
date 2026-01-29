@@ -365,13 +365,17 @@ export class YouTubeStrategy extends EventEmitter
 
       this.currentLiveChatId = liveChatId;
 
+      if (!this.currentUsername) {
+        this.logger.error('Cannot subscribe to chat: currentUsername is not set');
+        throw new Error('Username must be set before subscribing to chat. Set it via config or during subscription.');
+      }
+
       this.eventHandler = new YouTubeEventHandler(this.logger);
       const handlers = createEventHandlers(this.logger);
       for (const [eventType, handler] of handlers.entries()) {
         this.eventHandler.register(eventType, handler);
       }
 
-      if (this.currentUsername) {
         const tokenSet = await this.oauth.getAccessToken(this.currentUsername);
         const sseConfig = {
           liveChatId,
@@ -397,30 +401,31 @@ export class YouTubeStrategy extends EventEmitter
         });
 
         this.sseClient.on('fallback', async () => {
-          this.logger.info('Falling back to HTTP polling for chat');
-          this.pollingClient = new YouTubeChatPollingClient(this.logger, {
-            liveChatId,
-            accessToken: tokenSet.access_token,
-            initialPollInterval: 5000,
-          });
-
-          this.pollingClient.on('stateChanged', (data: any) => {
-            this.logger.debug(`Polling client state: ${data.newState}`);
-          });
-
-          this.pollingClient.on('message', (message: YouTubeLiveChatMessage) => {
-            this.handleChatMessage(message).catch((error) => {
-              this.logger.error('Error handling chat message from fallback polling client:', error);
+          try {
+            this.logger.info('Falling back to HTTP polling for chat');
+            this.pollingClient = new YouTubeChatPollingClient(this.logger, {
+              liveChatId,
+              accessToken: tokenSet.access_token,
+              initialPollInterval: 5000,
             });
-          });
 
-          this.pollingClient.on('error', (error) => {
-            this.logger.error('Polling client error:', error);
-          });
+            this.pollingClient.on('stateChanged', (data: any) => {
+              this.logger.debug(`Polling client state: ${data.newState}`);
+            });
 
-          await this.pollingClient.connect();
-          this.logger.info(`Polling client connected for chat: ${liveChatId}`);
-          this.emit('chatConnected', { platform: 'youtube', channelId: channel.id });
+            this.pollingClient.on('message', (message: YouTubeLiveChatMessage) => {
+              this.handleChatMessage(message).catch((error) => {
+                this.logger.error('Error handling chat message from fallback polling client:', error);
+              });
+            });
+
+            this.pollingClient.on('error', (error) => {
+              this.logger.error('Polling client error:', error);
+            });
+
+            await this.pollingClient.connect();
+            this.logger.info(`Polling client connected for chat: ${liveChatId}`);
+            this.emit('chatConnected', { platform: 'youtube', channelId: channel.id });
           } catch (error) {
             this.logger.error('Failed to connect polling client:', error);
           }
@@ -464,7 +469,6 @@ export class YouTubeStrategy extends EventEmitter
           this.logger.info(`Polling client connected for chat: ${liveChatId}`);
           this.emit('chatConnected', { platform: 'youtube', channelId: channel.id });
         }
-      }
 
       this.logger.info(`Subscribed to chat: ${liveChatId} for channel ${channel.id}`);
     } catch (error) {
